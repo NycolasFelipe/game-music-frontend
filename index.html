@@ -3,7 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game Music</title>
+    <title>Music Tycoon</title>
+    <meta name="description" content="Simulador de Produção Musical" />
+    <script>
+      // Apply the persisted color scheme before first paint (no flash).
+      (function () {
+        try {
+          var v = localStorage.getItem("mantine-color-scheme-value");
+          if (v === "dark" || v === "light") {
+            document.documentElement.setAttribute(
+              "data-mantine-color-scheme",
+              v,
+            );
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
