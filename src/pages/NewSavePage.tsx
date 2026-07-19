@@ -134,6 +134,19 @@ export function NewSavePage() {
     });
   }
 
+  function selectRandomMembers() {
+    if (candidates.length === 0) return;
+    const pool = [...candidates];
+    for (let i = pool.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const count =
+      MIN_MEMBERS + Math.floor(Math.random() * (MAX_MEMBERS - MIN_MEMBERS + 1));
+    const chosen = pool.slice(0, Math.min(count, pool.length));
+    setSelected(new Set(chosen.map((c) => c.id)));
+  }
+
   function randomizeBand() {
     if (!options) return;
     setTheme(randomItem(options.themes).id);
@@ -318,13 +331,23 @@ export function NewSavePage() {
             <Text>
               Selecionados: {selected.size}/{MAX_MEMBERS} (mínimo {MIN_MEMBERS})
             </Text>
-            <Button
-              variant="light"
-              onClick={rollCandidates}
-              loading={generateCandidates.isPending}
-            >
-              Gerar novos candidatos
-            </Button>
+            <Group gap="xs">
+              <Button
+                variant="light"
+                leftSection={<IconWand size={16} />}
+                onClick={selectRandomMembers}
+                disabled={candidates.length === 0}
+              >
+                Selecionar aleatoriamente
+              </Button>
+              <Button
+                variant="default"
+                onClick={rollCandidates}
+                loading={generateCandidates.isPending}
+              >
+                Gerar novos candidatos
+              </Button>
+            </Group>
           </Group>
 
           {generateCandidates.isPending && <Loader />}
