@@ -16,7 +16,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconDice, IconSettings } from "@tabler/icons-react";
+import { IconDice, IconSettings, IconWand } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import {
@@ -39,6 +39,11 @@ import { ApiError } from "@/services/http";
 const CANDIDATE_COUNT = 9;
 const MIN_MEMBERS = 3;
 const MAX_MEMBERS = 6;
+
+/** Uniformly picks one item from a non-empty array. */
+function randomItem<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
 
 /** Guided create-save wizard: band data → pick candidates → review & create. */
 export function NewSavePage() {
@@ -129,6 +134,14 @@ export function NewSavePage() {
     });
   }
 
+  function randomizeBand() {
+    if (!options) return;
+    setTheme(randomItem(options.themes).id);
+    setOrigin(randomItem(options.origins).id);
+    setYear(String(randomItem(options.foundationYears)));
+    generateWith(nameOptions);
+  }
+
   function generateWith(options: GenerateNameOptions) {
     generateName.mutate(
       { ...options, count: 1 },
@@ -205,6 +218,15 @@ export function NewSavePage() {
 
       {step === 0 && (
         <Stack maw={420}>
+          <Button
+            variant="light"
+            leftSection={<IconWand size={16} />}
+            onClick={randomizeBand}
+            disabled={!options}
+          >
+            Gerar aleatoriamente
+          </Button>
+
           <Group align="flex-end" gap="xs">
             <TextInput
               label="Nome da banda"
