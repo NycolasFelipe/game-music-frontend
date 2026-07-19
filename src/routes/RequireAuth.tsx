@@ -1,0 +1,8 @@
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/features/auth";
+
+/** Route guard: renders child routes only when authenticated. */
+export function RequireAuth() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+}
