@@ -210,7 +210,12 @@ export function NewSavePage() {
         </Group>
       </Modal>
 
-      <Stepper active={step} onStepClick={setStep} mb="xl">
+      <Stepper
+        active={step}
+        onStepClick={setStep}
+        allowNextStepsSelect={false}
+        mb="xl"
+      >
         <Stepper.Step label="Banda" description="Dados da banda" />
         <Stepper.Step label="Integrantes" description="Escolha 3 a 6" />
         <Stepper.Step label="Revisão" description="Criar save" />
