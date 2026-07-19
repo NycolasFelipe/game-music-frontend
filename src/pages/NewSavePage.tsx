@@ -182,6 +182,7 @@ export function NewSavePage() {
         name: c.name,
         age: c.age,
         gender: c.gender,
+        avatar: c.avatar,
         happiness: c.happiness,
         characteristics: c.characteristics,
         skills: c.skills,

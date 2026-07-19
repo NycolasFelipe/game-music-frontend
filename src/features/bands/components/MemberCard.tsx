@@ -9,6 +9,7 @@ export interface MemberCardData {
   name: string;
   age: number;
   gender: string;
+  avatar: string;
   happiness?: number;
   primarySkill: string;
   skills: Skills;
@@ -49,12 +50,17 @@ export function MemberCard({
     >
       <Stack gap="xs">
         <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <div>
-            <Text fw={600}>{member.name}</Text>
-            <Text size="xs" c="dimmed">
-              {member.age} anos · {genderLabel(member.gender)}
+          <Group gap="sm" wrap="nowrap" align="center">
+            <Text fz={30} lh={1}>
+              {member.avatar}
             </Text>
-          </div>
+            <div>
+              <Text fw={600}>{member.name}</Text>
+              <Text size="xs" c="dimmed">
+                {member.age} anos · {genderLabel(member.gender)}
+              </Text>
+            </div>
+          </Group>
           {actions}
         </Group>
 

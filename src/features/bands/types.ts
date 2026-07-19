@@ -40,6 +40,7 @@ export interface BandMember {
   name: string;
   age: number;
   gender: string;
+  avatar: string;
   happiness: number;
   characteristics: string[];
   skills: Skills;
@@ -66,6 +67,7 @@ export interface CreateBandMemberSeed {
   name: string;
   age: number;
   gender: string;
+  avatar: string;
   happiness: number;
   characteristics: string[];
   skills: Skills;
@@ -92,6 +94,7 @@ export interface MemberCandidate {
   name: string;
   age: number;
   gender: string;
+  avatar: string;
   happiness: number;
   characteristics: string[];
   skills: Skills;
