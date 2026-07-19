@@ -1,6 +1,8 @@
 /** Public API of the bands feature. */
+export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";
 export { MemberCard } from "@/features/bands/components/MemberCard";
 export { bandKeys, useBand, useBands } from "@/features/bands/hooks/useBands";
+export { useDeleteBand } from "@/features/bands/hooks/useDeleteBand";
 export {
   catalogKeys,
   useBandOptions,

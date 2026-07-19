@@ -4,6 +4,7 @@ import {
   Container,
   Group,
   Loader,
+  Modal,
   Select,
   SimpleGrid,
   Stack,
@@ -12,8 +13,8 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useBlocker, useNavigate } from "react-router-dom";
 import {
   MemberCard,
   useBandOptions,
@@ -50,6 +51,34 @@ export function NewSavePage() {
   const [year, setYear] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<MemberCandidate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // The creation is "in progress" once any choice has been made. A successful
+  // create sets `savedRef` so the guard lets us navigate into the new save.
+  const savedRef = useRef(false);
+  const hasProgress =
+    step > 0 ||
+    name.trim() !== "" ||
+    theme !== null ||
+    origin !== null ||
+    year !== null ||
+    candidates.length > 0;
+
+  // `savedRef` is read live inside the callback so the post-create navigation
+  // is never blocked, even though the ref change does not re-render.
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      hasProgress &&
+      !savedRef.current &&
+      currentLocation.pathname !== nextLocation.pathname,
+  );
+
+  // Guard the browser tab close / refresh while a creation is in progress.
+  useEffect(() => {
+    if (!hasProgress) return;
+    const handler = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasProgress]);
 
   const catalog = useMemo(
     () =>
@@ -114,7 +143,12 @@ export function NewSavePage() {
 
     createBand.mutate(
       { name: name.trim(), theme, origin, foundationYear, members },
-      { onSuccess: (band) => navigate(`/bands/${band.id}`) },
+      {
+        onSuccess: (band) => {
+          savedRef.current = true;
+          navigate(`/bands/${band.id}`);
+        },
+      },
     );
   }
 
@@ -126,6 +160,26 @@ export function NewSavePage() {
           Cancelar
         </Button>
       </Group>
+
+      <Modal
+        opened={blocker.state === "blocked"}
+        onClose={() => blocker.reset?.()}
+        title="Descartar criação em andamento?"
+        centered
+      >
+        <Text size="sm">
+          Você tem uma criação de banda em andamento. Se sair agora, o progresso
+          será perdido.
+        </Text>
+        <Group justify="flex-end" mt="lg">
+          <Button variant="default" onClick={() => blocker.reset?.()}>
+            Continuar criando
+          </Button>
+          <Button color="red" onClick={() => blocker.proceed?.()}>
+            Descartar e sair
+          </Button>
+        </Group>
+      </Modal>
 
       <Stepper active={step} onStepClick={setStep} mb="xl">
         <Stepper.Step label="Banda" description="Dados da banda" />

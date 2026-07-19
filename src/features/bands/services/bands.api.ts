@@ -23,6 +23,11 @@ export function createBand(input: CreateBandInput): Promise<BandDetail> {
   return http.post<BandDetail>("/bands", input);
 }
 
+/** Deletes a band (save) and everything it owns (cascade). */
+export function deleteBand(id: string): Promise<void> {
+  return http.del<void>(`/bands/${id}`);
+}
+
 /** Asks the backend for a random band-name suggestion. */
 export function generateBandName(): Promise<{ name: string }> {
   return http.get<{ name: string }>("/bands/generate-name");

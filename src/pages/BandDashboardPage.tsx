@@ -10,8 +10,9 @@ import {
   Title,
 } from "@mantine/core";
 import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
+  DeleteBandButton,
   MemberCard,
   useBand,
   useBandOptions,
@@ -23,6 +24,7 @@ import { formatPeriod } from "@/utils/period";
 /** The "continue save" screen: a band's current state and its members. */
 export function BandDashboardPage() {
   const { bandId = "" } = useParams();
+  const navigate = useNavigate();
   const { data: band, isLoading, isError } = useBand(bandId);
   const { data: characteristics } = useCharacteristics();
   const { data: options } = useBandOptions();
@@ -37,9 +39,19 @@ export function BandDashboardPage() {
 
   return (
     <Container py="xl" size="lg">
-      <Anchor component={Link} to="/" size="sm">
-        ← Voltar aos saves
-      </Anchor>
+      <Group justify="space-between">
+        <Anchor component={Link} to="/" size="sm">
+          ← Voltar aos saves
+        </Anchor>
+        {band && (
+          <DeleteBandButton
+            mode="button"
+            bandId={band.id}
+            bandName={band.name}
+            onDeleted={() => navigate("/")}
+          />
+        )}
+      </Group>
 
       {isLoading && <Loader mt="md" />}
       {isError && (

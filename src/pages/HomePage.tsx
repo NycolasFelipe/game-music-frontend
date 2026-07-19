@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { useCurrentUser } from "@/features/auth";
-import { useBandOptions, useBands } from "@/features/bands";
+import { DeleteBandButton, useBandOptions, useBands } from "@/features/bands";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPeriod } from "@/utils/period";
 
@@ -61,11 +61,14 @@ export function HomePage() {
           {bands.map((band) => (
             <Card key={band.id} withBorder padding="lg">
               <Stack gap="xs">
-                <Group justify="space-between" wrap="nowrap">
+                <Group justify="space-between" wrap="nowrap" align="flex-start">
                   <Text fw={600} size="lg">
                     {band.name}
                   </Text>
-                  <Badge variant="light">{themeLabel(band.theme)}</Badge>
+                  <Group gap="xs" wrap="nowrap">
+                    <Badge variant="light">{themeLabel(band.theme)}</Badge>
+                    <DeleteBandButton bandId={band.id} bandName={band.name} />
+                  </Group>
                 </Group>
                 <Text size="sm" c="dimmed">
                   {formatPeriod(band.currentYear)}

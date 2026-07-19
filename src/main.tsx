@@ -3,15 +3,12 @@ import { Notifications } from "@mantine/notifications";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import { App } from "@/App";
+import { RouterProvider } from "react-router-dom";
 import { useAuthStore } from "@/features/auth";
 import { theme } from "@/lib/theme";
+import { router } from "@/routes/router";
 import { queryClient } from "@/services/queryClient";
-import {
-  setAuthTokenGetter,
-  setUnauthorizedHandler,
-} from "@/services/http";
+import { setAuthTokenGetter, setUnauthorizedHandler } from "@/services/http";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 
@@ -26,13 +23,11 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={theme} defaultColorScheme="auto">
-          <Notifications />
-          <App />
-        </MantineProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider theme={theme} defaultColorScheme="auto">
+        <Notifications />
+        <RouterProvider router={router} />
+      </MantineProvider>
+    </QueryClientProvider>
   </StrictMode>,
 );
