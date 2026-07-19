@@ -1,0 +1,29 @@
+import { useQuery } from "@tanstack/react-query";
+import {
+  getBandOptions,
+  listCharacteristics,
+} from "@/features/bands/services/bands.api";
+
+/** Static catalog query keys. */
+export const catalogKeys = {
+  options: ["bands", "options"] as const,
+  characteristics: ["band-members", "characteristics"] as const,
+};
+
+/** Band creation options (themes/origins/decades) from the backend. */
+export function useBandOptions() {
+  return useQuery({
+    queryKey: catalogKeys.options,
+    queryFn: getBandOptions,
+    staleTime: Infinity,
+  });
+}
+
+/** The characteristic (trait) catalog from the backend. */
+export function useCharacteristics() {
+  return useQuery({
+    queryKey: catalogKeys.characteristics,
+    queryFn: listCharacteristics,
+    staleTime: Infinity,
+  });
+}

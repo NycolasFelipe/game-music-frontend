@@ -1,3 +1,27 @@
 /** Public API of the bands feature. */
-export { bandKeys, useBands } from "@/features/bands/hooks/useBands";
-export type { Band, Fame } from "@/features/bands/types";
+export { MemberCard } from "@/features/bands/components/MemberCard";
+export { bandKeys, useBand, useBands } from "@/features/bands/hooks/useBands";
+export {
+  catalogKeys,
+  useBandOptions,
+  useCharacteristics,
+} from "@/features/bands/hooks/useBandOptions";
+export { useCreateBand } from "@/features/bands/hooks/useCreateBand";
+export {
+  useGenerateBandName,
+  useGenerateCandidates,
+} from "@/features/bands/hooks/useGenerateCandidates";
+export { SKILL_LABELS, SKILL_ORDER } from "@/features/bands/labels";
+export type {
+  Band,
+  BandDetail,
+  BandMember,
+  BandOptions,
+  Characteristic,
+  CreateBandInput,
+  CreateBandMemberSeed,
+  Fame,
+  MemberCandidate,
+  MemberRelationship,
+  Skills,
+} from "@/features/bands/types";

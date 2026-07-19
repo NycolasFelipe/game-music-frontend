@@ -13,7 +13,7 @@ export function LoginPage() {
           <Title order={3} ta="center">
             Game Music
           </Title>
-          <LoginForm onSuccess={() => navigate("/bands")} />
+          <LoginForm onSuccess={() => navigate("/")} />
         </Stack>
       </Card>
     </Center>
