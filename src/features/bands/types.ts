@@ -119,3 +119,17 @@ export interface Characteristic {
   description: string;
   category: string;
 }
+
+/** Languages supported by the band-name generator. */
+export type NameLanguage = "pt" | "en" | "es";
+
+/** Genre hints supported by the band-name generator. */
+export type NameGenre = "rock" | "metal" | "electronic" | "punk";
+
+/** Options sent to the band-name generator endpoint. */
+export interface GenerateNameOptions {
+  language?: NameLanguage;
+  includeArticle?: boolean;
+  genre?: NameGenre;
+  count?: number;
+}

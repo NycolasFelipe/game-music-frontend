@@ -4,6 +4,7 @@ import type {
   BandOptions,
   Characteristic,
   CreateBandInput,
+  GenerateNameOptions,
   MemberCandidate,
 } from "@/features/bands/types";
 import { http } from "@/services/http";
@@ -28,9 +29,11 @@ export function deleteBand(id: string): Promise<void> {
   return http.del<void>(`/bands/${id}`);
 }
 
-/** Asks the backend for a random band-name suggestion. */
-export function generateBandName(): Promise<{ name: string }> {
-  return http.get<{ name: string }>("/bands/generate-name");
+/** Asks the backend for band-name suggestions (language/article/genre). */
+export function generateBandNames(
+  options: GenerateNameOptions,
+): Promise<{ names: string[] }> {
+  return http.post<{ names: string[] }>("/bands/generate-name", options);
 }
 
 /** Lists band creation options (themes, origins, decades) with labels. */

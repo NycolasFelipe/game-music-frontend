@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Alert,
   Button,
   Container,
@@ -12,20 +13,25 @@ import {
   Text,
   TextInput,
   Title,
+  Tooltip,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { IconDice, IconSettings } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import {
+  BandNameConfigModal,
   MemberCard,
   useBandOptions,
   useCharacteristics,
   useCreateBand,
-  useGenerateBandName,
+  useGenerateBandNames,
   useGenerateCandidates,
 } from "@/features/bands";
 import type {
   Characteristic,
   CreateBandMemberSeed,
+  GenerateNameOptions,
   MemberCandidate,
 } from "@/features/bands";
 import { ApiError } from "@/services/http";
@@ -40,9 +46,10 @@ export function NewSavePage() {
   const { data: options } = useBandOptions();
   const { data: characteristics } = useCharacteristics();
 
-  const generateName = useGenerateBandName();
+  const generateName = useGenerateBandNames();
   const generateCandidates = useGenerateCandidates();
   const createBand = useCreateBand();
+  const [nameModalOpened, nameModal] = useDisclosure(false);
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
@@ -51,6 +58,10 @@ export function NewSavePage() {
   const [year, setYear] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<MemberCandidate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [nameOptions, setNameOptions] = useState<GenerateNameOptions>({
+    language: "pt",
+    includeArticle: true,
+  });
 
   // The creation is "in progress" once any choice has been made. A successful
   // create sets `savedRef` so the guard lets us navigate into the new save.
@@ -118,10 +129,15 @@ export function NewSavePage() {
     });
   }
 
-  function suggestName() {
-    generateName.mutate(undefined, {
-      onSuccess: (data) => setName(data.name),
-    });
+  function generateWith(options: GenerateNameOptions) {
+    generateName.mutate(
+      { ...options, count: 1 },
+      {
+        onSuccess: (data) => {
+          if (data.names[0]) setName(data.names[0]);
+        },
+      },
+    );
   }
 
   function create() {
@@ -196,13 +212,27 @@ export function NewSavePage() {
               onChange={(e) => setName(e.currentTarget.value)}
               flex={1}
             />
-            <Button
-              variant="light"
-              onClick={suggestName}
-              loading={generateName.isPending}
-            >
-              Gerar
-            </Button>
+            <Tooltip label="Gerar nome">
+              <ActionIcon
+                variant="default"
+                size="lg"
+                onClick={() => generateWith(nameOptions)}
+                loading={generateName.isPending}
+                aria-label="Gerar nome"
+              >
+                <IconDice size={18} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Configurar geração">
+              <ActionIcon
+                variant="default"
+                size="lg"
+                onClick={nameModal.open}
+                aria-label="Configurar geração de nomes"
+              >
+                <IconSettings size={18} />
+              </ActionIcon>
+            </Tooltip>
           </Group>
           <Select
             label="Estilo"
@@ -242,6 +272,17 @@ export function NewSavePage() {
             </Button>
           </Group>
         </Stack>
+      )}
+
+      {nameModalOpened && (
+        <BandNameConfigModal
+          onClose={nameModal.close}
+          currentOptions={nameOptions}
+          onGenerate={(options) => {
+            setNameOptions(options);
+            generateWith(options);
+          }}
+        />
       )}
 
       {step === 1 && (

@@ -1,4 +1,5 @@
 /** Public API of the bands feature. */
+export { BandNameConfigModal } from "@/features/bands/components/BandNameConfigModal";
 export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";
 export { MemberCard } from "@/features/bands/components/MemberCard";
 export { bandKeys, useBand, useBands } from "@/features/bands/hooks/useBands";
@@ -10,7 +11,7 @@ export {
 } from "@/features/bands/hooks/useBandOptions";
 export { useCreateBand } from "@/features/bands/hooks/useCreateBand";
 export {
-  useGenerateBandName,
+  useGenerateBandNames,
   useGenerateCandidates,
 } from "@/features/bands/hooks/useGenerateCandidates";
 export { SKILL_LABELS, SKILL_ORDER } from "@/features/bands/labels";
@@ -23,6 +24,7 @@ export type {
   CreateBandInput,
   CreateBandMemberSeed,
   Fame,
+  GenerateNameOptions,
   MemberCandidate,
   MemberRelationship,
   Skills,
