@@ -1,8 +1,7 @@
-import { Badge, Card, Group, Stack, Text } from "@mantine/core";
+import { Card, Group, Stack, Text } from "@mantine/core";
 import type { ReactNode } from "react";
 import { CharacteristicChips } from "@/features/bands/components/CharacteristicChips";
 import { SkillBars } from "@/features/bands/components/SkillBars";
-import { SKILL_LABELS } from "@/features/bands/labels";
 import type { Characteristic, Skills } from "@/features/bands/types";
 
 /** The shape shared by generated candidates and persisted members. */
@@ -37,9 +36,6 @@ export function MemberCard({
   onToggle?: () => void;
   actions?: ReactNode;
 }) {
-  const primaryLabel =
-    SKILL_LABELS[member.primarySkill as keyof Skills] ?? member.primarySkill;
-
   return (
     <Card
       withBorder
@@ -59,10 +55,7 @@ export function MemberCard({
               {member.age} anos · {genderLabel(member.gender)}
             </Text>
           </div>
-          <Group gap="xs">
-            <Badge>{primaryLabel}</Badge>
-            {actions}
-          </Group>
+          {actions}
         </Group>
 
         <CharacteristicChips ids={member.characteristics} catalog={catalog} />
@@ -71,7 +64,7 @@ export function MemberCard({
           {member.biography}
         </Text>
 
-        <SkillBars skills={member.skills} />
+        <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
       </Stack>
     </Card>
   );
