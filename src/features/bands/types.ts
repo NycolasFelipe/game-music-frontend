@@ -118,6 +118,7 @@ export interface Characteristic {
   name: string;
   description: string;
   category: string;
+  rarity: string;
 }
 
 /** Languages supported by the band-name generator. */
