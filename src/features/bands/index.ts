@@ -2,6 +2,7 @@
 export { BandNameConfigModal } from "@/features/bands/components/BandNameConfigModal";
 export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";
 export { MemberCard } from "@/features/bands/components/MemberCard";
+export { MemberEditModal } from "@/features/bands/components/MemberEditModal";
 export { bandKeys, useBand, useBands } from "@/features/bands/hooks/useBands";
 export { useDeleteBand } from "@/features/bands/hooks/useDeleteBand";
 export {

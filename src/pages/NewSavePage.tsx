@@ -16,12 +16,18 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconDice, IconSettings, IconWand } from "@tabler/icons-react";
+import {
+  IconDice,
+  IconPencil,
+  IconSettings,
+  IconWand,
+} from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import {
   BandNameConfigModal,
   MemberCard,
+  MemberEditModal,
   useBandOptions,
   useCharacteristics,
   useCreateBand,
@@ -67,6 +73,7 @@ export function NewSavePage() {
     language: "pt",
     includeArticle: true,
   });
+  const [editing, setEditing] = useState<MemberCandidate | null>(null);
 
   // The creation is "in progress" once any choice has been made. A successful
   // create sets `savedRef` so the guard lets us navigate into the new save.
@@ -325,6 +332,20 @@ export function NewSavePage() {
         />
       )}
 
+      {editing && (
+        <MemberEditModal
+          candidate={editing}
+          characteristics={characteristics ?? []}
+          onClose={() => setEditing(null)}
+          onSave={(updated) => {
+            setCandidates((cs) =>
+              cs.map((c) => (c.id === updated.id ? updated : c)),
+            );
+            setEditing(null);
+          }}
+        />
+      )}
+
       {step === 1 && (
         <Stack>
           <Group justify="space-between">
@@ -363,6 +384,19 @@ export function NewSavePage() {
                 catalog={catalog}
                 selected={selected.has(candidate.id)}
                 onToggle={() => toggle(candidate.id)}
+                actions={
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    aria-label="Editar integrante"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setEditing(candidate);
+                    }}
+                  >
+                    <IconPencil size={16} />
+                  </ActionIcon>
+                }
               />
             ))}
           </SimpleGrid>
