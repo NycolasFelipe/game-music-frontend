@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { AppLayout } from "@/components/AppLayout";
 import { BandDashboardPage } from "@/pages/BandDashboardPage";
 import { HomePage } from "@/pages/HomePage";
 import { LoginPage } from "@/pages/LoginPage";
@@ -11,9 +12,11 @@ export function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<RequireAuth />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/saves/new" element={<NewSavePage />} />
-        <Route path="/bands/:bandId" element={<BandDashboardPage />} />
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/saves/new" element={<NewSavePage />} />
+          <Route path="/bands/:bandId" element={<BandDashboardPage />} />
+        </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -120,9 +120,12 @@ export function NewSavePage() {
 
   return (
     <Container py="xl" size="lg">
-      <Title order={2} mb="lg">
-        Novo save
-      </Title>
+      <Group justify="space-between" mb="lg">
+        <Title order={2}>Novo save</Title>
+        <Button variant="subtle" color="gray" onClick={() => navigate("/")}>
+          Cancelar
+        </Button>
+      </Group>
 
       <Stepper active={step} onStepClick={setStep} mb="xl">
         <Stepper.Step label="Banda" description="Dados da banda" />

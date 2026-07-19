@@ -11,7 +11,7 @@ import {
   Title,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
-import { useAuth, useCurrentUser } from "@/features/auth";
+import { useCurrentUser } from "@/features/auth";
 import { useBandOptions, useBands } from "@/features/bands";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPeriod } from "@/utils/period";
@@ -19,7 +19,6 @@ import { formatPeriod } from "@/utils/period";
 /** Post-login home: user data + save history + continue / create a save. */
 export function HomePage() {
   const { data: user } = useCurrentUser();
-  const { logout } = useAuth();
   const { data: bands, isLoading, isError } = useBands();
   const { data: options } = useBandOptions();
 
@@ -28,17 +27,12 @@ export function HomePage() {
 
   return (
     <Container py="xl" size="md">
-      <Group justify="space-between" mb="xl">
-        <div>
-          <Title order={2}>Olá, {user?.username ?? "…"}</Title>
-          <Text size="sm" c="dimmed">
-            {user ? `ID: ${user.id}` : "Carregando usuário…"}
-          </Text>
-        </div>
-        <Button variant="subtle" color="gray" onClick={logout}>
-          Sair
-        </Button>
-      </Group>
+      <Stack gap={0} mb="xl">
+        <Title order={2}>Olá, {user?.username ?? "…"}</Title>
+        <Text size="sm" c="dimmed">
+          {user ? `ID: ${user.id}` : "Carregando usuário…"}
+        </Text>
+      </Stack>
 
       <Group justify="space-between" mb="md">
         <Title order={4}>Seus saves</Title>

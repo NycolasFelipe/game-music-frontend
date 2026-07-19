@@ -1,5 +1,6 @@
-import { Card, Center, Stack, Text, Title } from "@mantine/core";
+import { Box, Card, Center, Stack, Text, Title } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
+import { ColorSchemeToggle } from "@/components/ColorSchemeToggle";
 import { LoginForm } from "@/features/auth";
 import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
 
@@ -9,6 +10,9 @@ export function LoginPage() {
 
   return (
     <Center mih="100vh" p="md">
+      <Box style={{ position: "fixed", top: 12, right: 12 }}>
+        <ColorSchemeToggle />
+      </Box>
       <Card withBorder shadow="sm" w={360} padding="lg">
         <Stack>
           <div>
