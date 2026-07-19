@@ -121,6 +121,15 @@ export interface Characteristic {
   rarity: string;
 }
 
+/** A skill level paired with its flavor description. */
+export interface SkillLevelDescription {
+  level: number;
+  description: string;
+}
+
+/** Per-skill level descriptions keyed by skill id, from the backend. */
+export type SkillDescriptions = Record<string, SkillLevelDescription[]>;
+
 /** Languages supported by the band-name generator. */
 export type NameLanguage = "pt" | "en" | "es";
 

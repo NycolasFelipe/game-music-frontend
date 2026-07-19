@@ -66,11 +66,12 @@ export function MemberCard({
         </Group>
 
         <CharacteristicChips ids={member.characteristics} catalog={catalog} />
-        <SkillBars skills={member.skills} />
 
-        <Text size="xs" c="dimmed" lineClamp={3}>
+        <Text size="xs" c="dimmed">
           {member.biography}
         </Text>
+
+        <SkillBars skills={member.skills} />
       </Stack>
     </Card>
   );

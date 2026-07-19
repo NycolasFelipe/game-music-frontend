@@ -6,6 +6,7 @@ import type {
   CreateBandInput,
   GenerateNameOptions,
   MemberCandidate,
+  SkillDescriptions,
 } from "@/features/bands/types";
 import { http } from "@/services/http";
 
@@ -49,4 +50,9 @@ export function generateCandidates(count: number): Promise<MemberCandidate[]> {
 /** Lists the characteristic (trait) catalog with display data. */
 export function listCharacteristics(): Promise<Characteristic[]> {
   return http.get<Characteristic[]>("/band-members/characteristics");
+}
+
+/** Lists the per-skill level descriptions (flavor text per instrument level). */
+export function getSkillDescriptions(): Promise<SkillDescriptions> {
+  return http.get<SkillDescriptions>("/band-members/skill-descriptions");
 }

@@ -1,4 +1,5 @@
-import { Badge, Group, Tooltip } from "@mantine/core";
+import { Badge, Group } from "@mantine/core";
+import { SmartTooltip } from "@/components/SmartTooltip";
 import type { Characteristic } from "@/features/bands/types";
 
 /** Badge color per trait rarity (mirrors the original game). */
@@ -25,7 +26,7 @@ export function CharacteristicChips({
       {ids.map((id) => {
         const trait = catalog.get(id);
         return (
-          <Tooltip
+          <SmartTooltip
             key={id}
             label={trait?.description ?? id}
             multiline
@@ -40,7 +41,7 @@ export function CharacteristicChips({
             >
               {trait?.name ?? id}
             </Badge>
-          </Tooltip>
+          </SmartTooltip>
         );
       })}
     </Group>
