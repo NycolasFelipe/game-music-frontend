@@ -160,11 +160,9 @@ export function RelationshipGraph({
 
       {hovered?.info ? (
         <Text size="sm" ta="center">
-          {members[hovered.i].avatar} {firstName(members[hovered.i].name)}{" "}
           <Text span fw={600}>
             {hovered.info.emoji} {hovered.info.name}
           </Text>{" "}
-          {firstName(members[hovered.j].name)} {members[hovered.j].avatar}
           <Text size="xs" c="dimmed">
             {hovered.info.description}
           </Text>
