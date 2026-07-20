@@ -19,6 +19,8 @@ export interface Band {
   fanCount: number;
   fame: Fame;
   currentYear: number;
+  /** The band's cash balance (money). */
+  balance: number;
   createdAt: string;
   updatedAt: string;
 }

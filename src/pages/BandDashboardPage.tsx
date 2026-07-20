@@ -10,7 +10,12 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { IconChartBar, IconTimeline, IconUsers } from "@tabler/icons-react";
+import {
+  IconChartBar,
+  IconDisc,
+  IconTimeline,
+  IconUsers,
+} from "@tabler/icons-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -24,6 +29,7 @@ import {
   useRelationshipLevels,
 } from "@/features/bands";
 import type { Characteristic } from "@/features/bands";
+import { DiscographyTab } from "@/features/releases";
 import { useTurns } from "@/features/turns";
 import { BandTimelineTab } from "@/pages/BandTimelineTab";
 import { formatPeriod } from "@/utils/period";
@@ -90,6 +96,9 @@ export function BandDashboardPage() {
                 {band.fanCount.toLocaleString("pt-BR")} fãs ·{" "}
                 {formatPeriod(band.currentYear)}
               </Text>
+              <Badge size="lg" color="teal" variant="light">
+                💰 {band.balance.toLocaleString("pt-BR")} no caixa
+              </Badge>
             </Stack>
           </Group>
 
@@ -103,6 +112,9 @@ export function BandDashboardPage() {
               </Tabs.Tab>
               <Tabs.Tab value="members" leftSection={<IconUsers size={16} />}>
                 Integrantes
+              </Tabs.Tab>
+              <Tabs.Tab value="releases" leftSection={<IconDisc size={16} />}>
+                Discografia
               </Tabs.Tab>
               <Tabs.Tab value="stats" leftSection={<IconChartBar size={16} />}>
                 Estatísticas
@@ -141,6 +153,10 @@ export function BandDashboardPage() {
                   />
                 </div>
               </Stack>
+            </Tabs.Panel>
+
+            <Tabs.Panel value="releases" pt="lg">
+              <DiscographyTab band={band} />
             </Tabs.Panel>
 
             <Tabs.Panel value="stats" pt="lg">
