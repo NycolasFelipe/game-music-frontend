@@ -10,7 +10,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { IconChartBar, IconUsers } from "@tabler/icons-react";
+import { IconChartBar, IconTimeline, IconUsers } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -25,6 +25,7 @@ import {
 } from "@/features/bands";
 import type { Characteristic } from "@/features/bands";
 import { useTurns } from "@/features/turns";
+import { BandTimelineTab } from "@/pages/BandTimelineTab";
 import { formatPeriod } from "@/utils/period";
 
 /** The "continue save" screen: the band's state across tabbed views. */
@@ -92,8 +93,14 @@ export function BandDashboardPage() {
             </Stack>
           </Group>
 
-          <Tabs defaultValue="members" mt="md">
+          <Tabs defaultValue="overview" mt="md">
             <Tabs.List>
+              <Tabs.Tab
+                value="overview"
+                leftSection={<IconTimeline size={16} />}
+              >
+                Visão geral
+              </Tabs.Tab>
               <Tabs.Tab value="members" leftSection={<IconUsers size={16} />}>
                 Integrantes
               </Tabs.Tab>
@@ -101,6 +108,10 @@ export function BandDashboardPage() {
                 Estatísticas
               </Tabs.Tab>
             </Tabs.List>
+
+            <Tabs.Panel value="overview" pt="lg">
+              <BandTimelineTab band={band} />
+            </Tabs.Panel>
 
             <Tabs.Panel value="members" pt="lg">
               <Stack gap="xl">
