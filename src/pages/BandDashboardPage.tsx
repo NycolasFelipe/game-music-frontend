@@ -14,6 +14,7 @@ import { IconChartBar, IconUsers } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
+  BandStatistics,
   DeleteBandButton,
   MemberCard,
   RelationshipsView,
@@ -23,6 +24,7 @@ import {
   useRelationshipLevels,
 } from "@/features/bands";
 import type { Characteristic } from "@/features/bands";
+import { useTurns } from "@/features/turns";
 import { formatPeriod } from "@/utils/period";
 
 /** The "continue save" screen: the band's state across tabbed views. */
@@ -33,6 +35,7 @@ export function BandDashboardPage() {
   const { data: characteristics } = useCharacteristics();
   const { data: options } = useBandOptions();
   const { data: relationshipLevels } = useRelationshipLevels();
+  const { data: turns } = useTurns(bandId);
 
   const catalog = useMemo(
     () =>
@@ -94,11 +97,7 @@ export function BandDashboardPage() {
               <Tabs.Tab value="members" leftSection={<IconUsers size={16} />}>
                 Integrantes
               </Tabs.Tab>
-              <Tabs.Tab
-                value="stats"
-                leftSection={<IconChartBar size={16} />}
-                disabled
-              >
+              <Tabs.Tab value="stats" leftSection={<IconChartBar size={16} />}>
                 Estatísticas
               </Tabs.Tab>
             </Tabs.List>
@@ -131,6 +130,10 @@ export function BandDashboardPage() {
                   />
                 </div>
               </Stack>
+            </Tabs.Panel>
+
+            <Tabs.Panel value="stats" pt="lg">
+              <BandStatistics band={band} turns={turns ?? []} />
             </Tabs.Panel>
           </Tabs>
         </Stack>
