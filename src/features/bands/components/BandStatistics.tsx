@@ -1,7 +1,5 @@
 import { Box, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -11,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { BandTrends } from "@/features/bands/components/BandTrends";
 import { SKILL_LABELS, SKILL_ORDER } from "@/features/bands/labels";
 import type { BandDetail, Skills } from "@/features/bands/types";
 import { formatPeriod } from "@/utils/period";
@@ -21,13 +20,12 @@ interface TurnPoint {
   period: string;
   fanCount: number;
   balance?: number | null;
+  happinessAvg?: number | null;
+  relationshipAvg?: number | null;
 }
 
 const mean = (values: number[]) =>
   values.length ? values.reduce((sum, v) => sum + v, 0) / values.length : 0;
-
-const compactYear = (year: number) =>
-  `${Math.floor(year)}${year % 1 ? "½" : ""}`;
 
 function StatTile({
   label,
@@ -59,7 +57,6 @@ interface TooltipEntry {
   name?: string;
   value?: number | string;
   dataKey?: string | number;
-  payload?: Record<string, unknown>;
 }
 
 function ChartTooltip({
@@ -92,7 +89,7 @@ function ChartTooltip({
 const axisTick = { fill: "var(--mantine-color-dimmed)", fontSize: 11 };
 const gridStroke = "var(--mantine-color-default-border)";
 
-/** Statistics tab: headline tiles, fan growth over time, and skill profile. */
+/** Statistics tab: headline tiles, time-series trends, and skill profile. */
 export function BandStatistics({
   band,
   turns,
@@ -108,20 +105,6 @@ export function BandStatistics({
     skill: SKILL_LABELS[key],
     value: Number(mean(band.members.map((m) => m.skills[key])).toFixed(1)),
   }));
-
-  const fanData = turns.map((t) => ({
-    label: compactYear(t.year),
-    period: t.period,
-    fans: t.fanCount,
-  }));
-
-  const moneyData = turns
-    .filter((t): t is TurnPoint & { balance: number } => t.balance != null)
-    .map((t) => ({
-      label: compactYear(t.year),
-      period: t.period,
-      balance: t.balance,
-    }));
 
   return (
     <Stack gap="xl">
@@ -149,123 +132,9 @@ export function BandStatistics({
 
       <div>
         <Title order={5} mb="sm">
-          Evolução de fãs
+          Evolução ao longo do tempo
         </Title>
-        {fanData.length >= 1 ? (
-          <Box h={240}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={fanData}
-                margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
-              >
-                <defs>
-                  <linearGradient id="fansFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stopColor="var(--mantine-color-teal-6)"
-                      stopOpacity={0.35}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="var(--mantine-color-teal-6)"
-                      stopOpacity={0.02}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={gridStroke} vertical={false} />
-                <XAxis dataKey="label" tick={axisTick} tickMargin={8} />
-                <YAxis
-                  tick={axisTick}
-                  width={44}
-                  allowDecimals={false}
-                  tickFormatter={(v: number) => v.toLocaleString("pt-BR")}
-                />
-                <Tooltip
-                  content={<ChartTooltip />}
-                  labelFormatter={(_label, payload) =>
-                    (payload?.[0]?.payload as { period?: string })?.period ??
-                    _label
-                  }
-                  cursor={{ stroke: gridStroke }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="fans"
-                  name="Fãs"
-                  stroke="var(--mantine-color-teal-6)"
-                  strokeWidth={2}
-                  fill="url(#fansFill)"
-                  dot={fanData.length <= 12}
-                  activeDot={{ r: 4 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </Box>
-        ) : (
-          <Text size="sm" c="dimmed">
-            Avance turnos para acompanhar a evolução dos fãs.
-          </Text>
-        )}
-      </div>
-
-      <div>
-        <Title order={5} mb="sm">
-          Evolução do caixa
-        </Title>
-        {moneyData.length >= 1 ? (
-          <Box h={240}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={moneyData}
-                margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
-              >
-                <defs>
-                  <linearGradient id="moneyFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="0%"
-                      stopColor="var(--mantine-color-lime-6)"
-                      stopOpacity={0.35}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="var(--mantine-color-lime-6)"
-                      stopOpacity={0.02}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={gridStroke} vertical={false} />
-                <XAxis dataKey="label" tick={axisTick} tickMargin={8} />
-                <YAxis
-                  tick={axisTick}
-                  width={56}
-                  tickFormatter={(v: number) => v.toLocaleString("pt-BR")}
-                />
-                <Tooltip
-                  content={<ChartTooltip />}
-                  labelFormatter={(_label, payload) =>
-                    (payload?.[0]?.payload as { period?: string })?.period ??
-                    _label
-                  }
-                  cursor={{ stroke: gridStroke }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="balance"
-                  name="Caixa"
-                  stroke="var(--mantine-color-lime-6)"
-                  strokeWidth={2}
-                  fill="url(#moneyFill)"
-                  dot={moneyData.length <= 12}
-                  activeDot={{ r: 4 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </Box>
-        ) : (
-          <Text size="sm" c="dimmed">
-            Avance turnos para acompanhar a evolução do caixa.
-          </Text>
-        )}
+        <BandTrends turns={turns} />
       </div>
 
       <div>

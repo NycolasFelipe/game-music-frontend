@@ -5,6 +5,10 @@ export interface Turn {
   fanCount: number;
   /** Cash balance captured after this turn (null for untracked older turns). */
   balance: number | null;
+  /** Average member happiness captured this turn (null when untracked). */
+  happinessAvg: number | null;
+  /** Average relationship level captured this turn (null when untracked). */
+  relationshipAvg: number | null;
   passiveEventId: string | null;
   activeEventId: string | null;
   createdAt: string;
