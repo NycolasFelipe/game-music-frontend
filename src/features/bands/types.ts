@@ -56,6 +56,14 @@ export interface MemberRelationship {
   level: number;
 }
 
+/** Display metadata for a relationship level (-5..5), from the backend. */
+export interface RelationshipLevelInfo {
+  level: number;
+  emoji: string;
+  name: string;
+  description: string;
+}
+
 /** A band composed with its members and relationships (`GET /bands/:id`). */
 export interface BandDetail extends Band {
   members: BandMember[];

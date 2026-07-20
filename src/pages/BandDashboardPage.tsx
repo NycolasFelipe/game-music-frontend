@@ -6,31 +6,39 @@ import {
   Loader,
   SimpleGrid,
   Stack,
+  Tabs,
   Text,
   Title,
 } from "@mantine/core";
+import { IconChartBar, IconUsers } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   DeleteBandButton,
   MemberCard,
+  RelationshipsView,
   useBand,
   useBandOptions,
   useCharacteristics,
+  useRelationshipLevels,
 } from "@/features/bands";
 import type { Characteristic } from "@/features/bands";
 import { formatPeriod } from "@/utils/period";
 
-/** The "continue save" screen: a band's current state and its members. */
+/** The "continue save" screen: the band's state across tabbed views. */
 export function BandDashboardPage() {
   const { bandId = "" } = useParams();
   const navigate = useNavigate();
   const { data: band, isLoading, isError } = useBand(bandId);
   const { data: characteristics } = useCharacteristics();
   const { data: options } = useBandOptions();
+  const { data: relationshipLevels } = useRelationshipLevels();
 
   const catalog = useMemo(
-    () => new Map<string, Characteristic>((characteristics ?? []).map((c) => [c.id, c])),
+    () =>
+      new Map<string, Characteristic>(
+        (characteristics ?? []).map((c) => [c.id, c]),
+      ),
     [characteristics],
   );
 
@@ -81,14 +89,50 @@ export function BandDashboardPage() {
             </Stack>
           </Group>
 
-          <Title order={4} mt="md">
-            Integrantes ({band.members.length})
-          </Title>
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
-            {band.members.map((member) => (
-              <MemberCard key={member.id} member={member} catalog={catalog} />
-            ))}
-          </SimpleGrid>
+          <Tabs defaultValue="members" mt="md">
+            <Tabs.List>
+              <Tabs.Tab value="members" leftSection={<IconUsers size={16} />}>
+                Integrantes
+              </Tabs.Tab>
+              <Tabs.Tab
+                value="stats"
+                leftSection={<IconChartBar size={16} />}
+                disabled
+              >
+                Estatísticas
+              </Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="members" pt="lg">
+              <Stack gap="xl">
+                <div>
+                  <Title order={4} mb="sm">
+                    Personagens ({band.members.length})
+                  </Title>
+                  <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+                    {band.members.map((member) => (
+                      <MemberCard
+                        key={member.id}
+                        member={member}
+                        catalog={catalog}
+                      />
+                    ))}
+                  </SimpleGrid>
+                </div>
+
+                <div>
+                  <Title order={4} mb="sm">
+                    Relacionamentos
+                  </Title>
+                  <RelationshipsView
+                    members={band.members}
+                    relationships={band.relationships}
+                    levels={relationshipLevels ?? []}
+                  />
+                </div>
+              </Stack>
+            </Tabs.Panel>
+          </Tabs>
         </Stack>
       )}
     </Container>

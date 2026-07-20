@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getBandOptions,
+  getRelationshipLevels,
   getSkillDescriptions,
   listCharacteristics,
 } from "@/features/bands/services/bands.api";
@@ -10,6 +11,7 @@ export const catalogKeys = {
   options: ["bands", "options"] as const,
   characteristics: ["band-members", "characteristics"] as const,
   skillDescriptions: ["band-members", "skill-descriptions"] as const,
+  relationshipLevels: ["bands", "relationship-levels"] as const,
 };
 
 /** Band creation options (themes/origins/decades) from the backend. */
@@ -35,6 +37,15 @@ export function useSkillDescriptions() {
   return useQuery({
     queryKey: catalogKeys.skillDescriptions,
     queryFn: getSkillDescriptions,
+    staleTime: Infinity,
+  });
+}
+
+/** The relationship-level display metadata from the backend. */
+export function useRelationshipLevels() {
+  return useQuery({
+    queryKey: catalogKeys.relationshipLevels,
+    queryFn: getRelationshipLevels,
     staleTime: Infinity,
   });
 }

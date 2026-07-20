@@ -9,7 +9,10 @@ export {
   catalogKeys,
   useBandOptions,
   useCharacteristics,
+  useRelationshipLevels,
+  useSkillDescriptions,
 } from "@/features/bands/hooks/useBandOptions";
+export { RelationshipsView } from "@/features/bands/components/RelationshipsView";
 export { useCreateBand } from "@/features/bands/hooks/useCreateBand";
 export {
   useGenerateBandNames,
@@ -29,5 +32,6 @@ export type {
   GenerateNameOptions,
   MemberCandidate,
   MemberRelationship,
+  RelationshipLevelInfo,
   Skills,
 } from "@/features/bands/types";

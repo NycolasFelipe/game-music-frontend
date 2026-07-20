@@ -6,6 +6,7 @@ import type {
   CreateBandInput,
   GenerateNameOptions,
   MemberCandidate,
+  RelationshipLevelInfo,
   SkillDescriptions,
 } from "@/features/bands/types";
 import { http } from "@/services/http";
@@ -40,6 +41,11 @@ export function generateBandNames(
 /** Lists band creation options (themes, origins, decades) with labels. */
 export function getBandOptions(): Promise<BandOptions> {
   return http.get<BandOptions>("/bands/options");
+}
+
+/** Lists relationship-level display metadata (emoji, name, description). */
+export function getRelationshipLevels(): Promise<RelationshipLevelInfo[]> {
+  return http.get<RelationshipLevelInfo[]>("/bands/relationship-levels");
 }
 
 /** Generates (non-persisted) member candidates from the backend. */
