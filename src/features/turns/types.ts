@@ -3,6 +3,8 @@ export interface Turn {
   year: number;
   period: string;
   fanCount: number;
+  /** Cash balance captured after this turn (null for untracked older turns). */
+  balance: number | null;
   passiveEventId: string | null;
   activeEventId: string | null;
   createdAt: string;

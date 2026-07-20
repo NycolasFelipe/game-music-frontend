@@ -15,11 +15,12 @@ import { SKILL_LABELS, SKILL_ORDER } from "@/features/bands/labels";
 import type { BandDetail, Skills } from "@/features/bands/types";
 import { formatPeriod } from "@/utils/period";
 
-/** Minimal fan-history point (a Turn is assignable to this). */
+/** Minimal turn-history point (a Turn is assignable to this). */
 interface TurnPoint {
   year: number;
   period: string;
   fanCount: number;
+  balance?: number | null;
 }
 
 const mean = (values: number[]) =>
@@ -114,10 +115,19 @@ export function BandStatistics({
     fans: t.fanCount,
   }));
 
+  const moneyData = turns
+    .filter((t): t is TurnPoint & { balance: number } => t.balance != null)
+    .map((t) => ({
+      label: compactYear(t.year),
+      period: t.period,
+      balance: t.balance,
+    }));
+
   return (
     <Stack gap="xl">
       <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }}>
         <StatTile label="Fãs" value={band.fanCount.toLocaleString("pt-BR")} />
+        <StatTile label="Caixa" value={band.balance.toLocaleString("pt-BR")} />
         <StatTile
           label="Fama"
           value={`Nível ${band.fame.level}`}
@@ -194,6 +204,66 @@ export function BandStatistics({
         ) : (
           <Text size="sm" c="dimmed">
             Avance turnos para acompanhar a evolução dos fãs.
+          </Text>
+        )}
+      </div>
+
+      <div>
+        <Title order={5} mb="sm">
+          Evolução do caixa
+        </Title>
+        {moneyData.length >= 1 ? (
+          <Box h={240}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={moneyData}
+                margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
+              >
+                <defs>
+                  <linearGradient id="moneyFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor="var(--mantine-color-lime-6)"
+                      stopOpacity={0.35}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--mantine-color-lime-6)"
+                      stopOpacity={0.02}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={gridStroke} vertical={false} />
+                <XAxis dataKey="label" tick={axisTick} tickMargin={8} />
+                <YAxis
+                  tick={axisTick}
+                  width={56}
+                  tickFormatter={(v: number) => v.toLocaleString("pt-BR")}
+                />
+                <Tooltip
+                  content={<ChartTooltip />}
+                  labelFormatter={(_label, payload) =>
+                    (payload?.[0]?.payload as { period?: string })?.period ??
+                    _label
+                  }
+                  cursor={{ stroke: gridStroke }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="balance"
+                  name="Caixa"
+                  stroke="var(--mantine-color-lime-6)"
+                  strokeWidth={2}
+                  fill="url(#moneyFill)"
+                  dot={moneyData.length <= 12}
+                  activeDot={{ r: 4 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Box>
+        ) : (
+          <Text size="sm" c="dimmed">
+            Avance turnos para acompanhar a evolução do caixa.
           </Text>
         )}
       </div>
