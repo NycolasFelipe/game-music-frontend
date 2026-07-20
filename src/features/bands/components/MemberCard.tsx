@@ -3,6 +3,7 @@ import { useHover } from "@mantine/hooks";
 import { IconRefresh } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 import { CharacteristicChips } from "@/features/bands/components/CharacteristicChips";
+import { HappinessBadge } from "@/features/bands/components/HappinessBadge";
 import { SkillBars } from "@/features/bands/components/SkillBars";
 import type { Characteristic, Skills } from "@/features/bands/types";
 
@@ -136,7 +137,12 @@ export function MemberCard({
               </Text>
             </div>
           </Group>
-          {actions}
+          <Group gap="xs" wrap="nowrap">
+            {member.happiness !== undefined && (
+              <HappinessBadge value={member.happiness} />
+            )}
+            {actions}
+          </Group>
         </Group>
 
         <CharacteristicChips ids={member.characteristics} catalog={catalog} />

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getBandOptions,
+  getHappinessLevels,
   getRelationshipLevels,
   getSkillDescriptions,
   listCharacteristics,
@@ -12,6 +13,7 @@ export const catalogKeys = {
   characteristics: ["band-members", "characteristics"] as const,
   skillDescriptions: ["band-members", "skill-descriptions"] as const,
   relationshipLevels: ["bands", "relationship-levels"] as const,
+  happinessLevels: ["band-members", "happiness-levels"] as const,
 };
 
 /** Band creation options (themes/origins/decades) from the backend. */
@@ -46,6 +48,15 @@ export function useRelationshipLevels() {
   return useQuery({
     queryKey: catalogKeys.relationshipLevels,
     queryFn: getRelationshipLevels,
+    staleTime: Infinity,
+  });
+}
+
+/** The happiness-level display metadata from the backend. */
+export function useHappinessLevels() {
+  return useQuery({
+    queryKey: catalogKeys.happinessLevels,
+    queryFn: getHappinessLevels,
     staleTime: Infinity,
   });
 }

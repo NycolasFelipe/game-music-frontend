@@ -64,6 +64,14 @@ export interface RelationshipLevelInfo {
   description: string;
 }
 
+/** Display metadata for a happiness level (-5..5), from the backend. */
+export interface HappinessLevelInfo {
+  level: number;
+  emoji: string;
+  name: string;
+  description: string;
+}
+
 /** A band composed with its members and relationships (`GET /bands/:id`). */
 export interface BandDetail extends Band {
   members: BandMember[];

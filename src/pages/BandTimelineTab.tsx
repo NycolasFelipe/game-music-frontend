@@ -16,7 +16,9 @@ import {
   IconSparkles,
   IconWorld,
 } from "@tabler/icons-react";
-import type { BandDetail } from "@/features/bands";
+import { useMemo } from "react";
+import { MemberHoverName, useCharacteristics } from "@/features/bands";
+import type { BandDetail, BandMember, Characteristic } from "@/features/bands";
 import {
   useActiveEvents,
   usePassiveEvents,
@@ -45,10 +47,24 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
     usePassiveEvents(bandId);
   const advance = useAdvanceTurn(bandId);
   const resolve = useResolveActiveEvent(bandId);
+  const { data: characteristics } = useCharacteristics();
+
+  const catalog = useMemo(
+    () =>
+      new Map<string, Characteristic>(
+        (characteristics ?? []).map((c) => [c.id, c]),
+      ),
+    [characteristics],
+  );
 
   const memberById = new Map(band.members.map((m) => [m.id, m]));
   const pending = (activeEvents ?? []).filter((e) => !e.resolved);
   const pendingEvent = pending[0] ?? null;
+  const involvedMembers = pendingEvent
+    ? pendingEvent.involvedCharacterIds
+        .map((id) => memberById.get(id))
+        .filter((m): m is BandMember => Boolean(m))
+    : [];
 
   function handleAdvance() {
     advance.mutate(undefined, {
@@ -144,20 +160,29 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
       {pendingEvent && (
         <Card withBorder radius="md" padding="lg" bg="var(--mantine-color-yellow-light)">
           <Stack gap="sm">
-            <Group gap="xs">
-              <Badge color="yellow" leftSection={<IconBolt size={12} />}>
-                Decisão pendente
-              </Badge>
-              {pendingEvent.involvedCharacterIds.length > 0 && (
-                <Text size="sm">
-                  {pendingEvent.involvedCharacterIds
-                    .map((id) => memberById.get(id)?.avatar ?? "")
-                    .join(" ")}
-                </Text>
-              )}
-            </Group>
+            <Badge
+              color="yellow"
+              leftSection={<IconBolt size={12} />}
+              w="fit-content"
+            >
+              Decisão pendente
+            </Badge>
             <Title order={4}>{pendingEvent.title}</Title>
             <Text size="sm">{pendingEvent.description}</Text>
+            {involvedMembers.length > 0 && (
+              <Group gap="lg">
+                <Text size="xs" c="dimmed" fw={600}>
+                  Envolvidos:
+                </Text>
+                {involvedMembers.map((member) => (
+                  <MemberHoverName
+                    key={member.id}
+                    member={member}
+                    catalog={catalog}
+                  />
+                ))}
+              </Group>
+            )}
 
             <Stack gap="xs" mt="xs">
               {pendingEvent.options.map((option) => (

@@ -5,6 +5,7 @@ import type {
   Characteristic,
   CreateBandInput,
   GenerateNameOptions,
+  HappinessLevelInfo,
   MemberCandidate,
   RelationshipLevelInfo,
   SkillDescriptions,
@@ -68,4 +69,9 @@ export function listCharacteristics(): Promise<Characteristic[]> {
 /** Lists the per-skill level descriptions (flavor text per instrument level). */
 export function getSkillDescriptions(): Promise<SkillDescriptions> {
   return http.get<SkillDescriptions>("/band-members/skill-descriptions");
+}
+
+/** Lists happiness-level display metadata (emoji, name, description). */
+export function getHappinessLevels(): Promise<HappinessLevelInfo[]> {
+  return http.get<HappinessLevelInfo[]>("/band-members/happiness-levels");
 }
