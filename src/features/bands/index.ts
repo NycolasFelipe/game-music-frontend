@@ -14,6 +14,7 @@ export { useCreateBand } from "@/features/bands/hooks/useCreateBand";
 export {
   useGenerateBandNames,
   useGenerateCandidates,
+  useRegenerateAvatar,
 } from "@/features/bands/hooks/useGenerateCandidates";
 export { SKILL_LABELS, SKILL_ORDER } from "@/features/bands/labels";
 export type {

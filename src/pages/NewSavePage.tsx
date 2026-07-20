@@ -33,6 +33,7 @@ import {
   useCreateBand,
   useGenerateBandNames,
   useGenerateCandidates,
+  useRegenerateAvatar,
 } from "@/features/bands";
 import type {
   Characteristic,
@@ -59,8 +60,12 @@ export function NewSavePage() {
 
   const generateName = useGenerateBandNames();
   const generateCandidates = useGenerateCandidates();
+  const regenerateAvatar = useRegenerateAvatar();
   const createBand = useCreateBand();
   const [nameModalOpened, nameModal] = useDisclosure(false);
+  const [regeneratingAvatarId, setRegeneratingAvatarId] = useState<
+    string | null
+  >(null);
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
@@ -127,6 +132,20 @@ export function NewSavePage() {
   function goToMembers() {
     if (candidates.length === 0) rollCandidates();
     setStep(1);
+  }
+
+  function regenerateAvatarFor(candidate: MemberCandidate) {
+    setRegeneratingAvatarId(candidate.id);
+    regenerateAvatar.mutate(candidate.gender, {
+      onSuccess: (data) => {
+        setCandidates((cs) =>
+          cs.map((c) =>
+            c.id === candidate.id ? { ...c, avatar: data.avatar } : c,
+          ),
+        );
+      },
+      onSettled: () => setRegeneratingAvatarId(null),
+    });
   }
 
   function toggle(id: string) {
@@ -385,6 +404,8 @@ export function NewSavePage() {
                 catalog={catalog}
                 selected={selected.has(candidate.id)}
                 onToggle={() => toggle(candidate.id)}
+                onRegenerateAvatar={() => regenerateAvatarFor(candidate)}
+                avatarRegenerating={regeneratingAvatarId === candidate.id}
                 actions={
                   <ActionIcon
                     variant="subtle"

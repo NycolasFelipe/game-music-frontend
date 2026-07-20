@@ -1,4 +1,6 @@
-import { Card, Group, Stack, Text } from "@mantine/core";
+import { ActionIcon, Box, Card, Group, Loader, Stack, Text, Tooltip } from "@mantine/core";
+import { useHover } from "@mantine/hooks";
+import { IconRefresh } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 import { CharacteristicChips } from "@/features/bands/components/CharacteristicChips";
 import { SkillBars } from "@/features/bands/components/SkillBars";
@@ -23,6 +25,73 @@ function genderLabel(gender: string): string {
   return gender;
 }
 
+/**
+ * The member avatar. When `onRegenerate` is provided, hovering fades the emoji
+ * and reveals a regenerate button (used for editable candidates).
+ */
+function MemberAvatar({
+  avatar,
+  onRegenerate,
+  loading,
+}: {
+  avatar: string;
+  onRegenerate?: () => void;
+  loading?: boolean;
+}) {
+  const { hovered, ref } = useHover();
+
+  if (!onRegenerate) {
+    return (
+      <Text fz={30} lh={1}>
+        {avatar}
+      </Text>
+    );
+  }
+
+  const active = hovered || loading;
+
+  return (
+    <Box
+      ref={ref}
+      pos="relative"
+      style={{ cursor: "pointer", lineHeight: 0 }}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (!loading) onRegenerate();
+      }}
+    >
+      <Text
+        fz={30}
+        lh={1}
+        style={{ opacity: active ? 0.2 : 1, transition: "opacity 120ms" }}
+      >
+        {avatar}
+      </Text>
+      {active && (
+        <Box
+          pos="absolute"
+          inset={0}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {loading ? (
+            <Loader size="xs" />
+          ) : (
+            <Tooltip label="Regerar aparência" withArrow>
+              <ActionIcon component="div" variant="light" size="sm" radius="xl">
+                <IconRefresh size={16} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 /** Presentational card for a band member / candidate. */
 export function MemberCard({
   member,
@@ -30,12 +99,16 @@ export function MemberCard({
   selected,
   onToggle,
   actions,
+  onRegenerateAvatar,
+  avatarRegenerating,
 }: {
   member: MemberCardData;
   catalog: Map<string, Characteristic>;
   selected?: boolean;
   onToggle?: () => void;
   actions?: ReactNode;
+  onRegenerateAvatar?: () => void;
+  avatarRegenerating?: boolean;
 }) {
   return (
     <Card
@@ -51,9 +124,11 @@ export function MemberCard({
       <Stack gap="xs">
         <Group justify="space-between" align="flex-start" wrap="nowrap">
           <Group gap="sm" wrap="nowrap" align="center">
-            <Text fz={30} lh={1}>
-              {member.avatar}
-            </Text>
+            <MemberAvatar
+              avatar={member.avatar}
+              onRegenerate={onRegenerateAvatar}
+              loading={avatarRegenerating}
+            />
             <div>
               <Text fw={600}>{member.name}</Text>
               <Text size="xs" c="dimmed">

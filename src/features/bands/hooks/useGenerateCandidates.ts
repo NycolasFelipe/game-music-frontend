@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import {
   generateBandNames,
   generateCandidates,
+  regenerateAvatar,
 } from "@/features/bands/services/bands.api";
 import type { GenerateNameOptions } from "@/features/bands/types";
 
@@ -9,6 +10,13 @@ import type { GenerateNameOptions } from "@/features/bands/types";
 export function useGenerateCandidates() {
   return useMutation({
     mutationFn: (count: number) => generateCandidates(count),
+  });
+}
+
+/** Mutation that regenerates a single avatar emoji for a gender. */
+export function useRegenerateAvatar() {
+  return useMutation({
+    mutationFn: (gender: string) => regenerateAvatar(gender),
   });
 }
 

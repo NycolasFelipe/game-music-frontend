@@ -47,6 +47,13 @@ export function generateCandidates(count: number): Promise<MemberCandidate[]> {
   return http.post<MemberCandidate[]>("/band-members/candidates", { count });
 }
 
+/** Generates a single fresh avatar emoji for a gender. */
+export function regenerateAvatar(
+  gender: string,
+): Promise<{ avatar: string }> {
+  return http.post<{ avatar: string }>("/band-members/avatar", { gender });
+}
+
 /** Lists the characteristic (trait) catalog with display data. */
 export function listCharacteristics(): Promise<Characteristic[]> {
   return http.get<Characteristic[]>("/band-members/characteristics");
