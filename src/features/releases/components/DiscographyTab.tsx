@@ -1,12 +1,4 @@
-import {
-  Button,
-  Card,
-  Group,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Button, Card, Group, Modal, Stack, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconDisc, IconPlus } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
@@ -15,6 +7,10 @@ import type { BandDetail, Characteristic } from "@/features/bands";
 import { ReleaseCard } from "@/features/releases/components/ReleaseCard";
 import { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
 import { ReleaseRevealModal } from "@/features/releases/components/ReleaseRevealModal";
+import {
+  VINYL_KEYFRAMES,
+  VinylRecord,
+} from "@/features/releases/components/VinylRecord";
 import type { Release } from "@/features/releases/types";
 import {
   useQualityTiers,
@@ -39,6 +35,8 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
   const [resumeId, setResumeId] = useState<string | null>(null);
   const [revealOpen, reveal] = useDisclosure(false);
   const [revealRelease, setRevealRelease] = useState<Release | null>(null);
+  const [detailOpen, detail] = useDisclosure(false);
+  const [detailRelease, setDetailRelease] = useState<Release | null>(null);
 
   const catalog = useMemo(
     () =>
@@ -112,20 +110,35 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
           </Stack>
         </Card>
       ) : (
-        <SimpleGrid cols={{ base: 1, sm: 2 }}>
-          {launched.map((release) => (
-            <ReleaseCard
-              key={release.id}
-              release={release}
-              members={band.members}
-              catalog={catalog}
-              formatLabel={formatLabel(release.format)}
-              qualityTier={tierById(release.qualityTier)}
-              criticTier={reviewTierById(release.criticTier)}
-              publicTier={reviewTierById(release.publicTier)}
-            />
-          ))}
-        </SimpleGrid>
+        <div
+          style={{
+            padding: "28px 20px 18px",
+            borderRadius: 10,
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.10))",
+            borderBottom: "12px solid #6b4a2f",
+            boxShadow:
+              "inset 0 -3px 8px rgba(0,0,0,0.25), 0 8px 14px rgba(0,0,0,0.18)",
+          }}
+        >
+          <style>{VINYL_KEYFRAMES}</style>
+          <Group gap="xl" wrap="wrap" align="flex-start">
+            {launched.map((release) => (
+              <VinylRecord
+                key={release.id}
+                release={release}
+                formatLabel={formatLabel(release.format)}
+                qualityTier={tierById(release.qualityTier)}
+                criticTier={reviewTierById(release.criticTier)}
+                publicTier={reviewTierById(release.publicTier)}
+                onClick={() => {
+                  setDetailRelease(release);
+                  detail.open();
+                }}
+              />
+            ))}
+          </Group>
+        </div>
       )}
 
       {modalOpen && (
@@ -146,6 +159,26 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
         opened={revealOpen}
         onClose={reveal.close}
       />
+
+      <Modal
+        opened={detailOpen}
+        onClose={detail.close}
+        title="Detalhes da obra"
+        size="lg"
+        centered
+      >
+        {detailRelease && (
+          <ReleaseCard
+            release={detailRelease}
+            members={band.members}
+            catalog={catalog}
+            formatLabel={formatLabel(detailRelease.format)}
+            qualityTier={tierById(detailRelease.qualityTier)}
+            criticTier={reviewTierById(detailRelease.criticTier)}
+            publicTier={reviewTierById(detailRelease.publicTier)}
+          />
+        )}
+      </Modal>
     </Stack>
   );
 }

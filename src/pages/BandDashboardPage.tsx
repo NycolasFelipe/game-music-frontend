@@ -1,6 +1,6 @@
 import {
-  Anchor,
   Badge,
+  Button,
   Container,
   Group,
   Loader,
@@ -11,8 +11,10 @@ import {
   Title,
 } from "@mantine/core";
 import {
+  IconArrowLeft,
   IconChartBar,
   IconDisc,
+  IconSettings,
   IconTimeline,
   IconUserMinus,
   IconUsers,
@@ -60,20 +62,6 @@ export function BandDashboardPage() {
 
   return (
     <Container py="xl" size="lg">
-      <Group justify="space-between">
-        <Anchor component={Link} to="/" size="sm">
-          ← Voltar aos saves
-        </Anchor>
-        {band && (
-          <DeleteBandButton
-            mode="button"
-            bandId={band.id}
-            bandName={band.name}
-            onDeleted={() => navigate("/")}
-          />
-        )}
-      </Group>
-
       {isLoading && <Loader mt="md" />}
       {isError && (
         <Text c="red" mt="md">
@@ -128,6 +116,9 @@ export function BandDashboardPage() {
               >
                 Ex-integrantes
               </Tabs.Tab>
+              <Tabs.Tab value="options" leftSection={<IconSettings size={16} />}>
+                Opções
+              </Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="overview" pt="lg">
@@ -180,6 +171,32 @@ export function BandDashboardPage() {
 
             <Tabs.Panel value="former" pt="lg">
               <FormerMembersTab bandId={band.id} />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="options" pt="lg">
+              <Stack gap="md" maw={420}>
+                <div>
+                  <Title order={5}>Save</Title>
+                  <Text size="sm" c="dimmed">
+                    Gerencie este save da banda.
+                  </Text>
+                </div>
+                <Button
+                  component={Link}
+                  to="/"
+                  variant="default"
+                  leftSection={<IconArrowLeft size={16} />}
+                  w="fit-content"
+                >
+                  Voltar aos saves
+                </Button>
+                <DeleteBandButton
+                  mode="button"
+                  bandId={band.id}
+                  bandName={band.name}
+                  onDeleted={() => navigate("/")}
+                />
+              </Stack>
             </Tabs.Panel>
           </Tabs>
         </Stack>
