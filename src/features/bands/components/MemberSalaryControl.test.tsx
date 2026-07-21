@@ -27,7 +27,7 @@ const member: BandMember = {
   salary: 300,
   salaryTarget: 400,
   salaryUnpaidTurns: 0,
-  salaryTurnsUntilDeparture: null,
+  salaryAtRisk: false,
 };
 
 describe("MemberSalaryControl", () => {

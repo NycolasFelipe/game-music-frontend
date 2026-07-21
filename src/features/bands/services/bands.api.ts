@@ -12,6 +12,7 @@ import type {
   SalaryAgreement,
   SkillDescriptions,
 } from "@/features/bands/types";
+import type { FormerMember } from "@/types/former-member";
 import { http } from "@/services/http";
 
 /** Lists the authenticated user's bands (saves). */
@@ -98,4 +99,9 @@ export function getMemberSalaryHistory(
   return http.get<SalaryAgreement[]>(
     `/bands/${bandId}/members/${memberId}/salary/history`,
   );
+}
+
+/** Lists a band's former (departed) members (newest first). */
+export function getFormerMembers(bandId: string): Promise<FormerMember[]> {
+  return http.get<FormerMember[]>(`/bands/${bandId}/former-members`);
 }

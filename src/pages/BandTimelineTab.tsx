@@ -17,9 +17,14 @@ import {
   IconUserMinus,
   IconWorld,
 } from "@tabler/icons-react";
-import { useMemo } from "react";
-import { MemberHoverName, useCharacteristics } from "@/features/bands";
+import { useMemo, useState } from "react";
+import {
+  DepartureModal,
+  MemberHoverName,
+  useCharacteristics,
+} from "@/features/bands";
 import type { BandDetail, BandMember, Characteristic } from "@/features/bands";
+import type { FormerMember } from "@/types/former-member";
 import {
   useActiveEvents,
   usePassiveEvents,
@@ -58,6 +63,9 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
     [characteristics],
   );
 
+  const [departures, setDepartures] = useState<FormerMember[]>([]);
+  const [departureModalOpen, setDepartureModalOpen] = useState(false);
+
   const memberById = new Map(band.members.map((m) => [m.id, m]));
   const pending = (activeEvents ?? []).filter((e) => !e.resolved);
   const pendingEvent = pending[0] ?? null;
@@ -70,9 +78,7 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
   function handleAdvance() {
     advance.mutate(undefined, {
       onSuccess: (result) => {
-        const departed = result.departedMemberIds
-          .map((id) => memberById.get(id)?.name ?? "um integrante")
-          .join(", ");
+        const departed = result.departures.map((d) => d.name).join(", ");
 
         const lines = [
           result.activeEvent
@@ -88,17 +94,20 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
           );
         }
 
-        const warnings = result.salaryWarnings
-          .map(
-            (w) =>
-              `${memberById.get(w.memberId)?.name ?? "um integrante"} (${w.turnsUntilDeparture})`,
-          )
+        const atRisk = result.atRiskMemberIds
+          .map((id) => memberById.get(id)?.name ?? "um integrante")
           .join(", ");
-        if (warnings) {
-          lines.push(`Salário atrasado, sairão em breve: ${warnings}.`);
+        if (atRisk) {
+          lines.push(`Salário atrasado — risco de saída: ${atRisk}.`);
         }
         if (departed) {
-          lines.push(`Saiu por atraso salarial: ${departed}.`);
+          lines.push(`Deixou a banda: ${departed}.`);
+        }
+
+        // Show the departure modal with the ex-members' full snapshots.
+        if (result.departures.length > 0) {
+          setDepartures(result.departures);
+          setDepartureModalOpen(true);
         }
 
         notifications.show({
@@ -106,7 +115,7 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
           message: lines.join(" "),
           color: departed
             ? "red"
-            : warnings
+            : atRisk
               ? "orange"
               : result.activeEvent
                 ? "yellow"
@@ -174,6 +183,13 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
 
   return (
     <Stack gap="xl">
+      <DepartureModal
+        members={departures}
+        catalog={catalog}
+        opened={departureModalOpen}
+        onClose={() => setDepartureModalOpen(false)}
+      />
+
       {/* Advance control */}
       <Group justify="space-between" wrap="wrap">
         <div>

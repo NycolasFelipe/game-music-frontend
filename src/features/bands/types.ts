@@ -56,10 +56,10 @@ export interface BandMember {
   /** Consecutive turns the member went unpaid (arrears counter). */
   salaryUnpaidTurns: number;
   /**
-   * Turns left before the member leaves over unpaid salary, or `null` when paid.
-   * A warning while `>= 1`.
+   * Whether the member is in arrears and at risk of leaving. The exact deadline
+   * is intentionally not exposed (kept gamified).
    */
-  salaryTurnsUntilDeparture: number | null;
+  salaryAtRisk: boolean;
 }
 
 /** One entry of a member's salary history (`GET .../salary/history`). */

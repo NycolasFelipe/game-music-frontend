@@ -3,28 +3,27 @@ import { SmartTooltip } from "@/components/SmartTooltip";
 
 /**
  * Shows a member's salary, colored by how it compares to their target: green at
- * or above target, yellow below target (mood erodes), red while in arrears
- * (unpaid — about to leave). When `turnsUntilDeparture` is set the member is in
- * arrears and the badge warns how many turns are left before they quit.
+ * or above target, yellow below target (mood erodes), red while at risk (unpaid
+ * — about to leave). The exact turns-to-departure are never shown (gamified);
+ * the badge only warns that the member is at risk.
  */
 export function SalaryBadge({
   salary,
   target,
-  turnsUntilDeparture,
+  atRisk,
   size = "sm",
 }: {
   salary: number;
   target: number;
-  /** Turns left before leaving over unpaid salary; `null` when paid. */
-  turnsUntilDeparture: number | null;
+  /** Whether the member is in arrears and at risk of leaving. */
+  atRisk: boolean;
   size?: "xs" | "sm" | "md" | "lg";
 }) {
-  const inArrears = turnsUntilDeparture !== null;
   const belowTarget = salary < target;
-  const color = inArrears ? "red" : belowTarget ? "yellow" : "teal";
+  const color = atRisk ? "red" : belowTarget ? "yellow" : "teal";
 
-  const tooltip = inArrears
-    ? `Salário atrasado — sairá em ${turnsUntilDeparture} turno(s) se não for pago`
+  const tooltip = atRisk
+    ? "Salário atrasado — o integrante pode deixar a banda se não for pago"
     : belowTarget
       ? `Abaixo do alvo (${target.toLocaleString("pt-BR")}) — o humor cai a cada turno`
       : `No alvo (${target.toLocaleString("pt-BR")}) — satisfeito`;
@@ -37,7 +36,7 @@ export function SalaryBadge({
         size={size}
         style={{ cursor: "help", flexShrink: 0 }}
       >
-        {inArrears ? "⚠️" : "💵"} {salary.toLocaleString("pt-BR")}
+        {atRisk ? "⚠️" : "💵"} {salary.toLocaleString("pt-BR")}
       </Badge>
     </SmartTooltip>
   );

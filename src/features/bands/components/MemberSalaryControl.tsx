@@ -85,7 +85,7 @@ export function MemberSalaryControl({
           <SalaryBadge
             salary={member.salary}
             target={member.salaryTarget}
-            turnsUntilDeparture={member.salaryTurnsUntilDeparture}
+            atRisk={member.salaryAtRisk}
           />
         </UnstyledButton>
       </Popover.Target>
@@ -98,10 +98,10 @@ export function MemberSalaryControl({
           <Text size="xs" c="dimmed">
             Alvo: {member.salaryTarget.toLocaleString("pt-BR")} por turno
           </Text>
-          {member.salaryTurnsUntilDeparture !== null && (
+          {member.salaryAtRisk && (
             <Text size="xs" c="red" fw={600}>
-              ⚠️ Salário atrasado — sairá em{" "}
-              {member.salaryTurnsUntilDeparture} turno(s) se não for pago.
+              ⚠️ Salário atrasado — o integrante pode deixar a banda se não for
+              pago.
             </Text>
           )}
 
@@ -113,6 +113,7 @@ export function MemberSalaryControl({
             }
             min={0}
             step={50}
+            allowDecimal={false}
             thousandSeparator="."
             decimalSeparator=","
           />

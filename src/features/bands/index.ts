@@ -2,12 +2,19 @@
 export { BandNameConfigModal } from "@/features/bands/components/BandNameConfigModal";
 export { BandStatistics } from "@/features/bands/components/BandStatistics";
 export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";
+export { DepartureModal } from "@/features/bands/components/DepartureModal";
+export { FormerMemberCard } from "@/features/bands/components/FormerMemberCard";
+export { FormerMembersTab } from "@/features/bands/components/FormerMembersTab";
 export { MemberCard } from "@/features/bands/components/MemberCard";
 export { MemberEditModal } from "@/features/bands/components/MemberEditModal";
 export { MemberHoverName } from "@/features/bands/components/MemberHoverName";
 export { MemberSalaryControl } from "@/features/bands/components/MemberSalaryControl";
 export { SalaryBadge } from "@/features/bands/components/SalaryBadge";
 export { bandKeys, useBand, useBands } from "@/features/bands/hooks/useBands";
+export {
+  formerMemberKeys,
+  useFormerMembers,
+} from "@/features/bands/hooks/useFormerMembers";
 export {
   salaryKeys,
   useMemberSalaryHistory,

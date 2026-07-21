@@ -14,6 +14,7 @@ import {
   IconChartBar,
   IconDisc,
   IconTimeline,
+  IconUserMinus,
   IconUsers,
 } from "@tabler/icons-react";
 import { useMemo } from "react";
@@ -21,6 +22,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   BandStatistics,
   DeleteBandButton,
+  FormerMembersTab,
   MemberCard,
   MemberSalaryControl,
   RelationshipsView,
@@ -120,6 +122,12 @@ export function BandDashboardPage() {
               <Tabs.Tab value="stats" leftSection={<IconChartBar size={16} />}>
                 Estatísticas
               </Tabs.Tab>
+              <Tabs.Tab
+                value="former"
+                leftSection={<IconUserMinus size={16} />}
+              >
+                Ex-integrantes
+              </Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="overview" pt="lg">
@@ -168,6 +176,10 @@ export function BandDashboardPage() {
 
             <Tabs.Panel value="stats" pt="lg">
               <BandStatistics band={band} turns={turns ?? []} />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="former" pt="lg">
+              <FormerMembersTab bandId={band.id} />
             </Tabs.Panel>
           </Tabs>
         </Stack>

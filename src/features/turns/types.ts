@@ -14,6 +14,8 @@ export interface Turn {
   createdAt: string;
 }
 
+import type { FormerMember } from "@/types/former-member";
+
 /** Result of advancing a turn (events kept minimal to stay feature-local). */
 export interface AdvanceTurnResult {
   previousYear: number;
@@ -28,8 +30,8 @@ export interface AdvanceTurnResult {
   salariesPaid: number;
   /** Whether every member was paid in full this turn. */
   salariesFullyPaid: boolean;
-  /** Ids of members who left the band this turn over unpaid salary. */
-  departedMemberIds: string[];
-  /** Members in arrears who will leave soon if still unpaid (warning window). */
-  salaryWarnings: Array<{ memberId: string; turnsUntilDeparture: number }>;
+  /** Members who left the band this turn over unpaid salary (full snapshots). */
+  departures: FormerMember[];
+  /** Ids of members in arrears who risk leaving (no deadline — kept gamified). */
+  atRiskMemberIds: string[];
 }
