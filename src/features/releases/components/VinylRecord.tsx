@@ -58,10 +58,10 @@ const BLACK_BODY =
   "repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.55) 0 1.5px, rgba(255,255,255,0.03) 1.5px 3px), radial-gradient(circle at 36% 30%, #3a3a3a, #050505 62%)";
 /** Grande: the whole disc is polished gold. */
 const GOLD_BODY = [
-  "repeating-radial-gradient(circle at 50% 50%, rgba(120,80,0,0.14) 0 2px, rgba(255,240,180,0.06) 2px 4px)",
-  "radial-gradient(circle at 50% 36%, rgba(255,255,255,0.55), transparent 24%)",
-  "conic-gradient(from 210deg at 50% 50%, #9c7314, #ffe9a0, #d4af37, #fff6c8, #b8860b, #8a6a12, #ffe0a0, #9c7314)",
-  "radial-gradient(circle at 50% 50%, #ffe9a8, #c9971f 62%, #7a5a10 94%)",
+  "repeating-radial-gradient(circle at 50% 50%, rgba(255,230,150,0.08) 0 2px, rgba(255,255,255,0.03) 2px 4px)",
+  "radial-gradient(circle at 35% 25%, rgba(255,255,255,0.9), transparent 22%)",
+  "conic-gradient(from 210deg at 50% 50%, #6d4b00, #b47d00, #ffd54f, #fff7c7, #ffcc33, #b8860b, #ffd54f, #fff3a0, #6d4b00)",
+  "radial-gradient(circle at 50% 50%, #fff8d0 0%, #ffd54f 42%, #d4af37 70%, #7a5200 100%)",
 ].join(", ");
 /**
  * Obra-prima: an icy diamond — small facets, mostly white/steel-blue with a very
