@@ -49,45 +49,89 @@ const LABEL_COLORS = [
   "orange",
 ];
 
-/** Metallic frames by quality tier (the award "moldura"). */
+/** Metallic frame rings for the mid tiers. */
 const BRONZE = "linear-gradient(135deg, #e0a060, #8c5a2b, #cd7f32)";
 const SILVER = "linear-gradient(135deg, #f5f5f5, #a8a8a8, #e8e8e8)";
-const GOLD = "linear-gradient(135deg, #fff3b0, #d4af37, #ffe28a)";
-const PLATINUM = "linear-gradient(135deg, #ffffff, #cfd0d6, #f0f0f5, #d8d9de)";
+
+/** Disc-body surfaces. */
+const BLACK_BODY =
+  "repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.55) 0 1.5px, rgba(255,255,255,0.03) 1.5px 3px), radial-gradient(circle at 36% 30%, #3a3a3a, #050505 62%)";
+/** Grande: the whole disc is polished gold. */
+const GOLD_BODY = [
+  "repeating-radial-gradient(circle at 50% 50%, rgba(120,80,0,0.14) 0 2px, rgba(255,240,180,0.06) 2px 4px)",
+  "radial-gradient(circle at 50% 36%, rgba(255,255,255,0.55), transparent 24%)",
+  "conic-gradient(from 210deg at 50% 50%, #9c7314, #ffe9a0, #d4af37, #fff6c8, #b8860b, #8a6a12, #ffe0a0, #9c7314)",
+  "radial-gradient(circle at 50% 50%, #ffe9a8, #c9971f 62%, #7a5a10 94%)",
+].join(", ");
+/**
+ * Obra-prima: an icy diamond — small facets, mostly white/steel-blue with a very
+ * subtle spectral "fire", plus sparkles (blended with `screen`).
+ */
+const DIAMOND_BG = [
+  // sparkles
+  "radial-gradient(circle at 30% 26%, #ffffff, transparent 15%)",
+  "radial-gradient(circle at 72% 73%, rgba(255,255,255,0.85), transparent 12%)",
+  // faint spectral fire between the facets
+  "repeating-conic-gradient(from 12deg at 50% 50%, rgba(255,170,190,0.16) 0 3deg, rgba(0,0,0,0) 3deg 9deg, rgba(170,255,215,0.14) 9deg 12deg, rgba(0,0,0,0) 12deg 18deg, rgba(180,195,255,0.16) 18deg 21deg, rgba(0,0,0,0) 21deg 27deg)",
+  // small icy facets (thin wedges)
+  "conic-gradient(from 200deg at 50% 50%, #ffffff 0deg, #ffffff 15deg, #f8fbff 45deg, #eaf4ff 90deg, #d7e9ff 170deg, #c9e0ff 210deg, #d7e9ff 250deg, #eef6ff 310deg, #fbfdff 345deg, #ffffff 360deg)"
+].join(", ");
+const DIAMOND_BLEND = "screen, screen, screen, normal";
 
 interface Frame {
+  /** Metallic ring around a black disc (mid tiers). */
   ring?: string;
   width: number;
   double?: boolean;
+  /** Overrides the whole disc body style (top tiers). */
+  bodyStyle?: React.CSSProperties;
+  /** Forces a black center label (top tiers). */
+  blackCenter?: boolean;
+  /** Sits the disc(s) on a black case/jacket (diamond only). */
+  cased?: boolean;
 }
 
 const FRAMES: Record<string, Frame> = {
   fracasso: { width: 0 },
   mediocre: { ring: BRONZE, width: 5 },
   solido: { ring: SILVER, width: 6 },
-  grande: { ring: GOLD, width: 8 },
-  "obra-prima": { ring: PLATINUM, width: 7, double: true },
+  grande: { width: 0, bodyStyle: { background: GOLD_BODY }, blackCenter: true },
+  "obra-prima": {
+    width: 0,
+    bodyStyle: {
+      background: DIAMOND_BG,
+      backgroundBlendMode: DIAMOND_BLEND,
+    },
+    blackCenter: true,
+    double: true,
+    cased: true,
+  },
 };
 
-/** A single spinning (all-black) vinyl disc, optionally set in a metallic ring. */
+/** A single spinning vinyl disc — black by default, or a special body/ring. */
 function Disc({
   size,
-  labelColor,
+  bodyStyle,
+  labelBg,
+  labelFraction = 0.42,
   ring,
   ringWidth,
   spinning,
   style,
 }: {
   size: number;
-  labelColor: string;
+  /** Disc-body style overrides (defaults to the black vinyl). */
+  bodyStyle?: React.CSSProperties;
+  /** Center-label background. */
+  labelBg: string;
+  /** Center-label diameter as a fraction of the disc (smaller = more surface). */
+  labelFraction?: number;
   ring?: string;
   ringWidth: number;
   spinning: boolean;
   style?: React.CSSProperties;
 }) {
-  const grooves =
-    "repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.55) 0 1.5px, rgba(255,255,255,0.03) 1.5px 3px)";
-  const labelSize = size * 0.42;
+  const labelSize = size * labelFraction;
 
   return (
     <div
@@ -111,9 +155,10 @@ function Disc({
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-          background: `${grooves}, radial-gradient(circle at 36% 30%, #3a3a3a, #050505 62%)`,
-          boxShadow: "0 4px 10px rgba(0,0,0,0.45), inset 0 0 18px rgba(0,0,0,0.7)",
+          background: BLACK_BODY,
+          boxShadow: "0 4px 10px rgba(0,0,0,0.45), inset 0 0 18px rgba(0,0,0,0.35)",
           animation: spinning ? "vinylSpin 3.2s linear infinite" : undefined,
+          ...bodyStyle,
         }}
       >
         <div
@@ -121,7 +166,7 @@ function Disc({
             width: labelSize,
             height: labelSize,
             borderRadius: "50%",
-            background: `var(--mantine-color-${labelColor}-8)`,
+            background: labelBg,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -184,7 +229,17 @@ export function VinylRecord({
         ? Math.max(1, Math.round(release.quality / 20))
         : 0;
 
-  const discProps = { labelColor, spinning: hovered };
+  const labelBg = frame.blackCenter
+    ? "#0a0a0a"
+    : `var(--mantine-color-${labelColor}-8)`;
+
+  const discProps = {
+    bodyStyle: frame.bodyStyle,
+    labelBg,
+    // A smaller black center gives more room to the gold/diamond surface.
+    labelFraction: frame.blackCenter ? 0.26 : 0.42,
+    spinning: hovered,
+  };
 
   return (
     <HoverCard
@@ -213,6 +268,15 @@ export function VinylRecord({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                ...(frame.cased
+                  ? {
+                      background:
+                        "linear-gradient(160deg, #1a1a1a, #050505)",
+                      borderRadius: 8,
+                      boxShadow:
+                        "inset 0 0 10px rgba(0,0,0,0.8), 0 4px 10px rgba(0,0,0,0.4)",
+                    }
+                  : {}),
               }}
             >
               {frame.double ? (
@@ -224,7 +288,7 @@ export function VinylRecord({
                     {...discProps}
                     style={{
                       position: "absolute",
-                      left: 0,
+                      left: FRAME * 0.07,
                       top: FRAME * 0.16,
                     }}
                   />
@@ -235,7 +299,7 @@ export function VinylRecord({
                     {...discProps}
                     style={{
                       position: "absolute",
-                      right: 0,
+                      right: FRAME * 0.07,
                       top: FRAME * 0.16,
                     }}
                   />
