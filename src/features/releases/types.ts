@@ -59,6 +59,20 @@ export interface Release {
   credits: ReleaseCredits;
   quality: number | null;
   qualityTier: string | null;
+  /** Critic reception score 0..100 (null for drafts / legacy works). */
+  criticScore: number | null;
+  /** Public reception score 0..100 (null for drafts / legacy works). */
+  publicScore: number | null;
+  /** Critic review-tier id, derived from the score (null when no score). */
+  criticTier: string | null;
+  /** Public review-tier id, derived from the score (null when no score). */
+  publicTier: string | null;
+  /** Three specialized-critic blurbs (empty when no score). */
+  criticComments: string[];
+  /** Three public (fan) blurbs (empty when no score). */
+  publicComments: string[];
+  /** A format-specific editorial note (null when no score / no note). */
+  formatComment: string | null;
   fansGained: number | null;
   cost: number | null;
   masterRevenueTotal: number | null;
@@ -123,6 +137,15 @@ export interface QualityTier {
   minQuality: number;
   fansMultiplier: number;
   revenueMultiplier: number;
+}
+
+/** Display metadata for a review tier (critic/public selo). */
+export interface ReviewTier {
+  id: string;
+  label: string;
+  /** Star rating (1..5) shown for this tier. */
+  stars: number;
+  minScore: number;
 }
 
 /** Body for starting a release draft. */

@@ -5,6 +5,7 @@ import {
   getBudgetTiers,
   getQualityTiers,
   getReleaseFormats,
+  getReviewTiers,
 } from "@/features/releases/services/releases.api";
 import type {
   GenerateConceptOptions,
@@ -16,6 +17,7 @@ export const releaseCatalogKeys = {
   formats: ["releases", "formats"] as const,
   budgetTiers: ["releases", "budget-tiers"] as const,
   qualityTiers: ["releases", "quality-tiers"] as const,
+  reviewTiers: ["releases", "review-tiers"] as const,
 };
 
 /** The release-format catalog from the backend. */
@@ -41,6 +43,15 @@ export function useQualityTiers() {
   return useQuery({
     queryKey: releaseCatalogKeys.qualityTiers,
     queryFn: getQualityTiers,
+    staleTime: Infinity,
+  });
+}
+
+/** The review-tier ladder (critic/public selos) from the backend. */
+export function useReviewTiers() {
+  return useQuery({
+    queryKey: releaseCatalogKeys.reviewTiers,
+    queryFn: getReviewTiers,
     staleTime: Infinity,
   });
 }

@@ -9,6 +9,7 @@ export {
   useGenerateReleaseTitle,
   useQualityTiers,
   useReleaseFormats,
+  useReviewTiers,
 } from "@/features/releases/hooks/useReleaseCatalogs";
 export {
   releaseKeys,
@@ -32,5 +33,6 @@ export type {
   ReleaseFormatId,
   ReleaseStatus,
   ReleaseWithEvents,
+  ReviewTier,
   StartReleaseInput,
 } from "@/features/releases/types";

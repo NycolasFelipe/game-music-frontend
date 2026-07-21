@@ -1,9 +1,28 @@
-import { Badge, Card, Group, Stack, Text } from "@mantine/core";
+import {
+  Badge,
+  Card,
+  Collapse,
+  Group,
+  Stack,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { MemberHoverName, SKILL_LABELS, SKILL_ORDER } from "@/features/bands";
 import type { BandMember, Characteristic } from "@/features/bands";
-import { qualityTierColor } from "@/features/releases/labels";
-import type { QualityTier, Release } from "@/features/releases/types";
+import { qualityTierColor, reviewTierColor } from "@/features/releases/labels";
+import type {
+  QualityTier,
+  Release,
+  ReviewTier,
+} from "@/features/releases/types";
 import { formatPeriod } from "@/utils/period";
+
+/** Renders a 1..5 star rating with filled and empty stars. */
+function stars(count: number): string {
+  const filled = Math.max(0, Math.min(5, count));
+  return "⭐".repeat(filled) + "☆".repeat(5 - filled);
+}
 
 /** A launched work in the discography. */
 export function ReleaseCard({
@@ -12,16 +31,21 @@ export function ReleaseCard({
   catalog,
   formatLabel,
   qualityTier,
+  criticTier,
+  publicTier,
 }: {
   release: Release;
   members: BandMember[];
   catalog: Map<string, Characteristic>;
   formatLabel: string;
   qualityTier?: QualityTier;
+  criticTier?: ReviewTier;
+  publicTier?: ReviewTier;
 }) {
   const byId = new Map(members.map((m) => [m.id, m]));
   const revenue =
     (release.masterRevenueTotal ?? 0) + (release.publishingRevenueTotal ?? 0);
+  const [reviewsOpen, reviews] = useDisclosure(false);
 
   return (
     <Card withBorder padding="md">
@@ -45,6 +69,86 @@ export function ReleaseCard({
             </Badge>
           )}
         </Group>
+
+        {release.criticScore !== null && (
+          <Stack gap={6}>
+            <Group gap="lg">
+              <Group gap={6} wrap="nowrap">
+                <Text size="xs" c="dimmed" fw={600}>
+                  Crítica
+                </Text>
+                <Badge
+                  color={reviewTierColor(release.criticTier)}
+                  variant="light"
+                >
+                  {criticTier ? `${stars(criticTier.stars)} ` : ""}
+                  {Math.round(release.criticScore)}
+                </Badge>
+              </Group>
+              <Group gap={6} wrap="nowrap">
+                <Text size="xs" c="dimmed" fw={600}>
+                  Público
+                </Text>
+                <Badge
+                  color={reviewTierColor(release.publicTier)}
+                  variant="light"
+                >
+                  {publicTier ? `${stars(publicTier.stars)} ` : ""}
+                  {Math.round(release.publicScore ?? 0)}
+                </Badge>
+              </Group>
+            </Group>
+
+            {(release.criticComments.length > 0 ||
+              release.publicComments.length > 0) && (
+              <>
+                <UnstyledButton onClick={reviews.toggle}>
+                  <Text size="xs" c="blue">
+                    {reviewsOpen ? "Ocultar análise" : "Ver análise"}
+                  </Text>
+                </UnstyledButton>
+
+                <Collapse in={reviewsOpen}>
+                  <Stack gap="sm" mt={4}>
+                    <div>
+                      <Text size="xs" fw={700}>
+                        Crítica especializada
+                        {criticTier ? ` — ${criticTier.label}` : ""}{" "}
+                        {criticTier ? stars(criticTier.stars) : ""}
+                      </Text>
+                      <Stack gap={4} mt={4}>
+                        {release.criticComments.map((comment, index) => (
+                          <Text key={index} size="xs" c="dimmed" fs="italic">
+                            &ldquo;{comment}&rdquo;
+                          </Text>
+                        ))}
+                      </Stack>
+                    </div>
+
+                    <div>
+                      <Text size="xs" fw={700}>
+                        Público {publicTier ? stars(publicTier.stars) : ""}
+                      </Text>
+                      <Stack gap={4} mt={4}>
+                        {release.publicComments.map((comment, index) => (
+                          <Text key={index} size="xs" c="dimmed">
+                            &ldquo;{comment}&rdquo;
+                          </Text>
+                        ))}
+                      </Stack>
+                    </div>
+
+                    {release.formatComment && (
+                      <Text size="xs" c="dimmed" fs="italic">
+                        Sobre o formato: &ldquo;{release.formatComment}&rdquo;
+                      </Text>
+                    )}
+                  </Stack>
+                </Collapse>
+              </>
+            )}
+          </Stack>
+        )}
 
         {release.concept && (
           <Text size="xs" c="dimmed">

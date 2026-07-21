@@ -17,6 +17,7 @@ import { ReleaseCreationModal } from "@/features/releases/components/ReleaseCrea
 import {
   useQualityTiers,
   useReleaseFormats,
+  useReviewTiers,
 } from "@/features/releases/hooks/useReleaseCatalogs";
 import {
   useCancelRelease,
@@ -29,6 +30,7 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
   const { data: releases } = useReleases(bandId);
   const { data: formats } = useReleaseFormats();
   const { data: qualityTiers } = useQualityTiers();
+  const { data: reviewTiers } = useReviewTiers();
   const { data: characteristics } = useCharacteristics();
   const cancel = useCancelRelease(bandId);
   const [modalOpen, modal] = useDisclosure(false);
@@ -49,6 +51,8 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
     formats?.find((f) => f.id === id)?.label ?? id;
   const tierById = (id: string | null) =>
     qualityTiers?.find((t) => t.id === id);
+  const reviewTierById = (id: string | null) =>
+    reviewTiers?.find((t) => t.id === id);
 
   const openFresh = () => {
     setResumeId(null);
@@ -113,6 +117,8 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
               catalog={catalog}
               formatLabel={formatLabel(release.format)}
               qualityTier={tierById(release.qualityTier)}
+              criticTier={reviewTierById(release.criticTier)}
+              publicTier={reviewTierById(release.publicTier)}
             />
           ))}
         </SimpleGrid>

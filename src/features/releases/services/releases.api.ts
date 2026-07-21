@@ -6,6 +6,7 @@ import type {
   Release,
   ReleaseFormat,
   ReleaseWithEvents,
+  ReviewTier,
   StartReleaseInput,
 } from "@/features/releases/types";
 import { http } from "@/services/http";
@@ -73,6 +74,11 @@ export function getBudgetTiers(): Promise<BudgetTier[]> {
 /** Lists the quality-tier ladder. */
 export function getQualityTiers(): Promise<QualityTier[]> {
   return http.get<QualityTier[]>("/releases/quality-tiers");
+}
+
+/** Lists the review-tier ladder (critic/public selos). */
+export function getReviewTiers(): Promise<ReviewTier[]> {
+  return http.get<ReviewTier[]>("/releases/review-tiers");
 }
 
 /** Asks the backend for release-title suggestions. */

@@ -145,7 +145,11 @@ export function ReleaseCreationModal({
       onSuccess: (rel) => {
         notifications.show({
           title: `Lançado: ${rel.title}`,
-          message: `Qualidade ${rel.quality} · +${(rel.fansGained ?? 0).toLocaleString("pt-BR")} fãs · custo ${(rel.cost ?? 0).toLocaleString("pt-BR")}`,
+          message:
+            `Qualidade ${rel.quality} · +${(rel.fansGained ?? 0).toLocaleString("pt-BR")} fãs · custo ${(rel.cost ?? 0).toLocaleString("pt-BR")}` +
+            (rel.criticScore !== null
+              ? ` · Crítica ${Math.round(rel.criticScore)} · Público ${Math.round(rel.publicScore ?? 0)}`
+              : ""),
           color: "teal",
         });
         onClose();
