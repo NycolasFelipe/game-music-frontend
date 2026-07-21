@@ -1,5 +1,6 @@
 /** Public API of the releases feature. */
 export { DiscographyTab } from "@/features/releases/components/DiscographyTab";
+export { VinylPreview } from "@/features/releases/components/VinylPreview";
 export { ReleaseCard } from "@/features/releases/components/ReleaseCard";
 export { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
 export {

@@ -34,7 +34,7 @@ import {
   useRelationshipLevels,
 } from "@/features/bands";
 import type { Characteristic } from "@/features/bands";
-import { DiscographyTab } from "@/features/releases";
+import { DiscographyTab, VinylPreview } from "@/features/releases";
 import { useTurns } from "@/features/turns";
 import { BandTimelineTab } from "@/pages/BandTimelineTab";
 import { formatPeriod } from "@/utils/period";
@@ -174,28 +174,32 @@ export function BandDashboardPage() {
             </Tabs.Panel>
 
             <Tabs.Panel value="options" pt="lg">
-              <Stack gap="md" maw={420}>
-                <div>
-                  <Title order={5}>Save</Title>
-                  <Text size="sm" c="dimmed">
-                    Gerencie este save da banda.
-                  </Text>
-                </div>
-                <Button
-                  component={Link}
-                  to="/"
-                  variant="default"
-                  leftSection={<IconArrowLeft size={16} />}
-                  w="fit-content"
-                >
-                  Voltar aos saves
-                </Button>
-                <DeleteBandButton
-                  mode="button"
-                  bandId={band.id}
-                  bandName={band.name}
-                  onDeleted={() => navigate("/")}
-                />
+              <Stack gap="xl">
+                <Stack gap="md" maw={420}>
+                  <div>
+                    <Title order={5}>Save</Title>
+                    <Text size="sm" c="dimmed">
+                      Gerencie este save da banda.
+                    </Text>
+                  </div>
+                  <Button
+                    component={Link}
+                    to="/"
+                    variant="default"
+                    leftSection={<IconArrowLeft size={16} />}
+                    w="fit-content"
+                  >
+                    Voltar aos saves
+                  </Button>
+                  <DeleteBandButton
+                    mode="button"
+                    bandId={band.id}
+                    bandName={band.name}
+                    onDeleted={() => navigate("/")}
+                  />
+                </Stack>
+
+                <VinylPreview />
               </Stack>
             </Tabs.Panel>
           </Tabs>
