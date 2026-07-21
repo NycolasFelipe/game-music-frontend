@@ -22,6 +22,7 @@ import {
   BandStatistics,
   DeleteBandButton,
   MemberCard,
+  MemberSalaryControl,
   RelationshipsView,
   useBand,
   useBandOptions,
@@ -137,6 +138,12 @@ export function BandDashboardPage() {
                         key={member.id}
                         member={member}
                         catalog={catalog}
+                        actions={
+                          <MemberSalaryControl
+                            bandId={band.id}
+                            member={member}
+                          />
+                        }
                       />
                     ))}
                   </SimpleGrid>

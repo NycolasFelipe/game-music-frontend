@@ -22,4 +22,14 @@ export interface AdvanceTurnResult {
   agedMembers: boolean;
   passiveEvent: { id: string; description: string } | null;
   activeEvent: { id: string; title: string } | null;
+  /** Total salaries owed this turn. */
+  salariesDue: number;
+  /** Total salaries actually paid from the band's cash this turn. */
+  salariesPaid: number;
+  /** Whether every member was paid in full this turn. */
+  salariesFullyPaid: boolean;
+  /** Ids of members who left the band this turn over unpaid salary. */
+  departedMemberIds: string[];
+  /** Members in arrears who will leave soon if still unpaid (warning window). */
+  salaryWarnings: Array<{ memberId: string; turnsUntilDeparture: number }>;
 }

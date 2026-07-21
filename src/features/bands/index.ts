@@ -5,7 +5,14 @@ export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";
 export { MemberCard } from "@/features/bands/components/MemberCard";
 export { MemberEditModal } from "@/features/bands/components/MemberEditModal";
 export { MemberHoverName } from "@/features/bands/components/MemberHoverName";
+export { MemberSalaryControl } from "@/features/bands/components/MemberSalaryControl";
+export { SalaryBadge } from "@/features/bands/components/SalaryBadge";
 export { bandKeys, useBand, useBands } from "@/features/bands/hooks/useBands";
+export {
+  salaryKeys,
+  useMemberSalaryHistory,
+  useUpdateMemberSalary,
+} from "@/features/bands/hooks/useMemberSalary";
 export { useDeleteBand } from "@/features/bands/hooks/useDeleteBand";
 export {
   catalogKeys,
@@ -35,5 +42,6 @@ export type {
   MemberCandidate,
   MemberRelationship,
   RelationshipLevelInfo,
+  SalaryAgreement,
   Skills,
 } from "@/features/bands/types";

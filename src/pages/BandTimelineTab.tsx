@@ -14,6 +14,7 @@ import {
   IconBolt,
   IconPlayerTrackNext,
   IconSparkles,
+  IconUserMinus,
   IconWorld,
 } from "@tabler/icons-react";
 import { useMemo } from "react";
@@ -30,7 +31,7 @@ import { formatPeriod } from "@/utils/period";
 interface TimelineEntry {
   key: string;
   year: number;
-  kind: "passive" | "active";
+  kind: "passive" | "active" | "departure";
   title?: string;
   description: string;
   resolved?: boolean;
@@ -69,14 +70,49 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
   function handleAdvance() {
     advance.mutate(undefined, {
       onSuccess: (result) => {
-        notifications.show({
-          title: `Turno avançado — ${result.period}`,
-          message: result.activeEvent
+        const departed = result.departedMemberIds
+          .map((id) => memberById.get(id)?.name ?? "um integrante")
+          .join(", ");
+
+        const lines = [
+          result.activeEvent
             ? "Um evento requer sua decisão!"
             : result.passiveEvent
               ? "Novidades na cena musical."
               : "Tudo tranquilo por enquanto.",
-          color: result.activeEvent ? "yellow" : "blue",
+        ];
+        if (result.salariesPaid > 0 || result.salariesDue > 0) {
+          lines.push(
+            `Folha: ${result.salariesPaid.toLocaleString("pt-BR")} de ${result.salariesDue.toLocaleString("pt-BR")} pagos` +
+              (result.salariesFullyPaid ? "." : " (caixa insuficiente)."),
+          );
+        }
+
+        const warnings = result.salaryWarnings
+          .map(
+            (w) =>
+              `${memberById.get(w.memberId)?.name ?? "um integrante"} (${w.turnsUntilDeparture})`,
+          )
+          .join(", ");
+        if (warnings) {
+          lines.push(`Salário atrasado, sairão em breve: ${warnings}.`);
+        }
+        if (departed) {
+          lines.push(`Saiu por atraso salarial: ${departed}.`);
+        }
+
+        notifications.show({
+          title: `Turno avançado — ${result.period}`,
+          message: lines.join(" "),
+          color: departed
+            ? "red"
+            : warnings
+              ? "orange"
+              : result.activeEvent
+                ? "yellow"
+                : !result.salariesFullyPaid
+                  ? "orange"
+                  : "blue",
         });
       },
       onError: () =>
@@ -116,7 +152,10 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
     ...(passiveEvents ?? []).map((p) => ({
       key: `p-${p.id}`,
       year: p.year,
-      kind: "passive" as const,
+      kind:
+        p.type === "saida_integrante"
+          ? ("departure" as const)
+          : ("passive" as const),
       description: p.description,
     })),
     ...(activeEvents ?? []).map((a) => ({
@@ -241,13 +280,17 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
           <Timeline bulletSize={24} lineWidth={2} active={-1}>
             {entries.map((entry) => {
               const color =
-                entry.kind === "passive"
-                  ? "gray"
-                  : entry.resolved
-                    ? "teal"
-                    : "yellow";
+                entry.kind === "departure"
+                  ? "red"
+                  : entry.kind === "passive"
+                    ? "gray"
+                    : entry.resolved
+                      ? "teal"
+                      : "yellow";
               const bullet =
-                entry.kind === "passive" ? (
+                entry.kind === "departure" ? (
+                  <IconUserMinus size={13} />
+                ) : entry.kind === "passive" ? (
                   <IconWorld size={13} />
                 ) : entry.resolved ? (
                   <IconSparkles size={13} />
@@ -263,7 +306,10 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
                   title={
                     <Group gap="xs" wrap="nowrap">
                       <Text size="sm" fw={600}>
-                        {entry.title ?? "Cena musical"}
+                        {entry.title ??
+                          (entry.kind === "departure"
+                            ? "Saída de integrante"
+                            : "Cena musical")}
                       </Text>
                       <Text size="xs" c="dimmed">
                         {formatPeriod(entry.year)}

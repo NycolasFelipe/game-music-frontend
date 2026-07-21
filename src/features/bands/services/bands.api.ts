@@ -1,6 +1,7 @@
 import type {
   Band,
   BandDetail,
+  BandMember,
   BandOptions,
   Characteristic,
   CreateBandInput,
@@ -8,6 +9,7 @@ import type {
   HappinessLevelInfo,
   MemberCandidate,
   RelationshipLevelInfo,
+  SalaryAgreement,
   SkillDescriptions,
 } from "@/features/bands/types";
 import { http } from "@/services/http";
@@ -74,4 +76,26 @@ export function getSkillDescriptions(): Promise<SkillDescriptions> {
 /** Lists happiness-level display metadata (emoji, name, description). */
 export function getHappinessLevels(): Promise<HappinessLevelInfo[]> {
   return http.get<HappinessLevelInfo[]>("/band-members/happiness-levels");
+}
+
+/** Adjusts a member's salary; returns the updated member. */
+export function updateMemberSalary(
+  bandId: string,
+  memberId: string,
+  amount: number,
+): Promise<BandMember> {
+  return http.patch<BandMember>(
+    `/bands/${bandId}/members/${memberId}/salary`,
+    { amount },
+  );
+}
+
+/** Lists a member's salary history (newest first). */
+export function getMemberSalaryHistory(
+  bandId: string,
+  memberId: string,
+): Promise<SalaryAgreement[]> {
+  return http.get<SalaryAgreement[]>(
+    `/bands/${bandId}/members/${memberId}/salary/history`,
+  );
 }

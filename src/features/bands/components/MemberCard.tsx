@@ -123,21 +123,33 @@ export function MemberCard({
       }}
     >
       <Stack gap="xs">
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <Group gap="sm" wrap="nowrap" align="center">
+        <Group
+          justify="space-between"
+          align="flex-start"
+          wrap="nowrap"
+          gap="xs"
+        >
+          <Group
+            gap="sm"
+            wrap="nowrap"
+            align="center"
+            style={{ flex: 1, minWidth: 0 }}
+          >
             <MemberAvatar
               avatar={member.avatar}
               onRegenerate={onRegenerateAvatar}
               loading={avatarRegenerating}
             />
-            <div>
-              <Text fw={600}>{member.name}</Text>
+            <div style={{ minWidth: 0 }}>
+              <Text fw={600} style={{ wordBreak: "break-word" }}>
+                {member.name}
+              </Text>
               <Text size="xs" c="dimmed">
                 {member.age} anos · {genderLabel(member.gender)}
               </Text>
             </div>
           </Group>
-          <Group gap="xs" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
             {member.happiness !== undefined && (
               <HappinessBadge value={member.happiness} />
             )}

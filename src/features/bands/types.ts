@@ -49,6 +49,25 @@ export interface BandMember {
   biography: string;
   primarySkill: string;
   joinYear: number | null;
+  /** Current salary paid per turn. */
+  salary: number;
+  /** Salary that keeps the member content (from skill/traits/fame). */
+  salaryTarget: number;
+  /** Consecutive turns the member went unpaid (arrears counter). */
+  salaryUnpaidTurns: number;
+  /**
+   * Turns left before the member leaves over unpaid salary, or `null` when paid.
+   * A warning while `>= 1`.
+   */
+  salaryTurnsUntilDeparture: number | null;
+}
+
+/** One entry of a member's salary history (`GET .../salary/history`). */
+export interface SalaryAgreement {
+  amount: number;
+  effectiveYear: number;
+  reason: "inicial" | "ajuste";
+  createdAt: string;
 }
 
 /** A relationship level between two members. */
