@@ -116,11 +116,16 @@ export function ReleaseCard({
                         {criticTier ? ` — ${criticTier.label}` : ""}{" "}
                         {criticTier ? stars(criticTier.stars) : ""}
                       </Text>
-                      <Stack gap={4} mt={4}>
+                      <Stack gap={6} mt={4}>
                         {release.criticComments.map((comment, index) => (
-                          <Text key={index} size="xs" c="dimmed" fs="italic">
-                            &ldquo;{comment}&rdquo;
-                          </Text>
+                          <div key={index}>
+                            <Text size="xs" c="dimmed" fs="italic">
+                              &ldquo;{comment.text}&rdquo;
+                            </Text>
+                            <Text size="xs" c="dimmed" fw={600}>
+                              — {comment.author}
+                            </Text>
+                          </div>
                         ))}
                       </Stack>
                     </div>
@@ -129,11 +134,16 @@ export function ReleaseCard({
                       <Text size="xs" fw={700}>
                         Público {publicTier ? stars(publicTier.stars) : ""}
                       </Text>
-                      <Stack gap={4} mt={4}>
+                      <Stack gap={6} mt={4}>
                         {release.publicComments.map((comment, index) => (
-                          <Text key={index} size="xs" c="dimmed">
-                            &ldquo;{comment}&rdquo;
-                          </Text>
+                          <div key={index}>
+                            <Text size="xs" c="dimmed">
+                              &ldquo;{comment.text}&rdquo;
+                            </Text>
+                            <Text size="xs" c="dimmed" fw={600}>
+                              — {comment.author}
+                            </Text>
+                          </div>
                         ))}
                       </Stack>
                     </div>

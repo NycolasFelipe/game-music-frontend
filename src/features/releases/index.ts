@@ -33,6 +33,7 @@ export type {
   ReleaseFormatId,
   ReleaseStatus,
   ReleaseWithEvents,
+  ReviewComment,
   ReviewTier,
   StartReleaseInput,
 } from "@/features/releases/types";

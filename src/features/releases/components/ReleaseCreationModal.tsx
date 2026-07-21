@@ -37,6 +37,7 @@ import {
 import type {
   BudgetTierId,
   CreationEventKind,
+  Release,
   ReleaseCredits,
   ReleaseFormatId,
 } from "@/features/releases/types";
@@ -63,10 +64,13 @@ export function ReleaseCreationModal({
   band,
   resumeReleaseId = null,
   onClose,
+  onFinalized,
 }: {
   band: BandDetail;
   resumeReleaseId?: string | null;
   onClose: () => void;
+  /** Called with the launched work so the parent can reveal its reviews. */
+  onFinalized?: (release: Release) => void;
 }) {
   const bandId = band.id;
   const [releaseId, setReleaseId] = useState<string | null>(resumeReleaseId);
@@ -145,14 +149,11 @@ export function ReleaseCreationModal({
       onSuccess: (rel) => {
         notifications.show({
           title: `Lançado: ${rel.title}`,
-          message:
-            `Qualidade ${rel.quality} · +${(rel.fansGained ?? 0).toLocaleString("pt-BR")} fãs · custo ${(rel.cost ?? 0).toLocaleString("pt-BR")}` +
-            (rel.criticScore !== null
-              ? ` · Crítica ${Math.round(rel.criticScore)} · Público ${Math.round(rel.publicScore ?? 0)}`
-              : ""),
+          message: `Qualidade ${rel.quality} · +${(rel.fansGained ?? 0).toLocaleString("pt-BR")} fãs · custo ${(rel.cost ?? 0).toLocaleString("pt-BR")}`,
           color: "teal",
         });
         onClose();
+        onFinalized?.(rel);
       },
       onError: (e) =>
         notifications.show({

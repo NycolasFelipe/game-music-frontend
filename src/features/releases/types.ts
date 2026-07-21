@@ -46,6 +46,12 @@ export interface ReleaseDetails {
   reach: number;
 }
 
+/** A review blurb paired with the author who signed it. */
+export interface ReviewComment {
+  text: string;
+  author: string;
+}
+
 /** A musical work (`ReleaseView`). Outcome fields are null while a draft. */
 export interface Release {
   id: string;
@@ -67,10 +73,10 @@ export interface Release {
   criticTier: string | null;
   /** Public review-tier id, derived from the score (null when no score). */
   publicTier: string | null;
-  /** Three specialized-critic blurbs (empty when no score). */
-  criticComments: string[];
-  /** Three public (fan) blurbs (empty when no score). */
-  publicComments: string[];
+  /** Three specialized-critic blurbs with their outlet (empty when no score). */
+  criticComments: ReviewComment[];
+  /** Three public (fan) blurbs with their author (empty when no score). */
+  publicComments: ReviewComment[];
   /** A format-specific editorial note (null when no score / no note). */
   formatComment: string | null;
   fansGained: number | null;

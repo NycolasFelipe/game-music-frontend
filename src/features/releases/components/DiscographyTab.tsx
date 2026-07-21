@@ -14,6 +14,8 @@ import { useCharacteristics } from "@/features/bands";
 import type { BandDetail, Characteristic } from "@/features/bands";
 import { ReleaseCard } from "@/features/releases/components/ReleaseCard";
 import { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
+import { ReleaseRevealModal } from "@/features/releases/components/ReleaseRevealModal";
+import type { Release } from "@/features/releases/types";
 import {
   useQualityTiers,
   useReleaseFormats,
@@ -35,6 +37,8 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
   const cancel = useCancelRelease(bandId);
   const [modalOpen, modal] = useDisclosure(false);
   const [resumeId, setResumeId] = useState<string | null>(null);
+  const [revealOpen, reveal] = useDisclosure(false);
+  const [revealRelease, setRevealRelease] = useState<Release | null>(null);
 
   const catalog = useMemo(
     () =>
@@ -129,8 +133,19 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
           band={band}
           resumeReleaseId={resumeId}
           onClose={modal.close}
+          onFinalized={(rel) => {
+            setRevealRelease(rel);
+            reveal.open();
+          }}
         />
       )}
+
+      <ReleaseRevealModal
+        release={revealRelease}
+        reviewTiers={reviewTiers}
+        opened={revealOpen}
+        onClose={reveal.close}
+      />
     </Stack>
   );
 }
