@@ -10,10 +10,10 @@ import {
 } from "@mantine/core";
 import {
   IconArrowLeft,
+  IconCalendarEvent,
   IconChartBar,
   IconDisc,
   IconFlask,
-  IconMicrophone,
   IconSettings,
   IconTimeline,
   IconUserMinus,
@@ -21,7 +21,6 @@ import {
 } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ActivitiesPanel } from "@/features/activities";
 import {
   BandGameOptions,
   BandHeader,
@@ -38,7 +37,6 @@ import {
 } from "@/features/bands";
 import type { Characteristic } from "@/features/bands";
 import { DecisionsModal } from "@/features/decisions";
-import { GigsTab } from "@/features/gigs";
 import {
   DiscographyTab,
   ReleaseRevealHost,
@@ -46,6 +44,7 @@ import {
 } from "@/features/releases";
 import { useTurns } from "@/features/turns";
 import { DEV_OPTIONS_ENABLED } from "@/config/app";
+import { BandAgendaTab } from "@/pages/BandAgendaTab";
 import { BandTimelineTab } from "@/pages/BandTimelineTab";
 
 /** The "continue save" screen: the band's state across tabbed views. */
@@ -105,8 +104,11 @@ export function BandDashboardPage() {
               <Tabs.Tab value="releases" leftSection={<IconDisc size={16} />}>
                 Discografia
               </Tabs.Tab>
-              <Tabs.Tab value="gigs" leftSection={<IconMicrophone size={16} />}>
-                Shows
+              <Tabs.Tab
+                value="agenda"
+                leftSection={<IconCalendarEvent size={16} />}
+              >
+                Agenda
               </Tabs.Tab>
               <Tabs.Tab value="stats" leftSection={<IconChartBar size={16} />}>
                 Estatísticas
@@ -167,10 +169,6 @@ export function BandDashboardPage() {
                     levels={relationshipLevels ?? []}
                   />
                 </div>
-
-                {/* Right under the map of who gets along: reading it and acting
-                    on it belong on the same screen (ADR-0017). */}
-                <ActivitiesPanel band={band} />
               </Stack>
             </Tabs.Panel>
 
@@ -178,8 +176,8 @@ export function BandDashboardPage() {
               <DiscographyTab band={band} />
             </Tabs.Panel>
 
-            <Tabs.Panel value="gigs" pt="lg">
-              <GigsTab band={band} />
+            <Tabs.Panel value="agenda" pt="lg">
+              <BandAgendaTab band={band} />
             </Tabs.Panel>
 
             <Tabs.Panel value="stats" pt="lg">

@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Badge,
   Button,
   Card,
@@ -8,11 +7,11 @@ import {
   SimpleGrid,
   Stack,
   Text,
-  Title,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconConfetti } from "@tabler/icons-react";
 import { useState } from "react";
+import { GuestPicker } from "@/features/activities/components/GuestPicker";
 import {
   useActivityOptions,
   useBandActivities,
@@ -27,54 +26,6 @@ function riskBadge(chance: number): { label: string; color: string } {
   if (chance >= 0.4) return { label: "🔴 risco alto", color: "red" };
   if (chance >= 0.15) return { label: "🟡 risco médio", color: "yellow" };
   return { label: "🟢 risco baixo", color: "teal" };
-}
-
-/** One member on the guest list, in or out. */
-function GuestToggle({
-  name,
-  avatar,
-  going,
-  onToggle,
-}: {
-  name: string;
-  avatar?: string;
-  going: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <Paper
-      withBorder
-      radius="xl"
-      px="sm"
-      py={6}
-      role="checkbox"
-      aria-checked={going}
-      aria-label={`${going ? "Tirar" : "Levar"} ${name}`}
-      tabIndex={0}
-      onClick={onToggle}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onToggle();
-        }
-      }}
-      style={{
-        cursor: "pointer",
-        borderColor: going ? "var(--mantine-color-blue-6)" : undefined,
-        borderWidth: going ? 2 : 1,
-        background: going ? "var(--mantine-color-blue-light)" : undefined,
-      }}
-    >
-      <Group gap={6} wrap="nowrap">
-        <Avatar size={22} radius="xl">
-          {avatar ?? "🧑"}
-        </Avatar>
-        <Text size="sm" fw={going ? 700 : 400}>
-          {name}
-        </Text>
-      </Group>
-    </Paper>
-  );
 }
 
 /**
@@ -163,7 +114,6 @@ export function ActivitiesPanel({ band }: { band: BandDetail }) {
   return (
     <Stack gap="md">
       <div>
-        <Title order={5}>Confraternizações</Title>
         <Text size="sm" c="dimmed">
           O efeito alcança <Text span fw={700}>só quem vai</Text> — leve os dois
           que não se falam e é a relação deles que melhora. Ou que explode.
@@ -171,20 +121,12 @@ export function ActivitiesPanel({ band }: { band: BandDetail }) {
       </div>
 
       <div>
-        <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={6}>
-          Quem vai ({guests.length})
-        </Text>
-        <Group gap="xs">
-          {band.members.map((member) => (
-            <GuestToggle
-              key={member.id}
-              name={member.name}
-              avatar={member.avatar}
-              going={guests.includes(member.id)}
-              onToggle={() => toggleGuest(member.id)}
-            />
-          ))}
-        </Group>
+        <GuestPicker
+          members={band.members}
+          relationships={band.relationships}
+          selected={guests}
+          onToggle={toggleGuest}
+        />
         {worstLevel !== null && worstLevel < 0 && (
           <Text size="xs" c="orange" mt={6}>
             Tem gente na lista que não se suporta — o que mais compensa e o que

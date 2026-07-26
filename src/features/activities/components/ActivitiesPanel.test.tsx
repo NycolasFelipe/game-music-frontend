@@ -5,12 +5,18 @@ import { ActivitiesPanel } from "@/features/activities/components/ActivitiesPane
 import * as api from "@/features/activities/services/activities.api";
 import type { ActivityOptions } from "@/features/activities/types";
 import type { BandDetail } from "@/features/bands";
+import * as prefsApi from "@/features/preferences/services/preferences.api";
 import { renderWithProviders } from "@/test/render";
 
 vi.mock("@/features/activities/services/activities.api", () => ({
   getActivityOptions: vi.fn(),
   listBandActivities: vi.fn(),
   holdActivity: vi.fn(),
+}));
+
+vi.mock("@/features/preferences/services/preferences.api", () => ({
+  getUserPreferences: vi.fn(),
+  updateUserPreferences: vi.fn(),
 }));
 
 const options = (heldThisTurn = 0): ActivityOptions => ({
@@ -51,6 +57,12 @@ const band = (balance = 5000): BandDetail =>
 
 describe("ActivitiesPanel", () => {
   beforeEach(() => {
+    vi.mocked(prefsApi.getUserPreferences).mockResolvedValue({
+      peopleView: "cards",
+    });
+    vi.mocked(prefsApi.updateUserPreferences).mockImplementation((patch) =>
+      Promise.resolve({ peopleView: "cards", ...patch }),
+    );
     vi.mocked(api.getActivityOptions).mockResolvedValue(options());
     vi.mocked(api.listBandActivities).mockResolvedValue([]);
     vi.mocked(api.holdActivity).mockResolvedValue({
@@ -112,6 +124,39 @@ describe("ActivitiesPanel", () => {
     expect(screen.getByText(/não se suporta/)).toBeVisible();
     // 0.05 + 5 * 0.06 = 0.35 — a dinner turns risky because of who was invited.
     expect(screen.getByText("🟡 risco médio")).toBeVisible();
+  });
+
+  it("picks guests on the relationship circle too", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ActivitiesPanel band={band()} />);
+
+    await user.click(await screen.findByRole("radio", { name: "Grafo" }));
+
+    // The choice is the account's, not this screen's (ADR-0018).
+    await waitFor(() =>
+      expect(prefsApi.updateUserPreferences).toHaveBeenCalledWith({
+        peopleView: "graph",
+      }),
+    );
+
+    // The same people answer to the same labels in either view.
+    await user.click(await screen.findByRole("checkbox", { name: "Levar Ana" }));
+    expect(
+      screen.getByRole("checkbox", { name: "Tirar Ana" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens on the view the account already chose", async () => {
+    vi.mocked(prefsApi.getUserPreferences).mockResolvedValue({
+      peopleView: "graph",
+    });
+
+    renderWithProviders(<ActivitiesPanel band={band()} />);
+
+    // No click: the graph is how this player looks at people, in every save.
+    expect(
+      await screen.findByText(/acendem as relações que a saída vai mexer/),
+    ).toBeInTheDocument();
   });
 
   it("blocks what the cash cannot cover", async () => {

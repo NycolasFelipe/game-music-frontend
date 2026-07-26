@@ -197,7 +197,8 @@ export function GigsTab({ band }: { band: BandDetail }) {
   return (
     <Stack gap="xl">
       <div>
-        <Title order={4}>A estrada</Title>
+        {/* The section is named by the Agenda toggle; here we only say what it
+            costs and what it is worth. */}
         <Text size="sm" c="dimmed">
           Cada turno vale meio ano: a banda faz{" "}
           <Text span fw={700}>

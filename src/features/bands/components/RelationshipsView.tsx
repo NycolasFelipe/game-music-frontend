@@ -1,26 +1,23 @@
 import { SegmentedControl, Stack } from "@mantine/core";
-import { useLocalStorage } from "@mantine/hooks";
 import { RelationshipCards } from "@/features/bands/components/RelationshipCards";
 import { RelationshipGraph } from "@/features/bands/components/RelationshipGraph";
 import type { RelationshipsViewProps } from "@/features/bands/components/relationship-utils";
-
-type View = "cards" | "graph";
+import { usePeopleView } from "@/features/preferences";
+import type { PeopleViewMode } from "@/features/preferences";
 
 /**
  * Relationships section with a switcher between the per-member cards and the
- * graph. The chosen view is persisted to localStorage.
+ * graph. The choice belongs to the account, not to this save (ADR-0018), so it
+ * follows the player to any band and any machine.
  */
 export function RelationshipsView(props: RelationshipsViewProps) {
-  const [view, setView] = useLocalStorage<View>({
-    key: "gm-relationships-view",
-    defaultValue: "cards",
-  });
+  const [view, setView] = usePeopleView();
 
   return (
     <Stack gap="md">
       <SegmentedControl
         value={view}
-        onChange={(value) => setView(value as View)}
+        onChange={(value) => setView(value as PeopleViewMode)}
         w="fit-content"
         data={[
           { value: "cards", label: "Cartões" },

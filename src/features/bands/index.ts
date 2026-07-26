@@ -43,6 +43,13 @@ export {
   SKILL_LABELS,
   SKILL_ORDER,
 } from "@/features/bands/labels";
+export {
+  buildLookups,
+  firstName,
+  levelColor,
+  levelHex,
+  pairKey,
+} from "@/features/bands/components/relationship-utils";
 export type {
   Band,
   BandDetail,
