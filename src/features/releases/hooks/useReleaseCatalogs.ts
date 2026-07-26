@@ -3,6 +3,7 @@ import {
   generateReleaseConcept,
   generateReleaseTitle,
   getBudgetTiers,
+  getGenreProfiles,
   getQualityTiers,
   getReleaseFormats,
   getReviewTiers,
@@ -18,6 +19,7 @@ export const releaseCatalogKeys = {
   budgetTiers: ["releases", "budget-tiers"] as const,
   qualityTiers: ["releases", "quality-tiers"] as const,
   reviewTiers: ["releases", "review-tiers"] as const,
+  genreProfiles: ["releases", "genre-profiles"] as const,
 };
 
 /** The release-format catalog from the backend. */
@@ -52,6 +54,15 @@ export function useReviewTiers() {
   return useQuery({
     queryKey: releaseCatalogKeys.reviewTiers,
     queryFn: getReviewTiers,
+    staleTime: Infinity,
+  });
+}
+
+/** The per-style skill-weight profiles from the backend. */
+export function useGenreProfiles() {
+  return useQuery({
+    queryKey: releaseCatalogKeys.genreProfiles,
+    queryFn: getGenreProfiles,
     staleTime: Infinity,
   });
 }

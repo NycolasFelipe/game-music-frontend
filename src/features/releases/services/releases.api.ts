@@ -2,6 +2,7 @@ import type {
   BudgetTier,
   GenerateConceptOptions,
   GenerateTitleOptions,
+  GenreProfile,
   QualityTier,
   Release,
   ReleaseFormat,
@@ -69,6 +70,11 @@ export function getReleaseFormats(): Promise<ReleaseFormat[]> {
 /** Lists the budget-tier catalog. */
 export function getBudgetTiers(): Promise<BudgetTier[]> {
   return http.get<BudgetTier[]>("/releases/budget-tiers");
+}
+
+/** Lists the per-style skill-weight profiles. */
+export function getGenreProfiles(): Promise<GenreProfile[]> {
+  return http.get<GenreProfile[]>("/releases/genre-profiles");
 }
 
 /** Lists the quality-tier ladder. */

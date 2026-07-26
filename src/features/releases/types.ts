@@ -169,6 +169,17 @@ export interface QualityTier {
   revenueMultiplier: number;
 }
 
+/**
+ * How much each aspect weighs in a work of a given style (ADR-0008 §5). The
+ * weights sum to 1 and drive both the "importance" shown per aspect and the
+ * technical-potential forecast in the creation flow.
+ */
+export interface GenreProfile {
+  style: string;
+  label: string;
+  weights: Record<keyof Skills, number>;
+}
+
 /** Display metadata for a review tier (critic/public selo). */
 export interface ReviewTier {
   id: string;

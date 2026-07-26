@@ -3,28 +3,41 @@ import {
   Alert,
   Badge,
   Button,
-  Card,
   Group,
   Loader,
   Modal,
-  Progress,
+  Paper,
   Select,
   Stack,
+  Stepper,
   Text,
   Textarea,
   TextInput,
   Tooltip,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconDice } from "@tabler/icons-react";
-import { useState } from "react";
-import { SKILL_ORDER, useBandOptions } from "@/features/bands";
+import { IconAlertTriangle, IconDice, IconDisc } from "@tabler/icons-react";
+import { useMemo, useState } from "react";
+import { SKILL_LABELS, SKILL_ORDER, useBandOptions } from "@/features/bands";
 import type { BandDetail } from "@/features/bands";
+import { CreationEventStage } from "@/features/releases/components/CreationEventStage";
 import { CreditsEditor } from "@/features/releases/components/CreditsEditor";
+import { ForecastMeter } from "@/features/releases/components/ForecastMeter";
+import {
+  BudgetPicker,
+  FormatPicker,
+} from "@/features/releases/components/ProductionPickers";
+import {
+  forecastQuality,
+  importanceStars,
+  uncoveredCrucialAspects,
+} from "@/features/releases/creation-forecast";
 import {
   useBudgetTiers,
   useGenerateReleaseConcept,
   useGenerateReleaseTitle,
+  useGenreProfiles,
+  useQualityTiers,
   useReleaseFormats,
 } from "@/features/releases/hooks/useReleaseCatalogs";
 import {
@@ -36,19 +49,20 @@ import {
 } from "@/features/releases/hooks/useReleases";
 import type {
   BudgetTierId,
-  CreationEventKind,
   Release,
   ReleaseCredits,
   ReleaseFormatId,
 } from "@/features/releases/types";
 import { ApiError } from "@/services/http";
 
-const KIND_LABELS: Record<CreationEventKind, string> = {
-  conflito_visao: "Conflito de visão",
-  ideia_maluca: "Ideia maluca",
-  perfeccionismo: "Perfeccionismo",
-  preguica: "Preguiça",
-};
+/** The creation journey, start to launch. */
+const STEP_LABELS = [
+  "Conceito",
+  "Produção",
+  "Créditos",
+  "Estúdio",
+  "Lançamento",
+];
 
 /** Turns an unknown error into a readable message. */
 function errorMessage(error: unknown): string {
@@ -56,9 +70,11 @@ function errorMessage(error: unknown): string {
 }
 
 /**
- * Drives the full creation flow of a work: configure (title/concept/style/
- * format/budget/credits) → resolve creation events → launch. Closing mid-flow
- * keeps the draft (it stays in the discography to continue or discard later).
+ * Drives the full creation of a work as a staged journey: concept → production
+ * → credits → studio sessions → launch. Each step shows what it costs and what
+ * it is worth (the style's demands, the forecast quality), so the choices read
+ * as decisions instead of a form. Closing mid-flow keeps the draft — it stays
+ * in the discography to continue or discard later.
  */
 export function ReleaseCreationModal({
   band,
@@ -74,6 +90,7 @@ export function ReleaseCreationModal({
 }) {
   const bandId = band.id;
   const [releaseId, setReleaseId] = useState<string | null>(resumeReleaseId);
+  const [configStep, setConfigStep] = useState(0);
   const [title, setTitle] = useState("");
   const [concept, setConcept] = useState("");
   const [style, setStyle] = useState(band.theme);
@@ -84,6 +101,8 @@ export function ReleaseCreationModal({
   const { data: options } = useBandOptions();
   const { data: formats } = useReleaseFormats();
   const { data: tiers } = useBudgetTiers();
+  const { data: qualityTiers } = useQualityTiers();
+  const { data: genreProfiles } = useGenreProfiles();
   const genTitle = useGenerateReleaseTitle();
   const genConcept = useGenerateReleaseConcept();
   const start = useStartRelease(bandId);
@@ -104,15 +123,41 @@ export function ReleaseCreationModal({
   const canAfford = estimatedCost === null || band.balance >= estimatedCost;
   const hasCredit = SKILL_ORDER.some((a) => (credits[a]?.length ?? 0) > 0);
 
+  const weights = genreProfiles?.find((p) => p.style === style)?.weights;
+  const forecast = useMemo(
+    () =>
+      weights
+        ? forecastQuality(
+            credits,
+            band.members,
+            weights,
+            tierObj?.qualityMultiplier ?? 1,
+          )
+        : 0,
+    [credits, band.members, weights, tierObj],
+  );
+  const uncovered = weights ? uncoveredCrucialAspects(credits, weights) : [];
+
+  /** The style's three defining aspects, shown as its "profile". */
+  const styleHighlights = weights
+    ? [...SKILL_ORDER]
+        .sort((a, b) => weights[b] - weights[a])
+        .slice(0, 3)
+        .map((aspect) => ({ aspect, weight: weights[aspect] }))
+    : [];
+
   const pending = (detail?.creationEvents ?? []).filter((e) => !e.resolved);
   const total = detail?.creationEvents.length ?? 0;
-  const step = !releaseId
+  const stage = !releaseId
     ? "config"
     : detailLoading
       ? "loading"
       : pending.length > 0
         ? "events"
         : "finalize";
+
+  const activeStep =
+    stage === "config" ? configStep : stage === "finalize" ? 4 : 3;
 
   function handleGenerateTitle() {
     genTitle.mutate(
@@ -130,7 +175,14 @@ export function ReleaseCreationModal({
 
   function handleStart() {
     start.mutate(
-      { title, concept: concept || undefined, style, format, budgetTier, credits },
+      {
+        title,
+        concept: concept || undefined,
+        style,
+        format,
+        budgetTier,
+        credits,
+      },
       {
         onSuccess: (rel) => setReleaseId(rel.id),
         onError: (e) =>
@@ -176,214 +228,307 @@ export function ReleaseCreationModal({
     <Modal
       opened
       onClose={onClose}
-      title="Criar obra musical"
+      title={
+        <Group gap={8}>
+          <IconDisc size={20} />
+          <Text fw={700}>Nova obra — {band.name}</Text>
+        </Group>
+      }
       centered
-      size="lg"
+      size="xl"
     >
-      {step === "config" && (
-        <Stack>
-          <Group align="flex-end" gap="xs">
-            <TextInput
-              label="Título"
-              placeholder="Nome da obra"
-              value={title}
-              onChange={(e) => setTitle(e.currentTarget.value)}
-              flex={1}
-            />
-            <Tooltip label="Gerar título">
-              <ActionIcon
-                variant="default"
-                size="lg"
-                onClick={handleGenerateTitle}
-                loading={genTitle.isPending}
-                aria-label="Gerar título"
-              >
-                <IconDice size={18} />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
+      <Stack>
+        <Stepper
+          active={activeStep}
+          size="xs"
+          allowNextStepsSelect={false}
+          onStepClick={(index) => stage === "config" && setConfigStep(index)}
+        >
+          {STEP_LABELS.map((label) => (
+            <Stepper.Step key={label} label={label} />
+          ))}
+        </Stepper>
 
-          <Group align="flex-end" gap="xs">
-            <Textarea
-              label="Álbum conceitual"
-              placeholder="A ideia por trás do disco"
-              value={concept}
-              onChange={(e) => setConcept(e.currentTarget.value)}
-              autosize
-              minRows={2}
-              flex={1}
-            />
-            <Tooltip label="Gerar conceito">
-              <ActionIcon
-                variant="default"
-                size="lg"
-                onClick={handleGenerateConcept}
-                loading={genConcept.isPending}
-                aria-label="Gerar conceito"
-              >
-                <IconDice size={18} />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
+        {stage === "config" && configStep === 0 && (
+          <Stack>
+            <Group align="flex-end" gap="xs">
+              <TextInput
+                label="Título"
+                placeholder="Nome da obra"
+                value={title}
+                onChange={(e) => setTitle(e.currentTarget.value)}
+                flex={1}
+              />
+              <Tooltip label="Sortear título">
+                <ActionIcon
+                  variant="light"
+                  size="lg"
+                  onClick={handleGenerateTitle}
+                  loading={genTitle.isPending}
+                  aria-label="Gerar título"
+                >
+                  <IconDice size={18} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
 
-          <Select
-            label="Estilo musical"
-            data={(options?.themes ?? []).map((t) => ({
-              value: t.id,
-              label: t.label,
-            }))}
-            value={style}
-            onChange={(v) => v && setStyle(v)}
-            searchable
-          />
-
-          <Group grow>
             <Select
-              label="Formato"
-              data={(formats ?? []).map((f) => ({
-                value: f.id,
-                label: f.label,
-              }))}
-              value={format}
-              onChange={(v) => v && setFormat(v as ReleaseFormatId)}
-            />
-            <Select
-              label="Orçamento"
-              data={(tiers ?? []).map((t) => ({
+              label="Estilo musical"
+              description="Define quais aspectos pesam na nota da obra."
+              data={(options?.themes ?? []).map((t) => ({
                 value: t.id,
                 label: t.label,
               }))}
-              value={budgetTier}
-              onChange={(v) => v && setBudgetTier(v as BudgetTierId)}
+              value={style}
+              onChange={(v) => v && setStyle(v)}
+              searchable
             />
-          </Group>
 
-          {estimatedCost !== null && (
-            <Text size="sm" c={canAfford ? "dimmed" : "red"}>
-              Custo estimado: {estimatedCost.toLocaleString("pt-BR")} · Caixa:{" "}
-              {band.balance.toLocaleString("pt-BR")}
-              {!canAfford && " — saldo insuficiente"}
-            </Text>
-          )}
+            {styleHighlights.length > 0 && (
+              <Paper withBorder p="xs" radius="md">
+                <Group gap="xs" wrap="wrap">
+                  <Text size="xs" c="dimmed" fw={600}>
+                    O que este estilo cobra:
+                  </Text>
+                  {styleHighlights.map(({ aspect, weight }) => (
+                    <Badge key={aspect} variant="light" size="sm">
+                      {SKILL_LABELS[aspect]} {"★".repeat(importanceStars(weight))}
+                    </Badge>
+                  ))}
+                </Group>
+              </Paper>
+            )}
 
-          <div>
-            <Text fw={600} size="sm" mb={4}>
-              Créditos
-            </Text>
-            <Text size="xs" c="dimmed" mb="xs">
-              Atribua os integrantes a cada aspecto da obra.
-            </Text>
-            <CreditsEditor
-              members={band.members}
-              value={credits}
-              onChange={setCredits}
-            />
-          </div>
+            <Group align="flex-end" gap="xs">
+              <Textarea
+                label="Álbum conceitual"
+                placeholder="A ideia por trás do disco"
+                value={concept}
+                onChange={(e) => setConcept(e.currentTarget.value)}
+                autosize
+                minRows={2}
+                flex={1}
+              />
+              <Tooltip label="Sortear conceito">
+                <ActionIcon
+                  variant="light"
+                  size="lg"
+                  onClick={handleGenerateConcept}
+                  loading={genConcept.isPending}
+                  aria-label="Gerar conceito"
+                >
+                  <IconDice size={18} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
 
-          <Group justify="flex-end" mt="sm">
-            <Button variant="subtle" color="gray" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleStart}
-              loading={start.isPending}
-              disabled={!title.trim() || !hasCredit || !canAfford}
-            >
-              Iniciar criação
-            </Button>
-          </Group>
-        </Stack>
-      )}
+            <Group justify="flex-end" mt="sm">
+              <Button variant="subtle" color="gray" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => setConfigStep(1)}
+                disabled={!title.trim()}
+              >
+                Produção →
+              </Button>
+            </Group>
+          </Stack>
+        )}
 
-      {step === "loading" && (
-        <Group justify="center" py="xl">
-          <Loader />
-        </Group>
-      )}
-
-      {step === "events" && pending[0] && (
-        <Stack>
-          <Progress value={((total - pending.length) / total) * 100} />
-          <Text size="xs" c="dimmed">
-            Decisão {total - pending.length + 1} de {total}
-          </Text>
-          <Card withBorder padding="md">
-            <Stack gap="sm">
-              <Badge variant="light" w="fit-content">
-                {KIND_LABELS[pending[0].kind]}
-              </Badge>
-              <Text>{pending[0].prompt}</Text>
-              <Stack gap="xs">
-                {pending[0].options.map((option) => (
-                  <Button
-                    key={option.id}
-                    variant="default"
-                    fullWidth
-                    justify="flex-start"
-                    h="auto"
-                    py="xs"
-                    loading={resolve.isPending}
-                    onClick={() =>
-                      resolve.mutate({
-                        eventId: pending[0].id,
-                        optionId: option.id,
-                      })
-                    }
-                  >
-                    <Stack gap={0} align="flex-start">
-                      <Text fw={600}>{option.label}</Text>
-                      <Text size="xs" c="dimmed">
-                        {option.description}
-                      </Text>
-                    </Stack>
-                  </Button>
-                ))}
-              </Stack>
-            </Stack>
-          </Card>
-          <Text size="xs" c="dimmed">
-            Você pode fechar e continuar depois pela Discografia.
-          </Text>
-        </Stack>
-      )}
-
-      {step === "finalize" && detail && (
-        <Stack>
-          <Alert color="teal" title="Tudo pronto para lançar">
-            As decisões de criação foram tomadas. Revise e lance a obra.
-          </Alert>
-          <Card withBorder padding="md">
-            <Stack gap={4}>
-              <Text fw={600}>{detail.title}</Text>
-              {detail.concept && (
-                <Text size="xs" c="dimmed">
-                  {detail.concept}
-                </Text>
-              )}
-              <Text size="sm" c="dimmed">
-                {formats?.find((f) => f.id === detail.format)?.label ??
-                  detail.format}{" "}
-                ·{" "}
-                {tiers?.find((t) => t.id === detail.budgetTier)?.label ??
-                  detail.budgetTier}
+        {stage === "config" && configStep === 1 && (
+          <Stack>
+            <div>
+              <Text size="sm" fw={600}>
+                Formato
               </Text>
-            </Stack>
-          </Card>
-          <Group justify="space-between" mt="sm">
-            <Button
-              variant="subtle"
-              color="red"
-              onClick={handleDiscard}
-              loading={cancel.isPending}
-            >
-              Descartar
-            </Button>
-            <Button onClick={handleFinalize} loading={finalize.isPending}>
-              Lançar obra
-            </Button>
+              <Text size="xs" c="dimmed" mb="xs">
+                Discos maiores custam e alcançam mais — e ensinam mais a quem
+                gravou.
+              </Text>
+              <FormatPicker
+                formats={formats ?? []}
+                value={format}
+                onChange={(id) => setFormat(id as ReleaseFormatId)}
+              />
+            </div>
+
+            <div>
+              <Text size="sm" fw={600}>
+                Orçamento
+              </Text>
+              <Text size="xs" c="dimmed" mb="xs">
+                Quanto melhor o estúdio, mais a obra rende em nota.
+              </Text>
+              <BudgetPicker
+                tiers={tiers ?? []}
+                value={budgetTier}
+                onChange={(id) => setBudgetTier(id as BudgetTierId)}
+                baseCost={formatObj?.baseCost ?? null}
+                balance={band.balance}
+              />
+            </div>
+
+            {estimatedCost !== null && (
+              <Paper withBorder p="xs" radius="md">
+                <Group justify="space-between">
+                  <Text size="sm">
+                    Custo da produção:{" "}
+                    <Text span fw={700} c={canAfford ? undefined : "red"}>
+                      {estimatedCost.toLocaleString("pt-BR")}
+                    </Text>
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    Caixa: {band.balance.toLocaleString("pt-BR")}
+                  </Text>
+                </Group>
+              </Paper>
+            )}
+
+            {!canAfford && (
+              <Alert color="red" icon={<IconAlertTriangle size={16} />}>
+                O caixa não cobre esta produção. Escolha um formato menor ou um
+                estúdio mais barato.
+              </Alert>
+            )}
+
+            <Group justify="space-between" mt="sm">
+              <Button variant="default" onClick={() => setConfigStep(0)}>
+                ← Conceito
+              </Button>
+              <Button onClick={() => setConfigStep(2)} disabled={!canAfford}>
+                Créditos →
+              </Button>
+            </Group>
+          </Stack>
+        )}
+
+        {stage === "config" && configStep === 2 && (
+          <Stack>
+            <ForecastMeter quality={forecast} tiers={qualityTiers} />
+
+            <div>
+              <Text size="sm" fw={600}>
+                Quem assina o quê
+              </Text>
+              <Text size="xs" c="dimmed" mb="xs">
+                Clique nos integrantes para creditá-los. Creditar um novato ao
+                lado de um veterano derruba a média — mas o novato aprende.
+              </Text>
+              <CreditsEditor
+                members={band.members}
+                value={credits}
+                onChange={setCredits}
+                weights={weights}
+              />
+            </div>
+
+            {uncovered.length > 0 && (
+              <Alert color="yellow" icon={<IconAlertTriangle size={16} />}>
+                Sem ninguém em{" "}
+                {uncovered.map((a) => SKILL_LABELS[a]).join(", ")} — aspectos que
+                pesam muito neste estilo contam zero na nota.
+              </Alert>
+            )}
+
+            <Group justify="space-between" mt="sm">
+              <Button variant="default" onClick={() => setConfigStep(1)}>
+                ← Produção
+              </Button>
+              <Button
+                onClick={handleStart}
+                loading={start.isPending}
+                disabled={!title.trim() || !hasCredit || !canAfford}
+              >
+                🎬 Entrar no estúdio
+              </Button>
+            </Group>
+          </Stack>
+        )}
+
+        {stage === "loading" && (
+          <Group justify="center" py="xl">
+            <Loader />
           </Group>
-        </Stack>
-      )}
+        )}
+
+        {stage === "events" && pending[0] && (
+          <CreationEventStage
+            event={pending[0]}
+            index={total - pending.length + 1}
+            total={total}
+            pending={resolve.isPending}
+            onChoose={(optionId) =>
+              resolve.mutate({ eventId: pending[0].id, optionId })
+            }
+          />
+        )}
+
+        {stage === "finalize" && detail && (
+          <Stack>
+            <Alert color="teal" title="A obra está pronta">
+              As sessões terminaram. Prense o disco e mande para o mundo.
+            </Alert>
+
+            <Paper withBorder p="md" radius="md">
+              <Stack gap={4}>
+                <Text fw={700} size="lg">
+                  {detail.title}
+                </Text>
+                {detail.concept && (
+                  <Text size="xs" c="dimmed" fs="italic">
+                    {detail.concept}
+                  </Text>
+                )}
+                <Group gap="xs" mt={4}>
+                  <Badge variant="light">
+                    {formats?.find((f) => f.id === detail.format)?.label ??
+                      detail.format}
+                  </Badge>
+                  <Badge variant="light" color="grape">
+                    {tiers?.find((t) => t.id === detail.budgetTier)?.label ??
+                      detail.budgetTier}
+                  </Badge>
+                  <Badge variant="light" color="gray">
+                    {options?.themes.find((t) => t.id === detail.style)?.label ??
+                      detail.style}
+                  </Badge>
+                </Group>
+                {detail.creationLog.length > 0 && (
+                  <Stack gap={2} mt="xs">
+                    <Text size="xs" fw={600} c="dimmed">
+                      No estúdio você decidiu:
+                    </Text>
+                    {detail.creationLog.map((entry) => (
+                      <Text key={entry.eventId} size="xs" c="dimmed">
+                        · {entry.choiceLabel}
+                      </Text>
+                    ))}
+                  </Stack>
+                )}
+              </Stack>
+            </Paper>
+
+            <Group justify="space-between" mt="sm">
+              <Button
+                variant="subtle"
+                color="red"
+                onClick={handleDiscard}
+                loading={cancel.isPending}
+              >
+                Descartar
+              </Button>
+              <Button
+                size="md"
+                onClick={handleFinalize}
+                loading={finalize.isPending}
+              >
+                🚀 Lançar obra
+              </Button>
+            </Group>
+          </Stack>
+        )}
+      </Stack>
     </Modal>
   );
 }
