@@ -1,8 +1,6 @@
 import {
-  Badge,
   Button,
   Container,
-  Group,
   Loader,
   SimpleGrid,
   Stack,
@@ -25,6 +23,7 @@ import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   BandGameOptions,
+  BandHeader,
   BandStatistics,
   DeleteBandButton,
   FormerMembersTab,
@@ -47,7 +46,6 @@ import {
 import { useTurns } from "@/features/turns";
 import { DEV_OPTIONS_ENABLED } from "@/config/app";
 import { BandTimelineTab } from "@/pages/BandTimelineTab";
-import { formatPeriod } from "@/utils/period";
 
 /** The "continue save" screen: the band's state across tabbed views. */
 export function BandDashboardPage() {
@@ -86,32 +84,11 @@ export function BandDashboardPage() {
           <DecisionsModal band={band} />
           <ReleaseRevealHost />
 
-          <Group justify="space-between" align="flex-start">
-            <div>
-              <Title order={2}>{band.name}</Title>
-              <Text c="dimmed">
-                {label(options?.themes, band.theme)} ·{" "}
-                {label(options?.origins, band.origin)}
-              </Text>
-            </div>
-            <Stack gap={4} align="flex-end">
-              <Badge size="lg" color="grape" variant="light">
-                {band.fame.title} · Nível {band.fame.level}
-              </Badge>
-              {/* What this level means, as in the original: the number alone
-                  says how far the band got, not where it got to. */}
-              <Text size="xs" c="dimmed" ta="right" maw={320}>
-                {band.fame.subtitle}
-              </Text>
-              <Text size="sm" c="dimmed">
-                {band.fanCount.toLocaleString("pt-BR")} fãs ·{" "}
-                {formatPeriod(band.currentYear)}
-              </Text>
-              <Badge size="lg" color="teal" variant="light">
-                💰 {band.balance.toLocaleString("pt-BR")} no caixa
-              </Badge>
-            </Stack>
-          </Group>
+          <BandHeader
+            band={band}
+            themeLabel={label(options?.themes, band.theme)}
+            originLabel={label(options?.origins, band.origin)}
+          />
 
           <Tabs defaultValue="overview" mt="md">
             <Tabs.List>

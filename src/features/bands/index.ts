@@ -1,6 +1,7 @@
 /** Public API of the bands feature. */
 export { BandNameConfigModal } from "@/features/bands/components/BandNameConfigModal";
 export { BandGameOptions } from "@/features/bands/components/BandGameOptions";
+export { BandHeader } from "@/features/bands/components/BandHeader";
 export { BandStatistics } from "@/features/bands/components/BandStatistics";
 export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";
 export { DepartureModal } from "@/features/bands/components/DepartureModal";
