@@ -176,7 +176,7 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
               onClick={handleLaunch}
               loading={finalize.isPending}
             >
-              🚀 Lançar {current.formatLabel}
+              Lançar {current.formatLabel}
             </Button>
           </Group>
         </Stack>

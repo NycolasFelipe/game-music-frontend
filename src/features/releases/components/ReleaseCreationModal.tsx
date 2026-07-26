@@ -577,7 +577,7 @@ export function ReleaseCreationModal({
                 onClick={handleFinalize}
                 loading={finalize.isPending}
               >
-                🚀 Lançar {currentFormat?.label ?? "obra"}
+                Lançar {currentFormat?.label ?? "obra"}
               </Button>
             </Group>
           </Stack>
