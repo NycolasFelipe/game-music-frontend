@@ -98,6 +98,11 @@ export function BandDashboardPage() {
               <Badge size="lg" color="grape" variant="light">
                 {band.fame.title} · Nível {band.fame.level}
               </Badge>
+              {/* What this level means, as in the original: the number alone
+                  says how far the band got, not where it got to. */}
+              <Text size="xs" c="dimmed" ta="right" maw={320}>
+                {band.fame.subtitle}
+              </Text>
               <Text size="sm" c="dimmed">
                 {band.fanCount.toLocaleString("pt-BR")} fãs ·{" "}
                 {formatPeriod(band.currentYear)}
