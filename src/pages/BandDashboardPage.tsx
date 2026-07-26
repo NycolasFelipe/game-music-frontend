@@ -15,6 +15,7 @@ import {
   IconChartBar,
   IconDisc,
   IconFlask,
+  IconMicrophone,
   IconSettings,
   IconTimeline,
   IconUserMinus,
@@ -36,6 +37,7 @@ import {
   useRelationshipLevels,
 } from "@/features/bands";
 import type { Characteristic } from "@/features/bands";
+import { GigsTab } from "@/features/gigs";
 import { DiscographyTab, VinylPreview } from "@/features/releases";
 import { useTurns } from "@/features/turns";
 import { DEV_OPTIONS_ENABLED } from "@/config/app";
@@ -110,6 +112,9 @@ export function BandDashboardPage() {
               <Tabs.Tab value="releases" leftSection={<IconDisc size={16} />}>
                 Discografia
               </Tabs.Tab>
+              <Tabs.Tab value="gigs" leftSection={<IconMicrophone size={16} />}>
+                Shows
+              </Tabs.Tab>
               <Tabs.Tab value="stats" leftSection={<IconChartBar size={16} />}>
                 Estatísticas
               </Tabs.Tab>
@@ -174,6 +179,10 @@ export function BandDashboardPage() {
 
             <Tabs.Panel value="releases" pt="lg">
               <DiscographyTab band={band} />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="gigs" pt="lg">
+              <GigsTab band={band} />
             </Tabs.Panel>
 
             <Tabs.Panel value="stats" pt="lg">
