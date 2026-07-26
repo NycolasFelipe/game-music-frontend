@@ -36,7 +36,13 @@ const skills = (partial: Partial<Skills>): Skills => ({
 });
 
 const member = (id: string, name: string, partial: Partial<Skills>) =>
-  ({ id, name, skills: skills(partial), happiness: 0 }) as BandMember;
+  ({
+    id,
+    name,
+    avatar: "🧑",
+    skills: skills(partial),
+    happiness: 0,
+  }) as BandMember;
 
 const band = {
   id: "b-1",
@@ -131,12 +137,13 @@ describe("ReleaseCreationModal", () => {
     expect(screen.getByText("10–14 faixas")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Créditos →" }));
 
-    // Step 3: forecast + the credits desk, ordered by what the style weighs.
-    expect(await screen.findByText("Prognóstico do produtor")).toBeVisible();
-    expect(screen.getByText("28% da nota")).toBeVisible();
+    // Step 3: the credits stage, ordered by what the style weighs — guitar
+    // leads in grunge, carrying 28% of the score.
+    expect(await screen.findByText("Escalação")).toBeVisible();
+    expect(screen.getByText(/28% da nota/)).toBeVisible();
   });
 
-  it("credits a member on click and updates the forecast", async () => {
+  it("puts a musician in hand and drops them on an instrument", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ReleaseCreationModal band={band} onClose={vi.fn()} />);
 
@@ -144,10 +151,80 @@ describe("ReleaseCreationModal", () => {
     await user.click(screen.getByRole("button", { name: "Produção →" }));
     await user.click(await screen.findByRole("button", { name: "Créditos →" }));
 
-    // Ana on guitar: 8/10 × 0.28 weight ≈ 22.
-    const [anaOnGuitar] = await screen.findAllByText("Ana");
-    await user.click(anaOnGuitar);
+    // Pick Ana up: every instrument then offers what she is worth there.
+    await user.click(await screen.findByRole("button", { name: "Selecionar Ana" }));
+    expect(
+      screen.getByRole("button", { name: "Creditar Ana em Guitarra" }),
+    ).toBeVisible();
 
-    await waitFor(() => expect(screen.getByText("22")).toBeVisible());
+    await user.click(
+      screen.getByRole("button", { name: "Creditar Ana em Guitarra" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Remover Ana de Guitarra" }),
+      ).toBeVisible(),
+    );
+  });
+
+  it("stacks several musicians on the same instrument", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ReleaseCreationModal band={band} onClose={vi.fn()} />);
+
+    await user.type(await screen.findByLabelText("Título"), "Ruído Branco");
+    await user.click(screen.getByRole("button", { name: "Produção →" }));
+    await user.click(await screen.findByRole("button", { name: "Créditos →" }));
+
+    // First player, in hand.
+    await user.click(
+      await screen.findByRole("button", { name: "Selecionar Ana" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Creditar Ana em Guitarra" }),
+    );
+
+    // Second player on the same instrument, from the instrument's own shortcut.
+    await user.click(screen.getByRole("button", { name: "Selecionar Ana" }));
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Escolher quem assina Guitarra",
+      }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "Creditar Beto em Guitarra" }),
+    );
+
+    // Both stay credited on guitar.
+    expect(
+      await screen.findByRole("button", { name: "Remover Ana de Guitarra" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Remover Beto de Guitarra" }),
+    ).toBeVisible();
+  });
+
+  it("also fills an instrument from the instrument itself, ranked by skill", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ReleaseCreationModal band={band} onClose={vi.fn()} />);
+
+    await user.type(await screen.findByLabelText("Título"), "Ruído Branco");
+    await user.click(screen.getByRole("button", { name: "Produção →" }));
+    await user.click(await screen.findByRole("button", { name: "Créditos →" }));
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Escolher quem assina Vocal",
+      }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "Creditar Beto em Vocal" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Remover Beto de Vocal" }),
+      ).toBeVisible(),
+    );
   });
 });

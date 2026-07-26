@@ -17,18 +17,16 @@ import {
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconAlertTriangle, IconDice, IconDisc } from "@tabler/icons-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { SKILL_LABELS, SKILL_ORDER, useBandOptions } from "@/features/bands";
 import type { BandDetail } from "@/features/bands";
 import { CreationEventStage } from "@/features/releases/components/CreationEventStage";
 import { CreditsEditor } from "@/features/releases/components/CreditsEditor";
-import { ForecastMeter } from "@/features/releases/components/ForecastMeter";
 import {
   BudgetPicker,
   FormatPicker,
 } from "@/features/releases/components/ProductionPickers";
 import {
-  forecastQuality,
   importanceStars,
   uncoveredCrucialAspects,
 } from "@/features/releases/creation-forecast";
@@ -37,7 +35,6 @@ import {
   useGenerateReleaseConcept,
   useGenerateReleaseTitle,
   useGenreProfiles,
-  useQualityTiers,
   useReleaseFormats,
 } from "@/features/releases/hooks/useReleaseCatalogs";
 import {
@@ -101,7 +98,6 @@ export function ReleaseCreationModal({
   const { data: options } = useBandOptions();
   const { data: formats } = useReleaseFormats();
   const { data: tiers } = useBudgetTiers();
-  const { data: qualityTiers } = useQualityTiers();
   const { data: genreProfiles } = useGenreProfiles();
   const genTitle = useGenerateReleaseTitle();
   const genConcept = useGenerateReleaseConcept();
@@ -124,18 +120,6 @@ export function ReleaseCreationModal({
   const hasCredit = SKILL_ORDER.some((a) => (credits[a]?.length ?? 0) > 0);
 
   const weights = genreProfiles?.find((p) => p.style === style)?.weights;
-  const forecast = useMemo(
-    () =>
-      weights
-        ? forecastQuality(
-            credits,
-            band.members,
-            weights,
-            tierObj?.qualityMultiplier ?? 1,
-          )
-        : 0,
-    [credits, band.members, weights, tierObj],
-  );
   const uncovered = weights ? uncoveredCrucialAspects(credits, weights) : [];
 
   /** The style's three defining aspects, shown as its "profile". */
@@ -405,21 +389,21 @@ export function ReleaseCreationModal({
 
         {stage === "config" && configStep === 2 && (
           <Stack>
-            <ForecastMeter quality={forecast} tiers={qualityTiers} />
-
             <div>
               <Text size="sm" fw={600}>
-                Quem assina o quê
+                Escalação
               </Text>
               <Text size="xs" c="dimmed" mb="xs">
-                Clique nos integrantes para creditá-los. Creditar um novato ao
-                lado de um veterano derruba a média — mas o novato aprende.
+                Quem acumula funções entrega menos em cada uma; quem divide um
+                instrumento com um amigo rende mais do que sozinho (e com um
+                desafeto, menos).
               </Text>
               <CreditsEditor
                 members={band.members}
                 value={credits}
                 onChange={setCredits}
                 weights={weights}
+                relationships={band.relationships}
               />
             </div>
 

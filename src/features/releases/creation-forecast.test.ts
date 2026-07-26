@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { BandMember, Skills } from "@/features/bands";
 import {
   bestMemberFor,
-  forecastQuality,
+  chemistryFactor,
+  creditLoad,
+  focusFactor,
   importanceStars,
-  moodModifier,
-  skillScore,
   uncoveredCrucialAspects,
 } from "@/features/releases/creation-forecast";
 
@@ -41,81 +41,33 @@ const weights: Record<keyof Skills, number> = {
   piano: 0.03,
 };
 
-describe("skillScore", () => {
-  it("weighs each aspect by how much the style depends on it", () => {
-    const members = [member("m1", { guitar: 10, piano: 10 })];
-
-    const onGuitar = skillScore({ guitar: ["m1"] }, members, weights);
-    const onPiano = skillScore({ piano: ["m1"] }, members, weights);
-
-    expect(onGuitar).toBeCloseTo(0.3);
-    expect(onPiano).toBeCloseTo(0.03);
-  });
-
-  it("averages co-credited members, so a rookie drags the aspect down", () => {
-    const members = [member("m1", { guitar: 10 }), member("m2", { guitar: 0 })];
-
-    expect(skillScore({ guitar: ["m1", "m2"] }, members, weights)).toBeCloseTo(
-      0.15,
-    );
-  });
-
-  it("scores an uncredited aspect as zero", () => {
-    expect(skillScore({}, [member("m1", { guitar: 10 })], weights)).toBe(0);
+describe("focusFactor (ADR-0014 §1)", () => {
+  it("is full for one aspect and decays as the member spreads out", () => {
+    expect(focusFactor(1)).toBe(1);
+    expect(focusFactor(2)).toBeLessThan(1);
+    expect(focusFactor(6)).toBeLessThan(focusFactor(4));
+    expect(focusFactor(0)).toBe(0);
   });
 });
 
-describe("moodModifier", () => {
-  it("lifts a happy line-up and drags an unhappy one", () => {
-    const happy = [member("m1", { guitar: 5 }, 5)];
-    const sad = [member("m1", { guitar: 5 }, -5)];
-
-    expect(moodModifier({ guitar: ["m1"] }, happy)).toBeCloseTo(1.15);
-    expect(moodModifier({ guitar: ["m1"] }, sad)).toBeCloseTo(0.85);
-  });
-
-  it("is neutral when nobody is credited", () => {
-    expect(moodModifier({}, [member("m1", { guitar: 5 }, 5)])).toBe(1);
+describe("creditLoad", () => {
+  it("counts the distinct aspects each member took on", () => {
+    const load = creditLoad({ guitar: ["m1", "m2"], vocal: ["m1"] });
+    expect(load.get("m1")).toBe(2);
+    expect(load.get("m2")).toBe(1);
   });
 });
 
-describe("forecastQuality", () => {
-  it("combines line-up, mood and budget into a 0..100 forecast", () => {
-    const members = [member("m1", { guitar: 10, vocal: 10 }, 0)];
+describe("chemistryFactor (ADR-0014 §2)", () => {
+  const relationships = [
+    { memberAId: "m1", memberBId: "m2", level: 5 },
+    { memberAId: "m1", memberBId: "m3", level: -5 },
+  ];
 
-    const quality = forecastQuality(
-      { guitar: ["m1"], vocal: ["m1"] },
-      members,
-      weights,
-      1.2,
-    );
-
-    // (0.30 + 0.25) × 1 × 1.2 = 0.66
-    expect(quality).toBe(66);
-  });
-
-  it("never leaves the 0..100 range", () => {
-    const members = [
-      member("m1", {
-        guitar: 10,
-        vocal: 10,
-        drums: 10,
-        bass: 10,
-        lyrics: 10,
-        piano: 10,
-      }, 5),
-    ];
-    const credits = {
-      guitar: ["m1"],
-      vocal: ["m1"],
-      drums: ["m1"],
-      bass: ["m1"],
-      lyrics: ["m1"],
-      piano: ["m1"],
-    };
-
-    expect(forecastQuality(credits, members, weights, 1.5)).toBe(100);
-    expect(forecastQuality({}, members, weights, 1.5)).toBe(0);
+  it("is neutral alone, positive with a friend and negative with a rival", () => {
+    expect(chemistryFactor(["m1"], relationships)).toBe(1);
+    expect(chemistryFactor(["m1", "m2"], relationships)).toBeGreaterThan(1);
+    expect(chemistryFactor(["m1", "m3"], relationships)).toBeLessThan(1);
   });
 });
 
