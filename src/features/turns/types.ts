@@ -24,6 +24,18 @@ export interface SalaryRaise {
   to: number;
 }
 
+/** How the work in production moved during a turn (ADR-0015). */
+export interface ReleaseProduction {
+  releaseId: string;
+  title: string;
+  /** Turns of production still to run. */
+  turnsLeft: number;
+  /** Whether the work finished production and can be launched. */
+  ready: boolean;
+  /** Whether this turn brought up a new studio decision. */
+  newSession: boolean;
+}
+
 /** Result of advancing a turn (events kept minimal to stay feature-local). */
 export interface AdvanceTurnResult {
   previousYear: number;
@@ -40,6 +52,8 @@ export interface AdvanceTurnResult {
   salariesFullyPaid: boolean;
   /** Salaries raised by the automatic adjustment this turn (ADR-0013). */
   salaryRaises: SalaryRaise[];
+  /** How the work in production moved this turn (null when not recording). */
+  production: ReleaseProduction | null;
   /** Members who left the band this turn over unpaid salary (full snapshots). */
   departures: FormerMember[];
   /** Ids of members in arrears who risk leaving (no deadline — kept gamified). */

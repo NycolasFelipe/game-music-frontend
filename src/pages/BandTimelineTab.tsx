@@ -104,6 +104,16 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
           lines.push(`Salários ajustados: ${raises}.`);
         }
 
+        if (result.production) {
+          const { title, turnsLeft, ready, newSession } = result.production;
+          lines.push(
+            ready
+              ? `"${title}" saiu do estúdio e está pronta para lançar.`
+              : `"${title}" segue em produção — falta${turnsLeft === 1 ? "" : "m"} ${turnsLeft} turno${turnsLeft === 1 ? "" : "s"}.` +
+                  (newSession ? " Uma decisão de estúdio apareceu." : ""),
+          );
+        }
+
         const atRisk = result.atRiskMemberIds
           .map((id) => memberById.get(id)?.name ?? "um integrante")
           .join(", ");

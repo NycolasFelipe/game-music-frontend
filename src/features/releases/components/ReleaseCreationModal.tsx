@@ -7,6 +7,7 @@ import {
   Loader,
   Modal,
   Paper,
+  Progress,
   Select,
   Stack,
   Stepper,
@@ -132,16 +133,22 @@ export function ReleaseCreationModal({
 
   const pending = (detail?.creationEvents ?? []).filter((e) => !e.resolved);
   const total = detail?.creationEvents.length ?? 0;
+  const inProduction = (detail?.productionTurnsLeft ?? 0) > 0;
   const stage = !releaseId
     ? "config"
     : detailLoading
       ? "loading"
       : pending.length > 0
         ? "events"
-        : "finalize";
+        : inProduction
+          ? "recording"
+          : "finalize";
 
   const activeStep =
     stage === "config" ? configStep : stage === "finalize" ? 4 : 3;
+  const productionTurns =
+    formats?.find((f) => f.id === (detail?.format ?? format))?.productionTurns ??
+    0;
 
   function handleGenerateTitle() {
     genTitle.mutate(
@@ -327,8 +334,8 @@ export function ReleaseCreationModal({
                 Formato
               </Text>
               <Text size="xs" c="dimmed" mb="xs">
-                Discos maiores custam e alcançam mais — e ensinam mais a quem
-                gravou.
+                Discos maiores custam e alcançam mais, ensinam mais a quem gravou
+                — e ocupam mais turnos de estúdio.
               </Text>
               <FormatPicker
                 formats={formats ?? []}
@@ -446,6 +453,50 @@ export function ReleaseCreationModal({
               resolve.mutate({ eventId: pending[0].id, optionId })
             }
           />
+        )}
+
+        {stage === "recording" && detail && (
+          <Stack gap="sm" align="center" py="md">
+            <Text fz={40} lh={1}>
+              🎚️
+            </Text>
+            <Text fw={700}>Gravando &ldquo;{detail.title}&rdquo;</Text>
+            <Text size="sm" c="dimmed" ta="center" maw={420}>
+              A banda está em estúdio. Faltam{" "}
+              <Text span fw={700}>
+                {detail.productionTurnsLeft} turno
+                {detail.productionTurnsLeft === 1 ? "" : "s"}
+              </Text>{" "}
+              para a obra ficar pronta — avance o tempo pela Visão geral. A cada
+              turno pode aparecer uma decisão de estúdio.
+            </Text>
+            {productionTurns > 0 && (
+              <Progress
+                value={
+                  ((productionTurns - detail.productionTurnsLeft) /
+                    productionTurns) *
+                  100
+                }
+                w="100%"
+                maw={420}
+                size="lg"
+                radius="xl"
+              />
+            )}
+            <Group justify="space-between" mt="sm" w="100%">
+              <Button
+                variant="subtle"
+                color="red"
+                onClick={handleDiscard}
+                loading={cancel.isPending}
+              >
+                Descartar
+              </Button>
+              <Button variant="default" onClick={onClose}>
+                Fechar
+              </Button>
+            </Group>
+          </Stack>
         )}
 
         {stage === "finalize" && detail && (

@@ -73,6 +73,7 @@ describe("ReleaseCreationModal", () => {
         baseReach: 400,
         baseRevenue: 1200,
         skillGain: 0.6,
+        productionTurns: 1,
       },
       {
         id: "album",
@@ -83,6 +84,7 @@ describe("ReleaseCreationModal", () => {
         baseReach: 4000,
         baseRevenue: 12000,
         skillGain: 1.4,
+        productionTurns: 3,
       },
     ]);
     vi.mocked(api.getBudgetTiers).mockResolvedValue([

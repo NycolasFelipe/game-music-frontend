@@ -119,6 +119,10 @@ export function FormatPicker({
             <Text size="xs" c="dimmed">
               base {format.baseCost.toLocaleString("pt-BR")}
             </Text>
+            <Text size="xs" fw={600} c="grape">
+              🎚️ {format.productionTurns} turno
+              {format.productionTurns === 1 ? "" : "s"} de estúdio
+            </Text>
           </Stack>
         </PickerCard>
       ))}

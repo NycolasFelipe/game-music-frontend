@@ -50,6 +50,7 @@ function mockRelease(
     royaltyRemaining: 0,
     royaltyTurnsLeft: 0,
     releasedAtYear: 2000,
+    productionTurnsLeft: 0,
     creationLog: [],
     details: null,
     createdAt: new Date(0).toISOString(),

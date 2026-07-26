@@ -81,10 +81,15 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
           <Group justify="space-between" wrap="nowrap">
             <div>
               <Text fw={600}>
-                {draft.title || "Obra sem título"} · em criação
+                {draft.title || "Obra sem título"} ·{" "}
+                {draft.productionTurnsLeft > 0
+                  ? "🎚️ em produção"
+                  : "✅ pronta para lançar"}
               </Text>
               <Text size="xs" c="dimmed">
-                Termine a criação para lançar — enquanto isso, o tempo não avança.
+                {draft.productionTurnsLeft > 0
+                  ? `Faltam ${draft.productionTurnsLeft} turno${draft.productionTurnsLeft === 1 ? "" : "s"} de estúdio — avance o tempo para a gravação render.`
+                  : "A gravação terminou. Lance quando quiser."}
               </Text>
             </div>
             <Group gap="xs" wrap="nowrap">
@@ -96,7 +101,9 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
               >
                 Descartar
               </Button>
-              <Button onClick={() => openResume(draft.id)}>Continuar</Button>
+              <Button onClick={() => openResume(draft.id)}>
+                {draft.productionTurnsLeft > 0 ? "Ver estúdio" : "Lançar"}
+              </Button>
             </Group>
           </Group>
         </Card>

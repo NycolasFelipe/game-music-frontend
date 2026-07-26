@@ -108,6 +108,8 @@ export interface Release {
   royaltyRemaining: number;
   royaltyTurnsLeft: number;
   releasedAtYear: number | null;
+  /** Turns of production left before the draft can be launched (ADR-0015). */
+  productionTurnsLeft: number;
   creationLog: ReleaseCreationLogEntry[];
   details: ReleaseDetails | null;
   createdAt: string;
@@ -148,6 +150,8 @@ export interface ReleaseFormat {
   baseRevenue: number;
   /** How much the format develops the members credited on it (ADR-0012). */
   skillGain: number;
+  /** Turns the work spends in production before launch (ADR-0015). */
+  productionTurns: number;
 }
 
 /** Display + economic metadata for a budget tier. */
