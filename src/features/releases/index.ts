@@ -3,6 +3,9 @@ export { DiscographyTab } from "@/features/releases/components/DiscographyTab";
 export { VinylPreview } from "@/features/releases/components/VinylPreview";
 export { ReleaseCard } from "@/features/releases/components/ReleaseCard";
 export { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
+export { CreationEventStage } from "@/features/releases/components/CreationEventStage";
+export { ReleaseRevealHost } from "@/features/releases/components/ReleaseRevealHost";
+export { useReleaseRevealUi } from "@/features/releases/store/release-reveal.store";
 export {
   releaseCatalogKeys,
   useBudgetTiers,

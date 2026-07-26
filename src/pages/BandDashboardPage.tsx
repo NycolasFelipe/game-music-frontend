@@ -37,8 +37,13 @@ import {
   useRelationshipLevels,
 } from "@/features/bands";
 import type { Characteristic } from "@/features/bands";
+import { DecisionsModal } from "@/features/decisions";
 import { GigsTab } from "@/features/gigs";
-import { DiscographyTab, VinylPreview } from "@/features/releases";
+import {
+  DiscographyTab,
+  ReleaseRevealHost,
+  VinylPreview,
+} from "@/features/releases";
 import { useTurns } from "@/features/turns";
 import { DEV_OPTIONS_ENABLED } from "@/config/app";
 import { BandTimelineTab } from "@/pages/BandTimelineTab";
@@ -76,6 +81,11 @@ export function BandDashboardPage() {
 
       {band && (
         <Stack mt="sm">
+          {/* Mounted outside the tabs: a decision reaches the player wherever
+              they are, instead of waiting in the tab that produced it. */}
+          <DecisionsModal band={band} />
+          <ReleaseRevealHost />
+
           <Group justify="space-between" align="flex-start">
             <div>
               <Title order={2}>{band.name}</Title>

@@ -1,4 +1,5 @@
 /** Public API of the events feature. */
+export { ActiveEventDecision } from "@/features/events/components/ActiveEventDecision";
 export {
   eventKeys,
   useActiveEvents,

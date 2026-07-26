@@ -134,10 +134,6 @@ export function CreationEventStage({
           </Paper>
         ))}
       </Stack>
-
-      <Text size="xs" c="dimmed" ta="center">
-        Pode fechar e retomar depois pela Discografia — o rascunho fica salvo.
-      </Text>
     </Stack>
   );
 }

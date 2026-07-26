@@ -1,7 +1,6 @@
 import {
   Badge,
   Button,
-  Card,
   Group,
   Loader,
   Stack,
@@ -18,18 +17,11 @@ import {
   IconWorld,
 } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
-import {
-  DepartureModal,
-  MemberHoverName,
-  useCharacteristics,
-} from "@/features/bands";
-import type { BandDetail, BandMember, Characteristic } from "@/features/bands";
+import { DepartureModal, useCharacteristics } from "@/features/bands";
+import type { BandDetail, Characteristic } from "@/features/bands";
 import type { FormerMember } from "@/types/former-member";
-import {
-  useActiveEvents,
-  usePassiveEvents,
-  useResolveActiveEvent,
-} from "@/features/events";
+import { usePendingDecisions, useDecisionsUi } from "@/features/decisions";
+import { useActiveEvents, usePassiveEvents } from "@/features/events";
 import { useAdvanceTurn } from "@/features/turns";
 import { formatPeriod } from "@/utils/period";
 
@@ -52,8 +44,9 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
   const { data: passiveEvents, isLoading: loadingPassive } =
     usePassiveEvents(bandId);
   const advance = useAdvanceTurn(bandId);
-  const resolve = useResolveActiveEvent(bandId);
   const { data: characteristics } = useCharacteristics();
+  const { blocking } = usePendingDecisions(bandId);
+  const openDecisions = useDecisionsUi((state) => state.openDecisions);
 
   const catalog = useMemo(
     () =>
@@ -67,13 +60,6 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
   const [departureModalOpen, setDepartureModalOpen] = useState(false);
 
   const memberById = new Map(band.members.map((m) => [m.id, m]));
-  const pending = (activeEvents ?? []).filter((e) => !e.resolved);
-  const pendingEvent = pending[0] ?? null;
-  const involvedMembers = pendingEvent
-    ? pendingEvent.involvedCharacterIds
-        .map((id) => memberById.get(id))
-        .filter((m): m is BandMember => Boolean(m))
-    : [];
 
   function handleAdvance() {
     advance.mutate(undefined, {
@@ -152,31 +138,6 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
     });
   }
 
-  function handleResolve(optionId: string) {
-    if (!pendingEvent) return;
-    resolve.mutate(
-      { eventId: pendingEvent.id, optionId },
-      {
-        onSuccess: (res) => {
-          notifications.show({
-            title: res.event.title,
-            message:
-              res.outcome.description +
-              (res.fameChange.leveledUp
-                ? ` · Subiu para o Nível ${res.fameChange.newLevel} de fama!`
-                : ""),
-            color: "teal",
-          });
-        },
-        onError: () =>
-          notifications.show({
-            color: "red",
-            message: "Falha ao resolver o evento.",
-          }),
-      },
-    );
-  }
-
   const entries: TimelineEntry[] = [
     ...(passiveEvents ?? []).map((p) => ({
       key: `p-${p.id}`,
@@ -220,83 +181,26 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
             {formatPeriod(band.currentYear)}
           </Text>
         </div>
-        <Button
-          size="md"
-          leftSection={<IconPlayerTrackNext size={18} />}
-          onClick={handleAdvance}
-          loading={advance.isPending}
-          disabled={Boolean(pendingEvent)}
-        >
-          Avançar turno
-        </Button>
+        {blocking.length > 0 ? (
+          <Button
+            size="md"
+            color="yellow"
+            leftSection={<IconBolt size={18} />}
+            onClick={openDecisions}
+          >
+            Resolver {blocking.length} decisã{blocking.length === 1 ? "o" : "es"}
+          </Button>
+        ) : (
+          <Button
+            size="md"
+            leftSection={<IconPlayerTrackNext size={18} />}
+            onClick={handleAdvance}
+            loading={advance.isPending}
+          >
+            Avançar turno
+          </Button>
+        )}
       </Group>
-
-      {/* Pending decision */}
-      {pendingEvent && (
-        <Card withBorder radius="md" padding="lg" bg="var(--mantine-color-yellow-light)">
-          <Stack gap="sm">
-            <Badge
-              color="yellow"
-              leftSection={<IconBolt size={12} />}
-              w="fit-content"
-            >
-              Decisão pendente
-            </Badge>
-            <Title order={4}>{pendingEvent.title}</Title>
-            <Text size="sm">{pendingEvent.description}</Text>
-            {involvedMembers.length > 0 && (
-              <Group gap="lg">
-                <Text size="xs" c="dimmed" fw={600}>
-                  Envolvidos:
-                </Text>
-                {involvedMembers.map((member) => (
-                  <MemberHoverName
-                    key={member.id}
-                    member={member}
-                    catalog={catalog}
-                  />
-                ))}
-              </Group>
-            )}
-
-            <Stack gap="xs" mt="xs">
-              {pendingEvent.options.map((option) => (
-                <Button
-                  key={option.id}
-                  variant="default"
-                  fullWidth
-                  justify="flex-start"
-                  h="auto"
-                  py="sm"
-                  onClick={() => handleResolve(option.id)}
-                  disabled={resolve.isPending}
-                >
-                  <Stack gap={2} align="flex-start" style={{ width: "100%" }}>
-                    <Text fw={600} size="sm">
-                      {option.label}
-                    </Text>
-                    <Text
-                      size="xs"
-                      c="dimmed"
-                      style={{ whiteSpace: "normal", textAlign: "left" }}
-                    >
-                      {option.description}
-                    </Text>
-                  </Stack>
-                </Button>
-              ))}
-            </Stack>
-            {resolve.isPending && (
-              <Group gap="xs">
-                <Loader size="xs" />
-                <Text size="xs" c="dimmed">
-                  Aplicando consequências…
-                </Text>
-              </Group>
-            )}
-          </Stack>
-        </Card>
-      )}
 
       {/* Timeline */}
       <div>

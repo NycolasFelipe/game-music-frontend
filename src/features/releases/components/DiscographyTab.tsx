@@ -6,7 +6,7 @@ import { useCharacteristics } from "@/features/bands";
 import type { BandDetail, Characteristic } from "@/features/bands";
 import { ReleaseCard } from "@/features/releases/components/ReleaseCard";
 import { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
-import { ReleaseRevealModal } from "@/features/releases/components/ReleaseRevealModal";
+import { useReleaseRevealUi } from "@/features/releases/store/release-reveal.store";
 import {
   VINYL_KEYFRAMES,
   VinylRecord,
@@ -33,8 +33,8 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
   const cancel = useCancelRelease(bandId);
   const [modalOpen, modal] = useDisclosure(false);
   const [resumeId, setResumeId] = useState<string | null>(null);
-  const [revealOpen, reveal] = useDisclosure(false);
-  const [revealRelease, setRevealRelease] = useState<Release | null>(null);
+  const revealing = useReleaseRevealUi((state) => state.release);
+  const revealRelease = useReleaseRevealUi((state) => state.revealRelease);
   const [detailOpen, detail] = useDisclosure(false);
   const [detailRelease, setDetailRelease] = useState<Release | null>(null);
 
@@ -47,7 +47,11 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
   );
 
   const draft = releases?.find((r) => r.status === "em_criacao") ?? null;
-  const launched = (releases ?? []).filter((r) => r.status === "lancada");
+  // The record only reaches the shelf after its reveal: with its stars already
+  // printed behind the modal, the ceremony would be announcing a known score.
+  const launched = (releases ?? []).filter(
+    (r) => r.status === "lancada" && r.id !== revealing?.id,
+  );
 
   const formatLabel = (id: string) =>
     formats?.find((f) => f.id === id)?.label ?? id;
@@ -155,19 +159,9 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
           band={band}
           resumeReleaseId={resumeId}
           onClose={modal.close}
-          onFinalized={(rel) => {
-            setRevealRelease(rel);
-            reveal.open();
-          }}
+          onFinalized={revealRelease}
         />
       )}
-
-      <ReleaseRevealModal
-        release={revealRelease}
-        reviewTiers={reviewTiers}
-        opened={revealOpen}
-        onClose={reveal.close}
-      />
 
       <Modal
         opened={detailOpen}

@@ -21,7 +21,7 @@ import { IconAlertTriangle, IconDice, IconDisc } from "@tabler/icons-react";
 import { useState } from "react";
 import { SKILL_LABELS, SKILL_ORDER, useBandOptions } from "@/features/bands";
 import type { BandDetail } from "@/features/bands";
-import { CreationEventStage } from "@/features/releases/components/CreationEventStage";
+import { useDecisionsUi } from "@/features/decisions";
 import { CreditsEditor } from "@/features/releases/components/CreditsEditor";
 import {
   BudgetPicker,
@@ -42,7 +42,6 @@ import {
   useCancelRelease,
   useFinalizeRelease,
   useRelease,
-  useResolveCreationEvent,
   useStartRelease,
 } from "@/features/releases/hooks/useReleases";
 import type {
@@ -87,7 +86,9 @@ export function ReleaseCreationModal({
   onFinalized?: (release: Release) => void;
 }) {
   const bandId = band.id;
-  const [releaseId, setReleaseId] = useState<string | null>(resumeReleaseId);
+  // Set up here, recorded over the next turns: once the work enters the studio
+  // this modal is only ever reopened on an existing draft.
+  const releaseId = resumeReleaseId;
   const [configStep, setConfigStep] = useState(0);
   const [title, setTitle] = useState("");
   const [concept, setConcept] = useState("");
@@ -105,7 +106,7 @@ export function ReleaseCreationModal({
   const start = useStartRelease(bandId);
   const finalize = useFinalizeRelease(bandId);
   const cancel = useCancelRelease(bandId);
-  const resolve = useResolveCreationEvent(bandId, releaseId ?? "");
+  const openDecisions = useDecisionsUi((state) => state.openDecisions);
   const { data: detail, isLoading: detailLoading } = useRelease(
     bandId,
     releaseId,
@@ -132,7 +133,6 @@ export function ReleaseCreationModal({
     : [];
 
   const pending = (detail?.creationEvents ?? []).filter((e) => !e.resolved);
-  const total = detail?.creationEvents.length ?? 0;
   const inProduction = (detail?.productionTurnsLeft ?? 0) > 0;
   const stage = !releaseId
     ? "config"
@@ -177,7 +177,16 @@ export function ReleaseCreationModal({
         credits,
       },
       {
-        onSuccess: (rel) => setReleaseId(rel.id),
+        onSuccess: (rel) => {
+          notifications.show({
+            title: `${rel.title} entrou no estúdio`,
+            message:
+              `${productionTurns} turno${productionTurns === 1 ? "" : "s"} de gravação pela frente. ` +
+              "As decisões de estúdio chegam a você a cada turno.",
+            color: "blue",
+          });
+          onClose();
+        },
         onError: (e) =>
           notifications.show({
             title: "Não foi possível iniciar a obra",
@@ -191,12 +200,9 @@ export function ReleaseCreationModal({
   function handleFinalize() {
     if (!releaseId) return;
     finalize.mutate(releaseId, {
+      // No numbers here: the reveal is the ceremony, and a toast that reads
+      // "Qualidade 78" first would be announcing the ending in the hallway.
       onSuccess: (rel) => {
-        notifications.show({
-          title: `Lançado: ${rel.title}`,
-          message: `Qualidade ${rel.quality} · +${(rel.fansGained ?? 0).toLocaleString("pt-BR")} fãs · custo ${(rel.cost ?? 0).toLocaleString("pt-BR")}`,
-          color: "teal",
-        });
         onClose();
         onFinalized?.(rel);
       },
@@ -448,16 +454,25 @@ export function ReleaseCreationModal({
           </Group>
         )}
 
-        {stage === "events" && pending[0] && (
-          <CreationEventStage
-            event={pending[0]}
-            index={total - pending.length + 1}
-            total={total}
-            pending={resolve.isPending}
-            onChoose={(optionId) =>
-              resolve.mutate({ eventId: pending[0].id, optionId })
-            }
-          />
+        {stage === "events" && (
+          <Stack align="center" gap="sm" py="md">
+            <Alert
+              color="yellow"
+              icon={<IconAlertTriangle size={16} />}
+              w="100%"
+            >
+              Uma sessão de estúdio está esperando sua palavra — a gravação só
+              segue depois dela.
+            </Alert>
+            <Button
+              onClick={() => {
+                openDecisions();
+                onClose();
+              }}
+            >
+              Ir para a decisão
+            </Button>
+          </Stack>
         )}
 
         {stage === "recording" && detail && (
