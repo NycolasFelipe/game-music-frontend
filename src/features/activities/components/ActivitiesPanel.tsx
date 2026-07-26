@@ -1,5 +1,4 @@
 import {
-  Alert,
   Avatar,
   Badge,
   Button,
@@ -193,18 +192,6 @@ export function ActivitiesPanel({ band }: { band: BandDetail }) {
           </Text>
         )}
       </div>
-
-      {(options?.heldThisTurn ?? 0) > 0 && (
-        <Alert color="yellow">
-          A banda já se reuniu {options?.heldThisTurn}{" "}
-          {options?.heldThisTurn === 1 ? "vez" : "vezes"} neste período. A
-          próxima rende{" "}
-          <Text span fw={700}>
-            {Math.round((options?.nextSaturation ?? 1) * 100)}%
-          </Text>{" "}
-          do previsto — e custa o mesmo.
-        </Alert>
-      )}
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {(options?.activities ?? []).map((activity) => {

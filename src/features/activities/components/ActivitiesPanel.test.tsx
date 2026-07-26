@@ -114,15 +114,6 @@ describe("ActivitiesPanel", () => {
     expect(screen.getByText("🟡 risco médio")).toBeVisible();
   });
 
-  it("says the repeated activity of the turn is worth less", async () => {
-    vi.mocked(api.getActivityOptions).mockResolvedValue(options(1));
-
-    renderWithProviders(<ActivitiesPanel band={band()} />);
-
-    expect(await screen.findByText(/já se reuniu/)).toBeVisible();
-    expect(screen.getByText("50%")).toBeVisible();
-  });
-
   it("blocks what the cash cannot cover", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ActivitiesPanel band={band(10)} />);
