@@ -94,6 +94,16 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
           );
         }
 
+        if (result.salaryRaises.length > 0) {
+          const raises = result.salaryRaises
+            .map(
+              (raise) =>
+                `${raise.name} ${raise.from.toLocaleString("pt-BR")} → ${raise.to.toLocaleString("pt-BR")}`,
+            )
+            .join(", ");
+          lines.push(`Salários ajustados: ${raises}.`);
+        }
+
         const atRisk = result.atRiskMemberIds
           .map((id) => memberById.get(id)?.name ?? "um integrante")
           .join(", ");

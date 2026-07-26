@@ -1,6 +1,7 @@
 import type {
   Band,
   BandDetail,
+  BandSettings,
   BandMember,
   BandOptions,
   Characteristic,
@@ -28,6 +29,14 @@ export function getBand(id: string): Promise<BandDetail> {
 /** Creates a band (a new save) with its initial members. */
 export function createBand(input: CreateBandInput): Promise<BandDetail> {
   return http.post<BandDetail>("/bands", input);
+}
+
+/** Updates a save's options (today: the automatic salary adjustment). */
+export function updateBandSettings(
+  id: string,
+  settings: BandSettings,
+): Promise<Band> {
+  return http.patch<Band>(`/bands/${id}/settings`, settings);
 }
 
 /** Deletes a band (save) and everything it owns (cascade). */

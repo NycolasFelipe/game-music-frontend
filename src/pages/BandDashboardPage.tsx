@@ -14,6 +14,7 @@ import {
   IconArrowLeft,
   IconChartBar,
   IconDisc,
+  IconFlask,
   IconSettings,
   IconTimeline,
   IconUserMinus,
@@ -22,6 +23,7 @@ import {
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
+  BandGameOptions,
   BandStatistics,
   DeleteBandButton,
   FormerMembersTab,
@@ -36,6 +38,7 @@ import {
 import type { Characteristic } from "@/features/bands";
 import { DiscographyTab, VinylPreview } from "@/features/releases";
 import { useTurns } from "@/features/turns";
+import { DEV_OPTIONS_ENABLED } from "@/config/app";
 import { BandTimelineTab } from "@/pages/BandTimelineTab";
 import { formatPeriod } from "@/utils/period";
 
@@ -119,6 +122,14 @@ export function BandDashboardPage() {
               <Tabs.Tab value="options" leftSection={<IconSettings size={16} />}>
                 Opções
               </Tabs.Tab>
+              {DEV_OPTIONS_ENABLED && (
+                <Tabs.Tab
+                  value="dev-options"
+                  leftSection={<IconFlask size={16} />}
+                >
+                  Opções (dev)
+                </Tabs.Tab>
+              )}
             </Tabs.List>
 
             <Tabs.Panel value="overview" pt="lg">
@@ -199,9 +210,24 @@ export function BandDashboardPage() {
                   />
                 </Stack>
 
-                <VinylPreview />
+                <BandGameOptions band={band} />
               </Stack>
             </Tabs.Panel>
+
+            {DEV_OPTIONS_ENABLED && (
+              <Tabs.Panel value="dev-options" pt="lg">
+                <Stack gap="xl">
+                  <div>
+                    <Title order={5}>Ferramentas de desenvolvimento</Title>
+                    <Text size="sm" c="dimmed">
+                      Só aparecem durante o desenvolvimento — ficam de fora da
+                      versão final do jogo.
+                    </Text>
+                  </div>
+                  <VinylPreview />
+                </Stack>
+              </Tabs.Panel>
+            )}
           </Tabs>
         </Stack>
       )}

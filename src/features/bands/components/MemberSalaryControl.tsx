@@ -21,6 +21,7 @@ import type { BandMember } from "@/features/bands/types";
 const REASON_LABELS: Record<string, string> = {
   inicial: "Inicial",
   ajuste: "Ajuste",
+  automatico: "Automático",
 };
 
 /**

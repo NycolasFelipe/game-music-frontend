@@ -9,6 +9,12 @@ export interface Fame {
   nextLevelAtFans: number | null;
 }
 
+/** Player-facing options of a save (ADR-0013). */
+export interface BandSettings {
+  /** Raise salaries to their target each turn, whenever the cash covers it. */
+  autoSalaryAdjust?: boolean;
+}
+
 /** A band as returned by list endpoints (`BandView`). */
 export interface Band {
   id: string;
@@ -21,6 +27,8 @@ export interface Band {
   currentYear: number;
   /** The band's cash balance (money). */
   balance: number;
+  /** Whether salaries are raised automatically each turn (ADR-0013). */
+  autoSalaryAdjust: boolean;
   createdAt: string;
   updatedAt: string;
 }

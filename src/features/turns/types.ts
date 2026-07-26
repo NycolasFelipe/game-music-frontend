@@ -16,6 +16,14 @@ export interface Turn {
 
 import type { FormerMember } from "@/types/former-member";
 
+/** One salary raised by the automatic adjustment during a turn. */
+export interface SalaryRaise {
+  memberId: string;
+  name: string;
+  from: number;
+  to: number;
+}
+
 /** Result of advancing a turn (events kept minimal to stay feature-local). */
 export interface AdvanceTurnResult {
   previousYear: number;
@@ -30,6 +38,8 @@ export interface AdvanceTurnResult {
   salariesPaid: number;
   /** Whether every member was paid in full this turn. */
   salariesFullyPaid: boolean;
+  /** Salaries raised by the automatic adjustment this turn (ADR-0013). */
+  salaryRaises: SalaryRaise[];
   /** Members who left the band this turn over unpaid salary (full snapshots). */
   departures: FormerMember[];
   /** Ids of members in arrears who risk leaving (no deadline — kept gamified). */

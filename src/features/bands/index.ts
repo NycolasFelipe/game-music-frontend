@@ -1,5 +1,6 @@
 /** Public API of the bands feature. */
 export { BandNameConfigModal } from "@/features/bands/components/BandNameConfigModal";
+export { BandGameOptions } from "@/features/bands/components/BandGameOptions";
 export { BandStatistics } from "@/features/bands/components/BandStatistics";
 export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";
 export { DepartureModal } from "@/features/bands/components/DepartureModal";
@@ -21,6 +22,7 @@ export {
   useUpdateMemberSalary,
 } from "@/features/bands/hooks/useMemberSalary";
 export { useDeleteBand } from "@/features/bands/hooks/useDeleteBand";
+export { useUpdateBandSettings } from "@/features/bands/hooks/useBandSettings";
 export {
   catalogKeys,
   useBandOptions,
@@ -45,6 +47,7 @@ export type {
   BandDetail,
   BandMember,
   BandOptions,
+  BandSettings,
   Characteristic,
   CreateBandInput,
   CreateBandMemberSeed,
