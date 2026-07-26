@@ -146,9 +146,11 @@ export function ReleaseCreationModal({
 
   const activeStep =
     stage === "config" ? configStep : stage === "finalize" ? 4 : 3;
-  const productionTurns =
-    formats?.find((f) => f.id === (detail?.format ?? format))?.productionTurns ??
-    0;
+  // Once the draft exists its format is settled; before that, the picker leads.
+  const currentFormat = formats?.find(
+    (f) => f.id === (detail?.format ?? format),
+  );
+  const productionTurns = currentFormat?.productionTurns ?? 0;
 
   function handleGenerateTitle() {
     genTitle.mutate(
@@ -222,7 +224,10 @@ export function ReleaseCreationModal({
       title={
         <Group gap={8}>
           <IconDisc size={20} />
-          <Text fw={700}>Nova obra — {band.name}</Text>
+          <Text fw={700}>
+            {currentFormat ? `Novo ${currentFormat.label}` : "Nova obra"} —{" "}
+            {band.name}
+          </Text>
         </Group>
       }
       centered
@@ -517,8 +522,7 @@ export function ReleaseCreationModal({
                 )}
                 <Group gap="xs" mt={4}>
                   <Badge variant="light">
-                    {formats?.find((f) => f.id === detail.format)?.label ??
-                      detail.format}
+                    {currentFormat?.label ?? detail.format}
                   </Badge>
                   <Badge variant="light" color="grape">
                     {tiers?.find((t) => t.id === detail.budgetTier)?.label ??
@@ -558,7 +562,7 @@ export function ReleaseCreationModal({
                 onClick={handleFinalize}
                 loading={finalize.isPending}
               >
-                🚀 Lançar obra
+                🚀 Lançar {currentFormat?.label ?? "obra"}
               </Button>
             </Group>
           </Stack>

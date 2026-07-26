@@ -148,12 +148,6 @@ export function ReleaseCard({
                         ))}
                       </Stack>
                     </div>
-
-                    {release.formatComment && (
-                      <Text size="xs" c="dimmed" fs="italic">
-                        Sobre o formato: &ldquo;{release.formatComment}&rdquo;
-                      </Text>
-                    )}
                   </Stack>
                 </Collapse>
               </>

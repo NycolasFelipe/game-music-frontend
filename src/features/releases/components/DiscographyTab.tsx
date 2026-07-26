@@ -102,7 +102,9 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
                 Descartar
               </Button>
               <Button onClick={() => openResume(draft.id)}>
-                {draft.productionTurnsLeft > 0 ? "Ver estúdio" : "Lançar"}
+                {draft.productionTurnsLeft > 0
+                  ? "Ver estúdio"
+                  : `Lançar ${formatLabel(draft.format)}`}
               </Button>
             </Group>
           </Group>

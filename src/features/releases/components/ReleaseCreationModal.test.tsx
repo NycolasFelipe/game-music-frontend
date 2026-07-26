@@ -134,9 +134,17 @@ describe("ReleaseCreationModal", () => {
     await user.type(screen.getByLabelText("Título"), "Ruído Branco");
     await user.click(next);
 
-    // Step 2: formats and budgets are cards with their stats.
+    // Step 2: formats and budgets are cards with their stats, and the header
+    // names the record being made — it follows the format the player picks.
     expect(await screen.findByText("Álbum")).toBeVisible();
     expect(screen.getByText("10–14 faixas")).toBeVisible();
+    expect(screen.getByText("Novo Single — Os Rebeldes")).toBeVisible();
+
+    await user.click(screen.getByRole("radio", { name: /Álbum/ }));
+    expect(
+      await screen.findByText("Novo Álbum — Os Rebeldes"),
+    ).toBeVisible();
+
     await user.click(screen.getByRole("button", { name: "Créditos →" }));
 
     // Step 3: the credits stage, ordered by what the style weighs — guitar

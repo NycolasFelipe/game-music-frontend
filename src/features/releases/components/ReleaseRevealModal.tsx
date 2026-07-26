@@ -254,14 +254,6 @@ function RevealBody({
         </Reveal>
       )}
 
-      {phase >= 3 && release.formatComment && (
-        <Reveal>
-          <Text size="xs" c="dimmed" fs="italic" ta="center">
-            Sobre o formato: &ldquo;{release.formatComment}&rdquo;
-          </Text>
-        </Reveal>
-      )}
-
       {phase >= 4 && (release.details?.growth?.length ?? 0) > 0 && (
         <Reveal>
           <Divider mb="lg" />
