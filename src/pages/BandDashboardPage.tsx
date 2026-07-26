@@ -21,6 +21,7 @@ import {
 } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { ActivitiesPanel } from "@/features/activities";
 import {
   BandGameOptions,
   BandHeader,
@@ -166,6 +167,10 @@ export function BandDashboardPage() {
                     levels={relationshipLevels ?? []}
                   />
                 </div>
+
+                {/* Right under the map of who gets along: reading it and acting
+                    on it belong on the same screen (ADR-0017). */}
+                <ActivitiesPanel band={band} />
               </Stack>
             </Tabs.Panel>
 
