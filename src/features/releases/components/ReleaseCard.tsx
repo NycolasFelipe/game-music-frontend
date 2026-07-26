@@ -10,6 +10,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { MemberHoverName, SKILL_LABELS, SKILL_ORDER } from "@/features/bands";
 import type { BandMember, Characteristic } from "@/features/bands";
+import { ReleaseGrowthList } from "@/features/releases/components/ReleaseGrowthList";
 import { qualityTierColor, reviewTierColor } from "@/features/releases/labels";
 import type {
   QualityTier,
@@ -207,6 +208,15 @@ export function ReleaseCard({
             ),
           )}
         </Stack>
+
+        {(release.details?.growth?.length ?? 0) > 0 && (
+          <Stack gap={2}>
+            <Text size="xs" c="dimmed" fw={600}>
+              Evolução
+            </Text>
+            <ReleaseGrowthList growth={release.details?.growth} compact />
+          </Stack>
+        )}
       </Stack>
     </Card>
   );

@@ -36,6 +36,26 @@ export interface ReleaseCreationLogEntry {
   qualityModifier: number;
 }
 
+/** One aspect a credited member developed while making the work (ADR-0012). */
+export interface ReleaseSkillGain {
+  skill: keyof Skills;
+  /** Skill level before the work. */
+  from: number;
+  /** Skill level after the work. */
+  to: number;
+  /** Whether the whole-number level went up with this work. */
+  leveledUp: boolean;
+}
+
+/** What one credited member took from the work (ADR-0012). */
+export interface ReleaseMemberGrowth {
+  memberId: string;
+  name: string;
+  /** Pride (or frustration) the work gave the member. */
+  happinessDelta: number;
+  gains: ReleaseSkillGain[];
+}
+
 /** The quality breakdown persisted with a finalized release. */
 export interface ReleaseDetails {
   skillScore: number;
@@ -44,6 +64,8 @@ export interface ReleaseDetails {
   eventModifier: number;
   variance: number;
   reach: number;
+  /** What the work developed in its credited members (absent on old works). */
+  growth?: ReleaseMemberGrowth[];
 }
 
 /** A review blurb paired with the author who signed it. */
@@ -124,6 +146,8 @@ export interface ReleaseFormat {
   baseCost: number;
   baseReach: number;
   baseRevenue: number;
+  /** How much the format develops the members credited on it (ADR-0012). */
+  skillGain: number;
 }
 
 /** Display + economic metadata for a budget tier. */

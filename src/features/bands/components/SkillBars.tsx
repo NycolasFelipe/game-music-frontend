@@ -12,6 +12,7 @@ import type { ComponentType } from "react";
 import { SmartTooltip } from "@/components/SmartTooltip";
 import { useSkillDescriptions } from "@/features/bands/hooks/useBandOptions";
 import {
+  formatSkillLevel,
   SKILL_LABELS,
   SKILL_ORDER,
   skillLevelDescription,
@@ -84,8 +85,14 @@ export function SkillBars({
                 )}
               </Group>
               <Progress value={(skills[key] / 10) * 100} size="sm" flex={1} />
-              <Text size="xs" w={20} ta="right" lh={1}>
-                {skills[key]}
+              <Text
+                size="xs"
+                w={26}
+                ta="right"
+                lh={1}
+                style={{ fontVariantNumeric: "tabular-nums" }}
+              >
+                {formatSkillLevel(skills[key])}
               </Text>
             </Group>
           </SmartTooltip>

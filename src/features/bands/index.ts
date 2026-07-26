@@ -35,7 +35,11 @@ export {
   useGenerateCandidates,
   useRegenerateAvatar,
 } from "@/features/bands/hooks/useGenerateCandidates";
-export { SKILL_LABELS, SKILL_ORDER } from "@/features/bands/labels";
+export {
+  formatSkillLevel,
+  SKILL_LABELS,
+  SKILL_ORDER,
+} from "@/features/bands/labels";
 export type {
   Band,
   BandDetail,

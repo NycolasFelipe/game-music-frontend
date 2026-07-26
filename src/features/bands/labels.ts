@@ -21,6 +21,16 @@ export const SKILL_ORDER: Array<keyof Skills> = [
 ];
 
 /**
+ * Formats a skill level for display. Skills grow with published works (ADR-0012)
+ * and carry decimals, so whole levels stay clean ("4") and grown ones show one
+ * decimal ("4.6").
+ */
+export function formatSkillLevel(level: number): string {
+  const rounded = Math.round(level * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+/**
  * Resolves the flavor description for a skill level, using the original's
  * bucketing: ≤2 → lvl1, ≤4 → lvl3, ≤6 → lvl5, ≤8 → lvl7, else lvl10.
  */

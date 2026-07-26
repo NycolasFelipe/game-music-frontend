@@ -1,5 +1,6 @@
 import { Divider, Modal, Rating, Stack, Text } from "@mantine/core";
 import { useEffect, useState, type ReactNode } from "react";
+import { ReleaseGrowthList } from "@/features/releases/components/ReleaseGrowthList";
 import { reviewTierColor } from "@/features/releases/labels";
 import type { Release, ReviewTier } from "@/features/releases/types";
 
@@ -212,11 +213,12 @@ function RevealBody({
   reviewTiers: ReviewTier[] | undefined;
 }) {
   // Phases: 0 critic rating · 1 critic comments · 2 public rating · 3 public
-  // comments. Advanced by timers — the star animation runs ~2.6s.
+  // comments · 4 member growth. Advanced by timers — the star animation runs
+  // ~2.6s.
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
-    if (phase >= 3) return undefined;
+    if (phase >= 4) return undefined;
     const nextAfter = phase === 0 || phase === 2 ? 2900 : 2000;
     const t = setTimeout(() => setPhase((p) => p + 1), nextAfter);
     return () => clearTimeout(t);
@@ -257,6 +259,18 @@ function RevealBody({
           <Text size="xs" c="dimmed" fs="italic" ta="center">
             Sobre o formato: &ldquo;{release.formatComment}&rdquo;
           </Text>
+        </Reveal>
+      )}
+
+      {phase >= 4 && (release.details?.growth?.length ?? 0) > 0 && (
+        <Reveal>
+          <Divider mb="lg" />
+          <Stack gap="xs" align="center">
+            <Text fw={700} tt="uppercase" size="sm" c="dimmed">
+              A banda evoluiu
+            </Text>
+            <ReleaseGrowthList growth={release.details?.growth} />
+          </Stack>
         </Reveal>
       )}
     </Stack>
