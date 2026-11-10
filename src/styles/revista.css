@@ -127,16 +127,34 @@ body {
 /* Índice (navegação entre seções) */
 .rv-index {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  gap: 28px;
   border-bottom: 1px solid var(--rv-ink);
   margin-bottom: 4px;
+  /* Uma linha só; em tela estreita, rola de lado em vez de quebrar. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rv-index::-webkit-scrollbar {
+  display: none;
+}
+/* O índice da revista ocupa a largura toda, com as seções distribuídas. */
+.rv-index.rv-index-spread {
+  justify-content: space-between;
+  gap: 16px;
+}
+/* Abaixo disso o número de página, que é só enfeite, sai para tudo caber. */
+@media (max-width: 1180px) {
+  .rv-index.rv-index-spread .rv-pg {
+    display: none;
+  }
 }
 .rv-index a {
-  padding: 8px 14px 7px 0;
-  margin-right: 14px;
+  padding: 8px 0 7px;
+  white-space: nowrap;
   font: 800 12px var(--rv-sans);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-decoration: none;
   color: var(--rv-soft);
   border-bottom: 3px solid transparent;
@@ -752,8 +770,8 @@ body {
   background: none;
   border: 0;
   border-bottom: 3px solid transparent;
-  padding: 8px 14px 7px 0;
-  margin-right: 14px;
+  padding: 8px 0 7px;
+  white-space: nowrap;
   font: 800 12px var(--rv-sans);
   text-transform: uppercase;
   letter-spacing: 0.12em;

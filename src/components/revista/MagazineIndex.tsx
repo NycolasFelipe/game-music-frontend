@@ -11,13 +11,13 @@ export interface MagazineSection {
 
 /**
  * Índice da revista (ADR-0002): a navegação entre seções, com o número de
- * página de enfeite.
+ * página de enfeite, numa linha só que ocupa a largura toda.
  *
  * @param props.sections - Seções na ordem de leitura.
  */
 export function MagazineIndex({ sections }: { sections: MagazineSection[] }) {
   return (
-    <nav className="rv-index" aria-label="Seções">
+    <nav className="rv-index rv-index-spread" aria-label="Seções">
       {sections.map((section, i) => (
         <Link
           key={section.to}
