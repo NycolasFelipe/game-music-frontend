@@ -1,4 +1,4 @@
-import { Box, Paper, Stack, Text, Title } from "@mantine/core";
+import { Box, Stack, Title } from "@mantine/core";
 import {
   Bar,
   BarChart,
@@ -57,19 +57,15 @@ function ChartTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <Paper withBorder shadow="sm" px="sm" py={6} radius="md">
-      <Text size="xs" fw={600} mb={2}>
-        {label}
-      </Text>
+    <div className="rv-chart-tip">
+      <div className="rv-chart-tip-head">{label}</div>
       {payload.map((entry) => (
-        <Text key={String(entry.dataKey)} size="xs" c="dimmed">
-          {entry.name}:{" "}
-          <Text span fw={600} c="var(--mantine-color-text)">
-            {entry.value}
-          </Text>
-        </Text>
+        <div key={String(entry.dataKey)} className="rv-chart-tip-row">
+          <span>{entry.name}</span>
+          <b>{entry.value}</b>
+        </div>
       ))}
-    </Paper>
+    </div>
   );
 }
 

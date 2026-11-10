@@ -1149,3 +1149,27 @@ body {
 .rv-listing .rv-n {
   white-space: nowrap;
 }
+
+/* Caixa de detalhe dos gráficos: papel opaco por cima da retícula. */
+.rv-chart-tip {
+  background: var(--rv-paper);
+  border: 1px solid var(--rv-ink);
+  box-shadow: 4px 4px 0 rgba(19, 18, 17, 0.18);
+  padding: 8px 12px;
+  min-width: 150px;
+}
+.rv-chart-tip-head {
+  font: 600 11px var(--rv-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rv-soft);
+  margin-bottom: 4px;
+}
+.rv-chart-tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font: 13px var(--rv-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--rv-ink);
+}

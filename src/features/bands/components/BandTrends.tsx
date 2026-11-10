@@ -1,4 +1,4 @@
-import { Box, Chip, Group, Paper, Stack, Switch, Text } from "@mantine/core";
+import { Box, Chip, Group, Stack, Switch, Text } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import {
   Area,
@@ -62,10 +62,8 @@ function TrendTooltip({
   if (!active || !payload?.length) return null;
   const period = (payload[0]?.payload as { period?: string })?.period ?? label;
   return (
-    <Paper withBorder shadow="sm" px="sm" py={6} radius="md">
-      <Text size="xs" fw={600} mb={2}>
-        {period}
-      </Text>
+    <div className="rv-chart-tip">
+      <div className="rv-chart-tip-head">{period}</div>
       {payload.map((entry) => {
         const raw = normalized
           ? (entry.payload?.[`${String(entry.dataKey)}Raw`] as
@@ -74,19 +72,19 @@ function TrendTooltip({
               | undefined)
           : (entry.value as number | undefined);
         return (
-          <Text key={String(entry.dataKey)} size="xs" c="dimmed">
-            {entry.name}:{" "}
-            <Text span fw={600} c="var(--mantine-color-text)">
+          <div key={String(entry.dataKey)} className="rv-chart-tip-row">
+            <span>{entry.name}</span>
+            <b>
               {raw == null
                 ? "—"
                 : entry.dataKey === "balance" || entry.dataKey === "money"
                   ? formatMoney(raw)
                   : raw.toLocaleString("pt-BR")}
-            </Text>
-          </Text>
+            </b>
+          </div>
         );
       })}
-    </Paper>
+    </div>
   );
 }
 
