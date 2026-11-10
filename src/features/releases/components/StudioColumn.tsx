@@ -40,7 +40,7 @@ export function StudioColumn({
       : marketNote(launchesThisYear ?? 0, nextMarketMultiplier);
 
   return (
-    <div>
+    <div className="rv-col-body">
       <div className="rv-sub">Uma obra por vez · o custo sai no lançamento</div>
 
       {draft ? (
@@ -59,9 +59,11 @@ export function StudioColumn({
               ? "As sessões de estúdio chegam como decisões a cada turno."
               : "A gravação terminou. Lance quando quiser."}
           </p>
-          <Button variant={draft.productionTurnsLeft > 0 ? "default" : "filled"} color={draft.productionTurnsLeft > 0 ? undefined : "press"} onClick={() => setOpen(true)}>
-            {draft.productionTurnsLeft > 0 ? "Ver estúdio" : `Lançar ${formatLabel(draft.format)}`}
-          </Button>
+          <div className="rv-col-foot">
+            <Button variant={draft.productionTurnsLeft > 0 ? "default" : "filled"} color={draft.productionTurnsLeft > 0 ? undefined : "press"} onClick={() => setOpen(true)}>
+              {draft.productionTurnsLeft > 0 ? "Ver estúdio" : `Lançar ${formatLabel(draft.format)}`}
+            </Button>
+          </div>
         </>
       ) : (
         <>
@@ -75,9 +77,9 @@ export function StudioColumn({
             </button>
           ))}
           {market && <p className={market.penalty ? "rv-note" : "rv-caption"}>{market.text}</p>}
-          <Button mt="xs" onClick={() => setOpen(true)}>
-            Criar obra
-          </Button>
+          <div className="rv-col-foot">
+            <Button onClick={() => setOpen(true)}>Criar obra</Button>
+          </div>
         </>
       )}
 

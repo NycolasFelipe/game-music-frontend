@@ -16,7 +16,7 @@ import type { BandDetail, Characteristic, Skills } from "@/features/bands";
 import { useDecisionsUi, usePendingDecisions } from "@/features/decisions";
 import { SceneNewspaper } from "@/features/events";
 import type { NewspaperItem } from "@/features/events";
-import { GigsColumn } from "@/features/gigs";
+import { GigsColumn, stageStanding } from "@/features/gigs";
 import {
   marketNote,
   StudioColumn,
@@ -26,7 +26,7 @@ import {
 } from "@/features/releases";
 import type { Release } from "@/features/releases";
 import { useAdvanceTurn, useTurnPanel } from "@/features/turns";
-import type { AdvanceTurnResult, TurnPanel } from "@/features/turns";
+import type { TurnPanel } from "@/features/turns";
 import type { FormerMember } from "@/types/former-member";
 import { formatMoney } from "@/utils/money";
 
@@ -52,7 +52,7 @@ function coverStory(band: BandDetail, panel: TurnPanel | undefined, blocking: nu
       kicker: "Matéria de capa · Pronto para lançar",
       head: `"${release.title}" ficou pronto. E agora?`,
       deck: `A gravação terminou. ${
-        marketNote(panel?.studio.launchesThisYear ?? 0, panel?.studio.nextMarketMultiplier ?? 1, "esta").text
+        marketNote(panel?.studio.launchesThisYear ?? 0, panel?.studio.nextMarketMultiplier ?? 1, "esta obra").text
       }`,
       cta: "Lançar",
     };
@@ -82,42 +82,6 @@ function coverStory(band: BandDetail, panel: TurnPanel | undefined, blocking: nu
       : "Sem obra em produção.",
     cta: null,
   };
-}
-
-/** Texto do aviso depois de fechar a edição (avançar o turno). */
-function advanceMessage(result: AdvanceTurnResult, nameOf: (id: string) => string) {
-  const lines = [
-    result.activeEvent
-      ? "Um evento requer sua decisão."
-      : result.passiveEvent
-        ? "Novidades na cena musical."
-        : "Tudo tranquilo por enquanto.",
-  ];
-  if (result.salariesPaid > 0 || result.salariesDue > 0) {
-    lines.push(
-      `Folha: ${formatMoney(result.salariesPaid)} de ${formatMoney(result.salariesDue)} pagos` +
-        (result.salariesFullyPaid ? "." : " (caixa insuficiente)."),
-    );
-  }
-  if (result.salaryRaises.length > 0) {
-    lines.push(
-      `Salários ajustados: ${result.salaryRaises.map((r) => `${r.name} ${formatMoney(r.from)} → ${formatMoney(r.to)}`).join(", ")}.`,
-    );
-  }
-  if (result.production) {
-    const { title, turnsLeft, ready, newSession } = result.production;
-    lines.push(
-      ready
-        ? `"${title}" saiu do estúdio e está pronta para lançar.`
-        : `"${title}" segue em produção: falta${turnsLeft === 1 ? "" : "m"} ${turnsLeft} turno${turnsLeft === 1 ? "" : "s"}.` +
-            (newSession ? " Uma decisão de estúdio apareceu." : ""),
-    );
-  }
-  const atRisk = result.atRiskMemberIds.map(nameOf).join(", ");
-  if (atRisk) lines.push(`Salário atrasado, risco de saída: ${atRisk}.`);
-  const departed = result.departures.map((d) => d.name).join(", ");
-  if (departed) lines.push(`Deixou a banda: ${departed}.`);
-  return { text: lines.join(" "), alarm: Boolean(departed || atRisk || !result.salariesFullyPaid) };
 }
 
 /**
@@ -185,16 +149,10 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
   function handleAdvance() {
     advance.mutate(undefined, {
       onSuccess: (result) => {
-        const { text, alarm } = advanceMessage(result, nameOf);
         if (result.departures.length > 0) {
           setDepartures(result.departures);
           setDepartureOpen(true);
         }
-        notifications.show({
-          title: `Edição fechada · ${result.period}`,
-          message: text,
-          color: alarm ? "red" : "ink",
-        });
       },
       onError: () =>
         notifications.show({ color: "red", message: "Resolva o que está pendente antes de fechar a edição." }),
@@ -251,7 +209,7 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
             </div>
             <div>
               <span>Palco</span>
-              <b>{panel ? panel.performance.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) : "—"}</b>
+              <b>{panel ? stageStanding(panel.performance, panel.gig.previews) : "—"}</b>
             </div>
           </div>
           {story.cta && (

@@ -1095,3 +1095,39 @@ body {
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
+
+/* Colunas da aba Turno: o conteúdo ocupa a altura toda e o botão de cada
+   coluna desce para o rodapé, alinhado com os vizinhos. */
+.rv-cols3 > .rv-col {
+  display: flex;
+  flex-direction: column;
+}
+.rv-col-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.rv-col-foot {
+  margin-top: auto;
+  padding: 12px 0 10px;
+}
+
+/* Ilustração de coluna vazia (sem show ou sem saída ainda). */
+.rv-empty-scene {
+  margin: 4px 0 0;
+}
+.rv-empty-scene > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rv-ink);
+}
+
+/* Título do evento citado dentro de um encarte (a treta de uma saída). */
+.rv-detail-head {
+  font: 900 20px/1.2 var(--rv-serif);
+  margin: 4px 0 6px;
+}
+.rv-listing .rv-n {
+  white-space: nowrap;
+}

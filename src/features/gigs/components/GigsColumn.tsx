@@ -1,45 +1,29 @@
 import { Button } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { useState } from "react";
-import { formatSkillLevel } from "@/features/bands";
+import { InsertModal } from "@/components/revista";
 import type { BandDetail } from "@/features/bands";
-import { useGigs, useGigTypes, usePlayGig } from "@/features/gigs/hooks/useGigs";
-import type { GigPreview, GigType } from "@/features/gigs/types";
+import { EmptyStage } from "@/features/gigs/components/EmptyStage";
+import { GigOutcome } from "@/features/gigs/components/GigOutcome";
+import { gigOutcomeTitle } from "@/features/gigs/format";
+import { GigPicker } from "@/features/gigs/components/GigPicker";
+import { useGigs, useGigTypes } from "@/features/gigs/hooks/useGigs";
+import type { Gig, GigPreview, GigResult } from "@/features/gigs/types";
 import { formatMoney } from "@/utils/money";
+import { formatPeriod } from "@/utils/period";
 
-/** Número com sinal no formato brasileiro. */
-function signed(value: number, digits = 2): string {
-  const abs = Math.abs(value).toLocaleString("pt-BR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-  return value > 0 ? `+${abs}` : value < 0 ? `−${abs}` : `±${abs}`;
-}
-
-/** Prévia a partir do catálogo, quando o painel do turno não trouxer a dele. */
-function baseline(type: GigType, fameLevel: number): GigPreview {
-  return {
-    gigTypeId: type.id,
-    label: type.label,
-    minFameLevel: type.minFameLevel,
-    available: fameLevel >= type.minFameLevel,
-    expectedPerformance: 0,
-    fee: type.baseFee,
-    cost: type.cost,
-    net: type.baseFee - type.cost,
-    fansGained: type.baseFans,
-    happinessDelta: -type.wear,
-  };
-}
+/** Quantas temporadas passadas a coluna mostra. */
+const HISTORY_SIZE = 4;
 
 /**
- * Coluna Palco da aba Turno (ADR-0002): os circuitos com o resultado esperado
- * agora (cachê líquido, fãs, efeito no humor e o que a casa espera) e o botão
- * de tocar. Uma temporada por turno (ADR-0016).
+ * Coluna Palco da aba Turno (ADR-0002): o desempenho da banda, se já houve
+ * show no semestre, as últimas temporadas (ou uma ilustração de palco vazio,
+ * antes da primeira) e, no rodapé, o botão que abre o encarte da temporada. A escolha do
+ * circuito e o resultado acontecem dentro do encarte. Uma temporada por turno
+ * (ADR-0016).
  *
  * @param props.band - A banda.
  * @param props.previews - Prévias do painel do turno; sem elas, usa o catálogo.
- * @param props.performance - Desempenho de palco atual (0..1), se conhecido.
+ * @param props.performance - Desempenho de palco atual (0..1), para comparar com cada casa.
  */
 export function GigsColumn({
   band,
@@ -52,45 +36,23 @@ export function GigsColumn({
 }) {
   const { data: types } = useGigTypes();
   const { data: gigs } = useGigs(band.id);
-  const play = usePlayGig(band.id);
+  const [opened, setOpened] = useState(false);
+  const [played, setPlayed] = useState<{ result: GigResult; preview: GigPreview } | null>(null);
+  const [detail, setDetail] = useState<Gig | null>(null);
 
-  const rows: GigPreview[] =
-    previews && previews.length > 0
-      ? previews
-      : (types ?? []).map((type) => baseline(type, band.fame.level));
   const playedNow = (gigs ?? []).find((gig) => gig.playedAtYear === band.currentYear);
-  const firstPlayable = rows.find((row) => row.available && band.balance >= row.cost);
-  const [picked, setPicked] = useState<string | null>(null);
-  const selected = rows.find((row) => row.gigTypeId === (picked ?? firstPlayable?.gigTypeId));
-  const labelOf = (id: string) => rows.find((row) => row.gigTypeId === id)?.label ?? id;
+  const past = (gigs ?? []).filter((gig) => gig.id !== playedNow?.id).slice(0, HISTORY_SIZE);
+  const labelOf = (id: string) =>
+    previews?.find((row) => row.gigTypeId === id)?.label ?? types?.find((type) => type.id === id)?.label ?? id;
 
-  function handlePlay(preview: GigPreview) {
-    play.mutate(preview.gigTypeId, {
-      onSuccess: (result) => {
-        const gains = result.skillGains
-          .map((gain) => `${gain.name} ${formatSkillLevel(gain.from)} → ${formatSkillLevel(gain.to)}`)
-          .join(", ");
-        notifications.show({
-          title: preview.label,
-          message:
-            `Cachê ${formatMoney(result.gig.fee)} − custos ${formatMoney(result.gig.cost)} = ` +
-            `${formatMoney(result.gig.net)} · +${result.gig.fansGained.toLocaleString("pt-BR")} fãs · ` +
-            `humor ${signed(result.gig.happinessDelta)}` +
-            (gains ? ` · Na estrada: ${gains}` : ""),
-          color: result.gig.happinessDelta >= 0 ? "teal" : "red",
-        });
-      },
-      onError: () =>
-        notifications.show({ color: "red", message: "Não foi possível tocar esta temporada." }),
-    });
+  function openPicker() {
+    setPlayed(null);
+    setOpened(true);
   }
 
   return (
-    <div>
-      <div className="rv-sub">
-        Um show por semestre
-        {performance !== undefined ? ` · desempenho da banda ${performance.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}` : ""}
-      </div>
+    <div className="rv-col-body">
+      <div className="rv-sub">Um show por semestre</div>
 
       {playedNow && (
         <>
@@ -105,47 +67,67 @@ export function GigsColumn({
         </>
       )}
 
-      {rows.map((row) => {
-        const affordable = band.balance >= row.cost;
-        const isSelected = selected?.gigTypeId === row.gigTypeId && !playedNow;
-        return (
-          <button
-            key={row.gigTypeId}
-            type="button"
-            className={`rv-listing ${isSelected ? "rv-sel" : ""}`}
-            disabled={!row.available || Boolean(playedNow)}
-            onClick={() => setPicked(row.gigTypeId)}
-            aria-pressed={isSelected}
-          >
-            <span className="rv-v">{row.label}</span>
-            <span className={`rv-n ${row.net < 0 ? "rv-neg" : ""}`}>
-              {row.available ? formatMoney(row.net) : `nível ${row.minFameLevel}`}
-            </span>
-            <span className="rv-d">
-              {row.available
-                ? `+${Math.round(row.fansGained).toLocaleString("pt-BR")} fãs · humor ${signed(row.happinessDelta)}` +
-                  (row.expectedPerformance > 0
-                    ? ` · a casa espera ${row.expectedPerformance.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`
-                    : "") +
-                  (affordable ? "" : " · caixa insuficiente")
-                : `Precisa de fama ${row.minFameLevel}`}
-            </span>
-          </button>
-        );
-      })}
+      {past.length > 0 ? (
+        <div className="rv-col-history">
+          <div className="rv-kicker">Últimas temporadas</div>
+          {past.map((gig) => (
+            <button key={gig.id} type="button" className="rv-listing" onClick={() => setDetail(gig)}>
+              <span className="rv-v">{labelOf(gig.gigTypeId)}</span>
+              <span className={`rv-n ${gig.net < 0 ? "rv-neg" : "rv-pos"}`}>
+                {formatMoney(gig.net, { signed: true })}
+              </span>
+              <span className="rv-d">
+                {formatPeriod(gig.playedAtYear)} · +{Math.round(gig.fansGained).toLocaleString("pt-BR")} fãs
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        !playedNow && gigs && <EmptyStage />
+      )}
 
       {!playedNow && (
-        <p>
-          <Button
-            mt="sm"
-            disabled={!selected || !selected.available || band.balance < selected.cost}
-            loading={play.isPending}
-            onClick={() => selected && handlePlay(selected)}
-          >
-            Tocar a temporada
-          </Button>
-        </p>
+        <div className="rv-col-foot">
+          <Button onClick={openPicker}>Escolher o show</Button>
+        </div>
       )}
+
+      <InsertModal
+        opened={opened}
+        onClose={() => setOpened(false)}
+        label="Palco · um show por semestre"
+        title={played ? gigOutcomeTitle(played.result) : "Onde a banda toca"}
+        size="lg"
+      >
+        {played ? (
+          <GigOutcome
+            gig={played.result.gig}
+            label={played.preview.label}
+            expectedPerformance={played.preview.expectedPerformance}
+            skillGains={played.result.skillGains}
+            onClose={() => setOpened(false)}
+          />
+        ) : (
+          <GigPicker band={band} previews={previews} performance={performance} onPlayed={(result, preview) => setPlayed({ result, preview })} />
+        )}
+      </InsertModal>
+
+      <InsertModal
+        opened={detail !== null}
+        onClose={() => setDetail(null)}
+        label={detail ? `Palco · ${formatPeriod(detail.playedAtYear)}` : ""}
+        title={detail ? labelOf(detail.gigTypeId) : ""}
+        size="lg"
+      >
+        {detail && (
+          <GigOutcome
+            gig={detail}
+            label="Temporada encerrada"
+            expectedPerformance={previews?.find((row) => row.gigTypeId === detail.gigTypeId)?.expectedPerformance}
+            onClose={() => setDetail(null)}
+          />
+        )}
+      </InsertModal>
     </div>
   );
 }

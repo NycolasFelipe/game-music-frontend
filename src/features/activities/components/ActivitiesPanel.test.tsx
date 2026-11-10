@@ -5,6 +5,7 @@ import { ActivitiesPanel } from "@/features/activities/components/ActivitiesPane
 import * as api from "@/features/activities/services/activities.api";
 import type { ActivityOptions } from "@/features/activities/types";
 import type { BandDetail } from "@/features/bands";
+import * as eventsApi from "@/features/events/services/events.api";
 import * as prefsApi from "@/features/preferences/services/preferences.api";
 import { renderWithProviders } from "@/test/render";
 
@@ -12,6 +13,17 @@ vi.mock("@/features/activities/services/activities.api", () => ({
   getActivityOptions: vi.fn(),
   listBandActivities: vi.fn(),
   holdActivity: vi.fn(),
+}));
+
+vi.mock("@/features/events/services/events.api", () => ({
+  listActiveEvents: vi.fn(),
+  listPassiveEvents: vi.fn(),
+  resolveActiveEvent: vi.fn(),
+}));
+
+vi.mock("@/features/bands/services/bands.api", () => ({
+  listCharacteristics: vi.fn().mockResolvedValue([]),
+  getBandOptions: vi.fn(),
 }));
 
 vi.mock("@/features/preferences/services/preferences.api", () => ({
@@ -55,6 +67,11 @@ const band = (balance = 5000): BandDetail =>
     relationships: [{ memberAId: "m1", memberBId: "m2", level: -5 }],
   }) as unknown as BandDetail;
 
+/** Opens the Convívio insert, where the guest list and the activity live. */
+async function openInsert(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("button", { name: "Marcar convívio" }));
+}
+
 describe("ActivitiesPanel", () => {
   beforeEach(() => {
     vi.mocked(prefsApi.getUserPreferences).mockResolvedValue({
@@ -63,6 +80,7 @@ describe("ActivitiesPanel", () => {
     vi.mocked(prefsApi.updateUserPreferences).mockImplementation((patch) =>
       Promise.resolve({ peopleView: "cards", ...patch }),
     );
+    vi.mocked(eventsApi.listActiveEvents).mockResolvedValue([]);
     vi.mocked(api.getActivityOptions).mockResolvedValue(options());
     vi.mocked(api.listBandActivities).mockResolvedValue([]);
     vi.mocked(api.holdActivity).mockResolvedValue({
@@ -90,7 +108,9 @@ describe("ActivitiesPanel", () => {
   });
 
   it("will not book anything until the guest list is big enough", async () => {
+    const user = userEvent.setup();
     renderWithProviders(<ActivitiesPanel band={band()} />);
+    await openInsert(user);
 
     expect(await screen.findByText("Jantar da banda")).toBeVisible();
     expect(screen.getByRole("button", { name: /Leve 2–6/ })).toBeDisabled();
@@ -99,6 +119,7 @@ describe("ActivitiesPanel", () => {
   it("prices the activity for the chosen guest list and books it", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ActivitiesPanel band={band()} />);
+    await openInsert(user);
 
     await user.click(await screen.findByRole("checkbox", { name: "Levar Ana" }));
     await user.click(screen.getByRole("checkbox", { name: "Levar Beto" }));
@@ -112,11 +133,17 @@ describe("ActivitiesPanel", () => {
         "m2",
       ]),
     );
+
+    // The result replaces the choice inside the same insert.
+    expect(await screen.findByText("Jantar da banda sem vítimas")).toBeVisible();
+    expect(screen.getByText("Custo")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Fechar" })).toBeVisible();
   });
 
   it("warns that the guest list is a powder keg", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ActivitiesPanel band={band()} />);
+    await openInsert(user);
 
     await user.click(await screen.findByRole("checkbox", { name: "Levar Ana" }));
     await user.click(screen.getByRole("checkbox", { name: "Levar Beto" }));
@@ -129,6 +156,7 @@ describe("ActivitiesPanel", () => {
   it("picks guests on the relationship circle too", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ActivitiesPanel band={band()} />);
+    await openInsert(user);
 
     await user.click(await screen.findByRole("radio", { name: "Grafo" }));
 
@@ -151,9 +179,11 @@ describe("ActivitiesPanel", () => {
       peopleView: "graph",
     });
 
+    const user = userEvent.setup();
     renderWithProviders(<ActivitiesPanel band={band()} />);
+    await openInsert(user);
 
-    // No click: the graph is how this player looks at people, in every save.
+    // No click on the toggle: the graph is how this player looks at people, in every save.
     expect(
       await screen.findByText(/acendem as relações que a saída vai mexer/),
     ).toBeInTheDocument();
@@ -162,6 +192,7 @@ describe("ActivitiesPanel", () => {
   it("blocks what the cash cannot cover", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ActivitiesPanel band={band(10)} />);
+    await openInsert(user);
 
     await user.click(await screen.findByRole("checkbox", { name: "Levar Ana" }));
     await user.click(screen.getByRole("checkbox", { name: "Levar Beto" }));
@@ -170,4 +201,79 @@ describe("ActivitiesPanel", () => {
       screen.getByRole("button", { name: "Caixa insuficiente" }),
     ).toBeDisabled();
   });
+
+  it("fills an empty table with an illustration before the first night out", async () => {
+    renderWithProviders(<ActivitiesPanel band={band()} />);
+
+    expect(await screen.findByRole("img", { name: /Mesa de bar vazia/ })).toBeInTheDocument();
+  });
+
+  it("lists the last nights out instead of the illustration", async () => {
+    vi.mocked(api.listBandActivities).mockResolvedValue([
+      {
+        id: "a-0",
+        bandId: "b-1",
+        activityId: "jantar",
+        heldAtYear: 1990.5,
+        cost: 240,
+        participantIds: ["m1", "m2"],
+        happinessDelta: 0.4,
+        relationshipDelta: 1,
+        trouble: true,
+        troubleEventId: "e-9",
+        createdAt: "2026-01-01T00:00:00Z",
+      },
+    ]);
+
+    renderWithProviders(<ActivitiesPanel band={band()} />);
+
+    expect(await screen.findByText("Últimas saídas")).toBeVisible();
+    expect(await screen.findByText("Jantar da banda")).toBeVisible();
+    expect(screen.getByText(/deu treta/)).toBeVisible();
+    expect(screen.queryByRole("img", { name: /Mesa de bar vazia/ })).toBeNull();
+  });
+
+  it("opens a past night out in detail, with the trouble it caused", async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.listBandActivities).mockResolvedValue([
+      {
+        id: "a-0",
+        bandId: "b-1",
+        activityId: "jantar",
+        heldAtYear: 1990.5,
+        cost: 240,
+        participantIds: ["m1", "m2"],
+        happinessDelta: 0.4,
+        relationshipDelta: -1,
+        trouble: true,
+        troubleEventId: "e-9",
+        createdAt: "2026-01-01T00:00:00Z",
+      },
+    ]);
+    vi.mocked(eventsApi.listActiveEvents).mockResolvedValue([
+      {
+        id: "e-9",
+        bandId: "b-1",
+        templateId: "c-1",
+        year: 1990.5,
+        type: "confraternizacao",
+        title: "A conta",
+        description: "Ana não vai dividir igual.",
+        involvedCharacterIds: ["m1", "m2"],
+        options: [{ id: "o-1", label: "Rachar e esquecer", description: "" }],
+        resolved: true,
+        chosenOptionId: "o-1",
+        outcome: { description: "Beto pagou e anotou." },
+      },
+    ]);
+
+    renderWithProviders(<ActivitiesPanel band={band()} />);
+    await user.click(await screen.findByRole("button", { name: /Jantar da banda/ }));
+
+    expect(await screen.findByText("Quem foi:")).toBeVisible();
+    expect(screen.getByText("A conta")).toBeVisible();
+    expect(screen.getByText("Sua escolha · Rachar e esquecer")).toBeVisible();
+    expect(screen.getByText(/pagou e anotou/)).toBeVisible();
+  });
 });
+

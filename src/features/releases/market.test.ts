@@ -9,11 +9,19 @@ describe("marketNote", () => {
     });
   });
 
-  it("says how much of the normal a later work earns, in percent", () => {
-    expect(marketNote(1, 0.6).text).toBe("Já saiu 1 obra este ano: a próxima rende 60% do normal.");
-    expect(marketNote(2, 0.35, "esta")).toEqual({
-      text: "Já saíram 2 obras este ano: esta rende 35% do normal.",
-      penalty: true,
-    });
+  it("warns about a crowded year in the magazine's voice, without percentages", () => {
+    const notes = [marketNote(1, 0.6), marketNote(2, 0.35), marketNote(3, 0.2)];
+    for (const note of notes) {
+      expect(note.penalty).toBe(true);
+      expect(note.text).not.toMatch(/%|\d/);
+    }
+    // Each step of the saturation reads differently, so the loss still shows.
+    expect(new Set(notes.map((note) => note.text)).size).toBe(3);
+  });
+
+  it("names the work the way the caller asks", () => {
+    expect(marketNote(1, 0.6, "esta obra").text).toBe(
+      "O público ainda está decorando o último disco. Esta obra vai disputar atenção com ele e render bem menos.",
+    );
   });
 });

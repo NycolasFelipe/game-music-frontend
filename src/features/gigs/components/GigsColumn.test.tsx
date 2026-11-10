@@ -75,7 +75,9 @@ describe("GigsColumn", () => {
   });
 
   it("locks the circuits the band's fame cannot reach", async () => {
+    const user = userEvent.setup();
     renderWithProviders(<GigsColumn band={band()} />);
+    await user.click(await screen.findByRole("button", { name: "Escolher o show" }));
 
     expect(await screen.findByText("Bares e botecos")).toBeVisible();
     expect(screen.getByRole("button", { name: /Precisa de fama 12/ })).toBeDisabled();
@@ -96,20 +98,33 @@ describe("GigsColumn", () => {
         happinessDelta: 0.33,
       },
     ];
-    renderWithProviders(<GigsColumn band={band()} previews={previews} />);
+    const user = userEvent.setup();
+    renderWithProviders(<GigsColumn band={band()} previews={previews} performance={0.2} />);
+    await user.click(await screen.findByRole("button", { name: "Escolher o show" }));
 
-    expect(await screen.findByText("$560")).toBeVisible();
-    expect(screen.getByText(/\+19 fãs · humor \+0,33 · a casa espera 0,15/)).toBeVisible();
+    // The insert slides in; wait for it to settle before checking visibility.
+    await waitFor(() => expect(screen.getByText("$560")).toBeVisible());
+    // The house's bar reads as a comparison, not as a raw 0..1 number.
+    expect(screen.getByText(/\+19 fãs · humor \+0,33 · a banda dá conta do recado/)).toBeVisible();
   });
 
-  it("plays the chosen season", async () => {
+  it("plays the chosen season and shows the result in the insert", async () => {
     const user = userEvent.setup();
     renderWithProviders(<GigsColumn band={band()} />);
+    await user.click(await screen.findByRole("button", { name: "Escolher o show" }));
 
     await screen.findByText("Bares e botecos");
     await user.click(screen.getByRole("button", { name: /Tocar a temporada/ }));
 
     await waitFor(() => expect(api.playGig).toHaveBeenCalledWith("b-1", "bar"));
+    expect(await screen.findByText("Voltaram com dinheiro no bolso")).toBeVisible();
+    expect(screen.getByText("No caixa")).toBeVisible();
+    expect(screen.getByText("+$440")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Fechar" }));
+    await waitFor(() =>
+      expect(screen.queryByText("Voltaram com dinheiro no bolso")).not.toBeInTheDocument(),
+    );
   });
 
   it("blocks a second season in the same turn", async () => {
@@ -118,6 +133,34 @@ describe("GigsColumn", () => {
     renderWithProviders(<GigsColumn band={band(1991.5)} />);
 
     expect(await screen.findByText(/já cumpriu a temporada deste turno/)).toBeVisible();
-    expect(screen.queryByRole("button", { name: /Tocar a temporada/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Escolher o show" })).toBeNull();
+  });
+
+  it("fills an empty stage with an illustration before the first season", async () => {
+    renderWithProviders(<GigsColumn band={band()} />);
+
+    expect(await screen.findByRole("img", { name: /Palco vazio/ })).toBeInTheDocument();
+  });
+
+  it("lists the last seasons instead of the illustration", async () => {
+    vi.mocked(api.listGigs).mockResolvedValue([{ ...playedGig, playedAtYear: 1990.5 }]);
+
+    renderWithProviders(<GigsColumn band={band(1991.5)} />);
+
+    expect(await screen.findByText("Últimas temporadas")).toBeVisible();
+    expect(screen.getByText("+$440")).toBeVisible();
+    expect(screen.queryByRole("img", { name: /Palco vazio/ })).toBeNull();
+  });
+
+  it("opens a past season in detail", async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.listGigs).mockResolvedValue([{ ...playedGig, playedAtYear: 1990.5 }]);
+
+    renderWithProviders(<GigsColumn band={band(1991.5)} />);
+    await user.click(await screen.findByRole("button", { name: /Bares e botecos/ }));
+
+    await waitFor(() => expect(screen.getByText("Temporada encerrada")).toBeVisible());
+    expect(screen.getByText("Cachê")).toBeVisible();
+    expect(screen.getByText("No caixa")).toBeVisible();
   });
 });
