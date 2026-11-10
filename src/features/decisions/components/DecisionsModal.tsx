@@ -1,12 +1,18 @@
 import { Button, Group } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { InsertModal } from "@/components/revista";
 import { useCharacteristics } from "@/features/bands";
 import type { BandDetail, Characteristic } from "@/features/bands";
 import { usePendingDecisions } from "@/features/decisions/hooks/usePendingDecisions";
 import { useDecisionsUi } from "@/features/decisions/store/decisions.store";
-import { ActiveEventDecision, useResolveActiveEvent } from "@/features/events";
+import {
+  ActiveEventDecision,
+  EventOutcome,
+  snapshotBand,
+  useResolveActiveEvent,
+} from "@/features/events";
+import type { BandSnapshot, EventResolution } from "@/features/events";
 import {
   CreationEventStage,
   LaunchSummary,
@@ -26,13 +32,20 @@ import {
 export function DecisionsModal({ band }: { band: BandDetail }) {
   const bandId = band.id;
   const { decisions, draftId } = usePendingDecisions(bandId);
-  const { open, openDecisions, closeDecisions } = useDecisionsUi();
+  const { open, deferred, openDecisions, closeDecisions } = useDecisionsUi();
   const { data: characteristics } = useCharacteristics();
 
   const resolveEvent = useResolveActiveEvent(bandId);
   const resolveSession = useResolveCreationEvent(bandId, draftId ?? "");
   const finalize = useFinalizeRelease(bandId);
   const revealRelease = useReleaseRevealUi((state) => state.revealRelease);
+  // The outcome of the event just answered stays on screen until the player
+  // moves on (it used to be a toast that vanished on its own).
+  const [outcome, setOutcome] = useState<{
+    resolution: EventResolution;
+    chosenLabel: string;
+    before: BandSnapshot;
+  } | null>(null);
 
   const catalog = useMemo(
     () =>
@@ -59,19 +72,13 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
 
   function handleEventChoice(optionId: string) {
     if (current?.kind !== "band") return;
+    const chosenLabel =
+      current.event.options.find((option) => option.id === optionId)?.label ?? "";
+    const before = snapshotBand(band);
     resolveEvent.mutate(
       { eventId: current.event.id, optionId },
       {
-        onSuccess: (res) =>
-          notifications.show({
-            title: res.event.title,
-            message:
-              res.outcome.description +
-              (res.fameChange.leveledUp
-                ? ` · Subiu para o Nível ${res.fameChange.newLevel} de fama!`
-                : ""),
-            color: "ink",
-          }),
+        onSuccess: (resolution) => setOutcome({ resolution, chosenLabel, before }),
         onError: () =>
           notifications.show({
             color: "red",
@@ -108,14 +115,21 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
     });
   }
 
-  const section =
-    current?.kind === "launch"
+  function handleOutcomeDone() {
+    setOutcome(null);
+    if (!current) closeDecisions();
+  }
+
+  const section = outcome
+    ? "Resultado"
+    : current?.kind === "launch"
       ? "Lançamento"
       : current?.kind === "studio"
         ? `No estúdio · gravando “${current.releaseTitle}”`
         : "Decisão pendente";
-  const heading =
-    current?.kind === "band"
+  const heading = outcome
+    ? outcome.resolution.event.title
+    : current?.kind === "band"
       ? current.event.title
       : current?.kind === "studio"
         ? "A banda precisa de você"
@@ -125,12 +139,15 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
 
   return (
     <InsertModal
-      opened={open && Boolean(current)}
-      onClose={closeDecisions}
+      opened={!deferred && ((open && Boolean(current)) || Boolean(outcome))}
+      onClose={() => {
+        setOutcome(null);
+        closeDecisions();
+      }}
       label={
         <>
           {section}
-          {decisions.length > 1 && (
+          {!outcome && decisions.length > 1 && (
             <>
               {" · "}
               <span className="rv-red">1 de {decisions.length}</span>
@@ -141,7 +158,19 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
       title={heading}
       size="lg"
     >
-      {current?.kind === "band" && (
+      {outcome && (
+        <EventOutcome
+          resolution={outcome.resolution}
+          chosenLabel={outcome.chosenLabel}
+          before={outcome.before}
+          members={band.members}
+          catalog={catalog}
+          hasNext={Boolean(current)}
+          onContinue={handleOutcomeDone}
+        />
+      )}
+
+      {!outcome && current?.kind === "band" && (
         <ActiveEventDecision
           event={current.event}
           members={band.members}
@@ -151,7 +180,7 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
         />
       )}
 
-      {current?.kind === "studio" && (
+      {!outcome && current?.kind === "studio" && (
         <CreationEventStage
           event={current.event}
           index={current.index}
@@ -163,7 +192,7 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
         />
       )}
 
-      {current?.kind === "launch" && (
+      {!outcome && current?.kind === "launch" && (
         <div>
           <LaunchSummary bandId={bandId} releaseId={current.releaseId} balance={band.balance} />
           <p className="rv-caption">

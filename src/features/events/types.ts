@@ -58,9 +58,17 @@ export interface FameChange {
   milestones: FameMilestone[];
 }
 
+/** The band-state values after an event was resolved (absolute, not deltas). */
+export interface AppliedBandChanges {
+  fanCount: number;
+  memberHappiness: { memberId: string; happiness: number }[];
+  relationshipLevels: { memberAId: string; memberBId: string; level: number }[];
+}
+
 /** Result of resolving an active event. */
 export interface EventResolution {
   event: ActiveEvent;
   outcome: EventConsequence;
+  applied: AppliedBandChanges;
   fameChange: FameChange;
 }

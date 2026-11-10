@@ -34,7 +34,8 @@ vi.mock("@/features/bands/services/bands.api", () => ({
 const band = {
   id: "b-1",
   name: "Os Rebeldes",
-  members: [{ id: "m1", name: "Ana", avatar: "🧑" }],
+  fanCount: 100,
+  members: [{ id: "m1", name: "Ana", avatar: "🧑", happiness: 1 }],
   relationships: [],
 } as unknown as BandDetail;
 
@@ -106,6 +107,11 @@ describe("DecisionsModal", () => {
     vi.mocked(eventsApi.resolveActiveEvent).mockResolvedValue({
       event: { ...bandEvent, resolved: true, chosenOptionId: "aceitar" },
       outcome: { description: "A casa lotou." },
+      applied: {
+        fanCount: 160,
+        memberHappiness: [{ memberId: "m1", happiness: 1.5 }],
+        relationshipLevels: [],
+      },
       fameChange: {
         previousLevel: 1,
         newLevel: 1,
@@ -135,6 +141,30 @@ describe("DecisionsModal", () => {
         "e-1",
         "aceitar",
       ),
+    );
+  });
+
+  it("shows the outcome in the insert until the player moves on", async () => {
+    const user = userEvent.setup();
+    vi.mocked(eventsApi.listActiveEvents)
+      .mockResolvedValueOnce([bandEvent])
+      .mockResolvedValue([]);
+
+    renderWithProviders(<DecisionsModal band={band} />);
+
+    await user.click(await screen.findByRole("button", { name: /Aceitar/ }));
+
+    expect(await screen.findByText("A casa lotou.")).toBeInTheDocument();
+    expect(screen.getByText("Sua escolha · Aceitar")).toBeInTheDocument();
+    expect(screen.getByText("Fãs")).toBeInTheDocument();
+    expect(screen.getByText("+60")).toBeInTheDocument();
+    expect(screen.getByText("Humor de Ana")).toBeInTheDocument();
+    expect(screen.getByText("+0,5")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Fechar" }));
+
+    await waitFor(() =>
+      expect(screen.queryByText("A casa lotou.")).not.toBeInTheDocument(),
     );
   });
 
