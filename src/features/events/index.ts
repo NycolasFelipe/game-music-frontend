@@ -1,5 +1,6 @@
 /** Public API of the events feature. */
 export { ActiveEventDecision } from "@/features/events/components/ActiveEventDecision";
+export { SceneNewspaper } from "@/features/events/components/SceneNewspaper";
 export {
   eventKeys,
   useActiveEvents,

@@ -985,3 +985,89 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Gazeta do Groove: um jornal dentro da revista */
+.rv-news {
+  margin: 18px 0 6px;
+  padding: 16px 20px 14px;
+  background-color: var(--rv-paper2);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 3px 3px;
+  box-shadow: 4px 4px 0 rgba(19, 18, 17, 0.12);
+}
+.rv-news-plate {
+  text-align: center;
+  border-top: 3px double var(--rv-ink);
+  border-bottom: 3px double var(--rv-ink);
+  padding: 6px 0 4px;
+  margin-bottom: 12px;
+}
+.rv-news-name {
+  font: 900 clamp(28px, 4.4vw, 44px) / 1 var(--rv-serif);
+  letter-spacing: -0.01em;
+}
+.rv-news-meta {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  border-top: 1px solid var(--rv-ink);
+  margin-top: 6px;
+  padding-top: 4px;
+  font: 600 10px var(--rv-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.rv-news-dateline {
+  font: 800 10px var(--rv-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 4px;
+}
+.rv-news-lead {
+  border-bottom: 1px solid var(--rv-ink);
+  padding-bottom: 10px;
+}
+.rv-news-lead p {
+  font: 900 clamp(22px, 3vw, 30px) / 1.12 var(--rv-serif);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.rv-news-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 0;
+  margin-top: 10px;
+}
+.rv-news-cols > .rv-news-brief {
+  padding: 0 14px;
+  border-left: 1px solid var(--rv-ink);
+}
+.rv-news-cols > .rv-news-brief:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+@media (max-width: 700px) {
+  .rv-news-cols > .rv-news-brief {
+    padding: 8px 0 0;
+    border-left: 0;
+    border-top: 1px dotted var(--rv-soft);
+  }
+  .rv-news-cols > .rv-news-brief:first-child {
+    border-top: 0;
+  }
+}
+.rv-news-brief {
+  break-inside: avoid;
+  padding-bottom: 6px;
+}
+.rv-news-brief p {
+  font: 15px/1.4 var(--rv-serif);
+  margin: 0;
+  hyphens: auto;
+}
+.rv-news-foot {
+  border-top: 1px solid var(--rv-ink);
+  padding-top: 6px;
+  text-align: right;
+}

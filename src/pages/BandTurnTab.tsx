@@ -1,6 +1,7 @@
 import { Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { ActivitiesPanel } from "@/features/activities";
 import {
   BandPhoto,
@@ -13,6 +14,7 @@ import {
 } from "@/features/bands";
 import type { BandDetail, Characteristic, Skills } from "@/features/bands";
 import { useDecisionsUi, usePendingDecisions } from "@/features/decisions";
+import { SceneNewspaper } from "@/features/events";
 import { GigsColumn } from "@/features/gigs";
 import { StudioColumn } from "@/features/releases";
 import { useAdvanceTurn, useTurnPanel } from "@/features/turns";
@@ -166,6 +168,17 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
         catalog={catalog}
         opened={departureOpen}
         onClose={() => setDepartureOpen(false)}
+      />
+
+      {/* Notícias da cena */}
+      <SceneNewspaper
+        bandId={band.id}
+        currentYear={band.currentYear}
+        footer={
+          <Link to={`/bands/${band.id}/arquivo`} className="rv-link">
+            Todas as notícias no Arquivo →
+          </Link>
+        }
       />
 
       {/* Capa */}
