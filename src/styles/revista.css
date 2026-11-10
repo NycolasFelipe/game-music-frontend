@@ -1209,3 +1209,7 @@ body {
   color: var(--rv-red);
   margin-bottom: 2px;
 }
+.rv-session-choice .rv-session-effect {
+  font-style: normal;
+  color: var(--rv-soft);
+}

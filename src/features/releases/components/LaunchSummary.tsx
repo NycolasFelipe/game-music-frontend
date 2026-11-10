@@ -1,5 +1,6 @@
 import { Loader } from "@mantine/core";
 import { useBandOptions } from "@/features/bands";
+import { StudioSessionLog } from "@/features/releases/components/StudioSessionLog";
 import { VinylDisc } from "@/features/releases/components/VinylRecord";
 import { CREATION_KIND_LABELS } from "@/features/releases/creationKinds";
 import {
@@ -52,8 +53,7 @@ export function LaunchSummary({
     .sort((a, b) => a.sequence - b.sequence)
     .map((event, index) => ({
       id: event.id,
-      session: index + 1,
-      kind: CREATION_KIND_LABELS[event.kind] ?? "Sessão",
+      heading: `Sessão ${index + 1} · ${CREATION_KIND_LABELS[event.kind] ?? "Estúdio"}`,
       prompt: event.prompt,
       choice: event.options.find((option) => option.id === event.chosenOptionId)?.label ?? "",
     }));
@@ -74,27 +74,7 @@ export function LaunchSummary({
         </div>
       </div>
 
-      <div className="rv-session-log">
-        <div className="rv-kicker">No estúdio</div>
-        {decided.length > 0 ? (
-          <ol>
-            {decided.map((entry) => (
-              <li key={entry.id}>
-                <div className="rv-label">
-                  Sessão {entry.session} · {entry.kind}
-                </div>
-                <p className="rv-session-prompt">“{entry.prompt}”</p>
-                <p className="rv-session-choice">
-                  <span>Você escolheu</span>
-                  {entry.choice}
-                </p>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="rv-caption">Nenhuma sessão difícil. A gravação correu sem drama, o que é quase suspeito.</p>
-        )}
-      </div>
+      <StudioSessionLog entries={decided} />
 
       <div className="rv-facts">
         <div>

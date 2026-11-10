@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { MemberHoverName, SKILL_LABELS, SKILL_ORDER } from "@/features/bands";
 import type { BandMember, Characteristic } from "@/features/bands";
 import { ReleaseGrowthList } from "@/features/releases/components/ReleaseGrowthList";
+import { StudioSessionLog } from "@/features/releases/components/StudioSessionLog";
 import { VinylDisc } from "@/features/releases/components/VinylRecord";
 import type {
   QualityTier,
@@ -194,19 +195,15 @@ export function ReleaseCard({
       </div>
 
       {release.creationLog.length > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <div className="rv-kicker">No estúdio</div>
-          <div className="rv-ledger">
-            {release.creationLog.map((entry) => (
-              <div key={entry.eventId}>
-                <span>{entry.prompt}</span>
-                <span style={{ textAlign: "right", flexShrink: 0 }}>
-                  {entry.choiceLabel} ({factor(entry.qualityModifier)})
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <StudioSessionLog
+          entries={release.creationLog.map((entry, index) => ({
+            id: entry.eventId,
+            heading: `Sessão ${index + 1}`,
+            prompt: entry.prompt,
+            choice: entry.choiceLabel,
+            effect: factor(entry.qualityModifier),
+          }))}
+        />
       )}
 
       {(release.details?.growth?.length ?? 0) > 0 && (
