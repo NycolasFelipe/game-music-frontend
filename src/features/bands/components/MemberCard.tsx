@@ -29,7 +29,7 @@ export interface MemberCardData {
  * @param props.member - Integrante ou candidato.
  * @param props.catalog - Catálogo de traços (nome e descrição).
  * @param props.selected - Marcado nas audições (contorno e etiqueta "Aprovado").
- * @param props.onToggle - Clique na ficha (seleção nas audições).
+ * @param props.onToggle - Clique na ficha (seleção nas audições, entrevista no Elenco).
  * @param props.actions - Ações extras abaixo do humor (ex.: salário).
  * @param props.onRegenerateAvatar - Oferece "novo visual" sobre o retrato.
  * @param props.avatarRegenerating - Se o novo visual está sendo gerado.
@@ -63,6 +63,14 @@ export function MemberCard({
     <article
       className="rv-profile"
       onClick={onToggle}
+      role={onToggle ? "button" : undefined}
+      tabIndex={onToggle ? 0 : undefined}
+      onKeyDown={(event) => {
+        if (onToggle && event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onToggle();
+        }
+      }}
       style={{
         cursor: onToggle ? "pointer" : undefined,
         padding: selected !== undefined ? 8 : 0,

@@ -15,7 +15,7 @@ export { FormerMembersTab } from "@/features/bands/components/FormerMembersTab";
 export { MemberCard } from "@/features/bands/components/MemberCard";
 export { MemberEditModal } from "@/features/bands/components/MemberEditModal";
 export { MemberHoverName } from "@/features/bands/components/MemberHoverName";
-export { MemberSalaryControl } from "@/features/bands/components/MemberSalaryControl";
+export { MemberInterviewModal } from "@/features/bands/components/MemberInterviewModal";
 export { SalaryBadge } from "@/features/bands/components/SalaryBadge";
 export { bandKeys, useBand, useBands } from "@/features/bands/hooks/useBands";
 export {
