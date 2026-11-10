@@ -113,7 +113,7 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
       ? "Lançamento"
       : current?.kind === "studio"
         ? `No estúdio · gravando “${current.releaseTitle}”`
-        : "Decisão pendente · trava o fechamento da edição";
+        : "Decisão pendente";
   const heading =
     current?.kind === "band"
       ? current.event.title
@@ -156,6 +156,8 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
           event={current.event}
           index={current.index}
           total={current.total}
+          members={band.members}
+          catalog={catalog}
           pending={resolveSession.isPending}
           onChoose={handleSessionChoice}
         />
