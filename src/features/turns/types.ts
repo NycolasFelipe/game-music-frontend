@@ -54,10 +54,14 @@ export interface AdvanceTurnResult {
   salaryRaises: SalaryRaise[];
   /** How the work in production moved this turn (null when not recording). */
   production: ReleaseProduction | null;
-  /** Members who left the band this turn over unpaid salary (full snapshots). */
+  /** Members who left the band this turn, over unpaid salary or a bad mood. */
   departures: FormerMember[];
   /** Ids of members in arrears who risk leaving (no deadline — kept gamified). */
   atRiskMemberIds: string[];
+  /** Ids of members in a bad mood who leave if it lasts one more turn. */
+  moodAtRiskMemberIds?: string[];
+  /** Fans the band lost because members left this turn. */
+  fansLostToDepartures?: number;
 }
 
 /** What still needs the player this turn (ADR-0022 do backend). */
@@ -140,5 +144,11 @@ export interface TurnPanel {
     atRiskMemberIds: string[];
     /** Members who would leave the band in this advance over unpaid salary. */
     departingMemberIds?: string[];
+    /** Members who would end the advance in a bad mood (leave on the next one). */
+    moodAtRiskMemberIds?: string[];
+    /** Members who would leave the band in this advance over a bad mood. */
+    moodDepartingMemberIds?: string[];
+    /** Fans the departures of this advance would cost. */
+    fansLost?: number;
   };
 }

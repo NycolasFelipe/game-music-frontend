@@ -116,7 +116,10 @@ function InterviewBody({
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(120px, 190px) 1fr", gap: 22 }}>
         <div>
-          <MemberPortrait subject={member} tag={member.happiness < -1 ? "Em crise" : undefined} />
+          <MemberPortrait
+            subject={member}
+            tag={member.moodAtRisk ? "Prestes a sair" : member.happiness < -1 ? "Em crise" : undefined}
+          />
           <p className="rv-caption">
             {member.age} anos · {role.toLowerCase()}
           </p>
@@ -127,6 +130,9 @@ function InterviewBody({
               “{level.description}”
               <small>
                 Humor {signedMood(member.happiness)} · {level.name}
+                {member.moodAtRisk && (
+                  <span className="rv-red"> · mais um semestre assim e sai da banda</span>
+                )}
               </small>
             </p>
           )}

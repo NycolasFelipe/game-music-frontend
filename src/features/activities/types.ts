@@ -24,6 +24,10 @@ export interface ActivityOption {
 /** The priced catalog plus what this turn already did to the effects. */
 export interface ActivityOptions {
   heldThisTurn: number;
+  /** Activities allowed per turn (ADR-0031 do backend). */
+  limitPerTurn?: number;
+  /** Whether the band can still go out together this turn. */
+  canHold?: boolean;
   /** Effect multiplier the next activity would get (ADR-0017 §2). */
   nextSaturation: number;
   /** Risk each point of hostility on the guest list adds (ADR-0017 §3). */

@@ -96,8 +96,11 @@ function coverStory(band: BandDetail, panel: TurnPanel | undefined, blocking: nu
 function releaseNews(bandName: string, release: Release, formatLabel: string): NewspaperItem {
   const noun = formatLabel === formatLabel.toUpperCase() ? formatLabel : formatLabel.toLowerCase();
   const quote = release.criticComments[0];
+  // A frase da crítica já termina em ponto; dentro das aspas ficaria
+  // “…amizades.”, diz. O ponto final da notícia fecha a frase no lugar dele.
+  const text = quote?.text.trim().replace(/(?<!\.)\.$/, "");
   const tail = quote
-    ? ` “${quote.text}”, diz ${quote.author}.`
+    ? ` “${text}”, diz ${quote.author}.`
     : ` O disco conquista ${Math.round(release.fansGained ?? 0).toLocaleString("pt-BR")} novos fãs.`;
   return {
     id: `release-${release.id}`,
@@ -124,6 +127,7 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
   const openDecisions = useDecisionsUi((state) => state.openDecisions);
   const advance = useAdvanceTurn(band.id);
   const [departures, setDepartures] = useState<FormerMember[]>([]);
+  const [fansLost, setFansLost] = useState(0);
   const [departureOpen, setDepartureOpen] = useState(false);
   const { data: releases } = useReleases(band.id);
   const { data: formats } = useReleaseFormats();
@@ -151,6 +155,7 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
       onSuccess: (result) => {
         if (result.departures.length > 0) {
           setDepartures(result.departures);
+          setFansLost(result.fansLostToDepartures ?? 0);
           setDepartureOpen(true);
         }
       },
@@ -163,6 +168,7 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
     <>
       <DepartureModal
         members={departures}
+        fansLost={fansLost}
         catalog={catalog}
         opened={departureOpen}
         onClose={() => setDepartureOpen(false)}
@@ -325,9 +331,31 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
               <span />
             </div>
           )}
+          {forecast && (forecast.moodDepartingMemberIds?.length ?? 0) > 0 && (
+            <div>
+              <span className="rv-red">
+                Sairia de mau humor neste fechamento: {(forecast.moodDepartingMemberIds ?? []).map(nameOf).join(", ")}
+              </span>
+              <span />
+            </div>
+          )}
+          {forecast && (forecast.fansLost ?? 0) > 0 && (
+            <div>
+              <span>Fãs que iriam junto</span>
+              <span className="rv-neg">−{(forecast.fansLost ?? 0).toLocaleString("pt-BR")}</span>
+            </div>
+          )}
           {forecast && forecast.atRiskMemberIds.length > 0 && (
             <div>
               <span className="rv-red">Sem dinheiro para pagar: {forecast.atRiskMemberIds.map(nameOf).join(", ")}</span>
+              <span />
+            </div>
+          )}
+          {forecast && (forecast.moodAtRiskMemberIds?.length ?? 0) > 0 && (
+            <div>
+              <span className="rv-red">
+                De mau humor, sai se não melhorar: {(forecast.moodAtRiskMemberIds ?? []).map(nameOf).join(", ")}
+              </span>
               <span />
             </div>
           )}

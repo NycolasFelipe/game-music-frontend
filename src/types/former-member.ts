@@ -15,7 +15,7 @@ export interface FormerMemberRelationship {
 }
 
 /** Why a member left the band. */
-export type DepartureReason = "salario_atrasado";
+export type DepartureReason = "salario_atrasado" | "humor";
 
 /** A departed band member (frozen snapshot). Mirrors the backend view. */
 export interface FormerMember {

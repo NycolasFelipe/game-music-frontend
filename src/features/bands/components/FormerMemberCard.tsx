@@ -10,6 +10,7 @@ import { formatMoney } from "@/utils/money";
 
 const DEPARTURE_REASONS: Record<string, string> = {
   salario_atrasado: "salário atrasado",
+  humor: "mau humor",
 };
 
 /**

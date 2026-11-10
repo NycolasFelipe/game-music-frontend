@@ -64,7 +64,7 @@ export function ActivitiesPanel({
     <div className="rv-col-body">
       {heldThisTurn && (
         <Text size="xs" ff="monospace" c="dimmed" mb="xs">
-          Já houve convívio neste turno.
+          A banda já saiu junta neste semestre. O próximo convívio fica para o turno que vem.
         </Text>
       )}
 
@@ -87,7 +87,9 @@ export function ActivitiesPanel({
       )}
 
       <div className="rv-col-foot">
-        <Button onClick={openPicker}>Marcar convívio</Button>
+        <Button onClick={openPicker} disabled={heldThisTurn}>
+          Marcar convívio
+        </Button>
       </div>
 
       <InsertModal

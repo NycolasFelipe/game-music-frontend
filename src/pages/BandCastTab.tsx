@@ -37,7 +37,15 @@ export function BandCastTab({ band }: { band: BandDetail }) {
             key={member.id}
             member={member}
             catalog={catalog}
-            tag={member.happiness < -1 ? "Em crise" : member.salaryAtRisk ? "Salário atrasado" : undefined}
+            tag={
+              member.moodAtRisk
+                ? "Prestes a sair"
+                : member.happiness < -1
+                  ? "Em crise"
+                  : member.salaryAtRisk
+                    ? "Salário atrasado"
+                    : undefined
+            }
             actions={
               <SalaryBadge
                 salary={member.salary}
