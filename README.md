@@ -18,13 +18,13 @@ cada turno é uma edição e os retratos são desenhados em retícula.
 ### A banca
 A lista de bandas do jogador, cada uma com a foto da formação.
 
-![A banca com duas bandas e o cartão de nova banda](docs/screenshots/banca.png)
+![A banca com a Nirvana e o cartão de nova banda](docs/screenshots/banca.png)
 
 ### Nova banda
 Ficha da banda (nome, estilo, cidade e década), audições e revisão. "Sortear
 tudo" preenche a ficha de uma vez.
 
-![Primeiro passo da criação de banda, com a ficha sorteada](docs/screenshots/nova-banda.png)
+![Primeiro passo da criação de banda, com a ficha da Nirvana: grunge, Seattle, 1990](docs/screenshots/nova-banda.png)
 
 ### Turno
 O painel do semestre. No topo, a **Gazeta do Groove** traz as notícias do ano
@@ -43,7 +43,14 @@ salário, com ajuste e histórico.
 ### Discografia
 Cada lançamento com a nota da crítica e do público, a resenha e o que rendeu.
 
-![Discografia com um EP lançado](docs/screenshots/discografia.png)
+![Discografia com cinco EPs lançados](docs/screenshots/discografia.png)
+
+### A crítica
+Lançar uma obra abre o encarte da crítica: o disco gira e as notas saem uma de
+cada vez, primeiro a nota da obra e a faixa, depois a crítica especializada e o
+público, cada um com os seus comentários.
+
+![O encarte da crítica de um EP, com a nota, a faixa, os fãs ganhos e os comentários da crítica e do público](docs/screenshots/critica.png)
 
 ### Números
 Fãs, caixa, clima da banda e perfil de habilidades ao longo do tempo, em
