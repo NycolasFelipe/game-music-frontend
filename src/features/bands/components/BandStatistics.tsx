@@ -9,10 +9,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { tone } from "@/components/halftone";
 import { BandTrends } from "@/features/bands/components/BandTrends";
 import { SKILL_LABELS, SKILL_ORDER } from "@/features/bands/labels";
 import type { BandDetail, Skills } from "@/features/bands/types";
 import { formatPeriod } from "@/utils/period";
+import { formatMoney } from "@/utils/money";
 
 /** Minimal turn-history point (a Turn is assignable to this). */
 interface TurnPoint {
@@ -72,7 +74,7 @@ function ChartTooltip({
 }
 
 const axisTick = { fill: "var(--rv-soft)", fontSize: 11, fontFamily: "var(--rv-mono)" };
-const gridStroke = "var(--rv-faint)";
+const gridStroke = "var(--rv-soft)";
 
 /** Statistics tab: headline tiles, time-series trends, and skill profile. */
 export function BandStatistics({
@@ -99,7 +101,7 @@ export function BandStatistics({
       </div>
       <div className="rv-facts" style={{ ["--rv-n" as string]: 7 }}>
         <StatTile label="Fãs" value={band.fanCount.toLocaleString("pt-BR")} />
-        <StatTile label="Caixa" value={Math.round(band.balance).toLocaleString("pt-BR")} />
+        <StatTile label="Caixa" value={formatMoney(band.balance)} />
         <StatTile
           label="Fama"
           value={`Nível ${band.fame.level}`}
@@ -137,7 +139,7 @@ export function BandStatistics({
               layout="vertical"
               margin={{ top: 4, right: 32, bottom: 4, left: 8 }}
             >
-              <CartesianGrid stroke={gridStroke} horizontal={false} />
+              <CartesianGrid stroke={gridStroke} strokeDasharray="1 4" horizontal={false} />
               <XAxis type="number" domain={[0, 10]} tick={axisTick} />
               <YAxis
                 type="category"
@@ -145,12 +147,13 @@ export function BandStatistics({
                 tick={axisTick}
                 width={70}
               />
-              <Tooltip content={<ChartTooltip />} cursor={{ fillOpacity: 0.08 }} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--rv-ink)", fillOpacity: 0.06 }} />
               <Bar
                 dataKey="value"
                 name="Média"
-                fill="var(--rv-ink)"
-                radius={[0, 4, 4, 0]}
+                fill={tone(6)}
+                stroke="var(--rv-ink)"
+                strokeWidth={1}
               >
                 <LabelList
                   dataKey="value"

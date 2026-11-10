@@ -28,8 +28,9 @@ describe("ReleaseGrowthList", () => {
 
     expect(screen.getByText("Ana")).toBeInTheDocument();
     expect(screen.getByText("Letras 4.2 → 4.6")).toBeInTheDocument();
-    expect(screen.getByText("Vocal 3.9 → 4.3 · nível 4!")).toBeInTheDocument();
-    expect(screen.getByText("+0,5 humor")).toBeInTheDocument();
+    expect(screen.getByText(/Vocal 3.9 → 4.3/)).toBeInTheDocument();
+    expect(screen.getByText("nível 4")).toBeInTheDocument();
+    expect(screen.getByText("+0,5")).toBeInTheDocument();
   });
 
   it("renders nothing for a work launched before the feature", () => {

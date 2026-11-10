@@ -104,7 +104,7 @@ describe("ActivitiesPanel", () => {
     await user.click(screen.getByRole("checkbox", { name: "Levar Beto" }));
 
     // The price comes from the server's table for this head count.
-    await user.click(await screen.findByRole("button", { name: /Marcar · 240/ }));
+    await user.click(await screen.findByRole("button", { name: /Marcar · \$240/ }));
 
     await waitFor(() =>
       expect(api.holdActivity).toHaveBeenCalledWith("b-1", "jantar", [

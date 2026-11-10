@@ -1,6 +1,7 @@
-import { Button, Modal, Stack } from "@mantine/core";
+import { Button, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
+import { InsertModal } from "@/components/revista";
 import { useCharacteristics } from "@/features/bands";
 import type { BandDetail, Characteristic } from "@/features/bands";
 import { ReleaseCard } from "@/features/releases/components/ReleaseCard";
@@ -17,6 +18,7 @@ import {
   useCancelRelease,
   useReleases,
 } from "@/features/releases/hooks/useReleases";
+import { formatPeriod } from "@/utils/period";
 
 /** The band's discography: launched works plus the draft-creation flow. */
 export function DiscographyTab({ band }: { band: BandDetail }) {
@@ -149,25 +151,35 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
         />
       )}
 
-      <Modal
+      <InsertModal
         opened={detailOpen}
         onClose={detail.close}
-        title="Detalhes da obra"
-        size="lg"
-        centered
+        label={
+          detailRelease
+            ? [
+                "Resenha",
+                formatLabel(detailRelease.format),
+                detailRelease.releasedAtYear !== null ? formatPeriod(detailRelease.releasedAtYear) : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")
+            : ""
+        }
+        title={detailRelease ? `“${detailRelease.title}”` : ""}
+        titleSize="lg"
+        size="xl"
       >
         {detailRelease && (
           <ReleaseCard
             release={detailRelease}
             members={band.members}
             catalog={catalog}
-            formatLabel={formatLabel(detailRelease.format)}
             qualityTier={tierById(detailRelease.qualityTier)}
             criticTier={reviewTierById(detailRelease.criticTier)}
             publicTier={reviewTierById(detailRelease.publicTier)}
           />
         )}
-      </Modal>
+      </InsertModal>
     </Stack>
   );
 }

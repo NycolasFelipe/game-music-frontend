@@ -10,6 +10,7 @@ import {
 import type { ActivityOption } from "@/features/activities/types";
 import type { BandDetail } from "@/features/bands";
 import { formatPeriod } from "@/utils/period";
+import { formatMoney } from "@/utils/money";
 
 /** How a composed risk reads to the player — no percentages on the table. */
 function riskBadge(chance: number): { label: string; high: boolean } {
@@ -92,7 +93,7 @@ export function ActivitiesPanel({
               ? `${activity.label}, e a noite virou`
               : activity.label,
             message:
-              `Custou ${result.activity.cost.toLocaleString("pt-BR")} · humor ${result.activity.happinessDelta > 0 ? "+" : ""}${result.activity.happinessDelta.toString().replace(".", ",")}` +
+              `Custou ${formatMoney(result.activity.cost)} · humor ${result.activity.happinessDelta > 0 ? "+" : ""}${result.activity.happinessDelta.toString().replace(".", ",")}` +
               (mended ? ` · ${mended}` : "") +
               (result.trouble ? " · Uma decisão apareceu." : ""),
             color: result.trouble ? "orange" : "teal",
@@ -142,7 +143,7 @@ export function ActivitiesPanel({
             <div key={activity.id} className="rv-classified" style={{ cursor: "default" }}>
               <b>
                 {activity.label}
-                {fits && cost !== null ? ` — ${cost.toLocaleString("pt-BR")}` : ""}
+                {fits && cost !== null ? ` — ${formatMoney(cost)}` : ""}
               </b>
               <p>
                 Humor +{activity.happinessGain.toString().replace(".", ",")}, relação +
@@ -161,7 +162,7 @@ export function ActivitiesPanel({
                   ? `Leve ${activity.minParticipants}–${activity.maxParticipants}`
                   : !affordable
                     ? "Caixa insuficiente"
-                    : `Marcar · ${cost?.toLocaleString("pt-BR")}`}
+                    : `Marcar · ${cost !== null ? formatMoney(cost) : ""}`}
               </Button>
             </div>
           );
@@ -178,7 +179,7 @@ export function ActivitiesPanel({
                 · {formatPeriod(held.heldAtYear)}
                 {held.trouble ? " · deu treta" : ""}
               </span>
-              <span className="rv-neg">−{held.cost.toLocaleString("pt-BR")}</span>
+              <span className="rv-neg">{formatMoney(-held.cost)}</span>
             </div>
           ))}
         </div>

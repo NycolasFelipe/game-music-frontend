@@ -18,9 +18,10 @@ import { StudioColumn } from "@/features/releases";
 import { useAdvanceTurn, useTurnPanel } from "@/features/turns";
 import type { AdvanceTurnResult, TurnPanel } from "@/features/turns";
 import type { FormerMember } from "@/types/former-member";
+import { formatMoney } from "@/utils/money";
 
 /** Número no formato brasileiro, arredondado. */
-const money = (value: number) => Math.round(value).toLocaleString("pt-BR");
+const count = (value: number) => Math.round(value).toLocaleString("pt-BR");
 
 /** Número com sinal no formato brasileiro. */
 function signed(value: number, digits = 1): string {
@@ -85,13 +86,13 @@ function advanceMessage(result: AdvanceTurnResult, nameOf: (id: string) => strin
   ];
   if (result.salariesPaid > 0 || result.salariesDue > 0) {
     lines.push(
-      `Folha: ${money(result.salariesPaid)} de ${money(result.salariesDue)} pagos` +
+      `Folha: ${formatMoney(result.salariesPaid)} de ${formatMoney(result.salariesDue)} pagos` +
         (result.salariesFullyPaid ? "." : " (caixa insuficiente)."),
     );
   }
   if (result.salaryRaises.length > 0) {
     lines.push(
-      `Salários ajustados: ${result.salaryRaises.map((r) => `${r.name} ${money(r.from)} → ${money(r.to)}`).join(", ")}.`,
+      `Salários ajustados: ${result.salaryRaises.map((r) => `${r.name} ${formatMoney(r.from)} → ${formatMoney(r.to)}`).join(", ")}.`,
     );
   }
   if (result.production) {
@@ -188,11 +189,11 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
           <div className="rv-facts">
             <div>
               <span>Caixa</span>
-              <b>{money(band.balance)}</b>
+              <b>{formatMoney(band.balance)}</b>
             </div>
             <div>
               <span>Fãs</span>
-              <b>{money(band.fanCount)}</b>
+              <b>{count(band.fanCount)}</b>
             </div>
             <div>
               <span>Palco</span>
@@ -278,30 +279,30 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
         <div className="rv-ledger">
           <div>
             <span>Caixa agora</span>
-            <span>{money(forecast?.balance ?? band.balance)}</span>
+            <span>{formatMoney(forecast?.balance ?? band.balance)}</span>
           </div>
           {(forecast?.royaltyPayouts ?? []).map((payout) => (
             <div key={payout.releaseId}>
               <span>Royalties de "{payout.title}"</span>
-              <span className="rv-pos">+{money(payout.amount)}</span>
+              <span className="rv-pos">{formatMoney(payout.amount, { signed: true })}</span>
             </div>
           ))}
           {forecast && forecast.salaryRaises > 0 && (
             <div>
               <span>Reajustes automáticos</span>
-              <span className="rv-neg">−{money(forecast.salaryRaises)}</span>
+              <span className="rv-neg">{formatMoney(-forecast.salaryRaises)}</span>
             </div>
           )}
           {forecast && (
             <div>
               <span>Folha de {band.members.length} integrantes</span>
-              <span className="rv-neg">−{money(forecast.payroll)}</span>
+              <span className="rv-neg">{formatMoney(-forecast.payroll)}</span>
             </div>
           )}
           {forecast && (
             <div>
               <b>Fechamento estimado</b>
-              <b className={forecast.balanceAfter < 0 ? "rv-neg" : undefined}>{money(forecast.balanceAfter)}</b>
+              <b className={forecast.balanceAfter < 0 ? "rv-neg" : undefined}>{formatMoney(forecast.balanceAfter)}</b>
             </div>
           )}
           {forecast && (forecast.departingMemberIds?.length ?? 0) > 0 && (

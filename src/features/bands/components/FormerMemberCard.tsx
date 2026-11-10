@@ -1,24 +1,24 @@
-import { Badge, Card, Group, Stack, Text } from "@mantine/core";
 import { CharacteristicChips } from "@/features/bands/components/CharacteristicChips";
-import { MemberFace } from "@/features/bands/portrait/MemberPortrait";
 import { HappinessBadge } from "@/features/bands/components/HappinessBadge";
 import { SkillBars } from "@/features/bands/components/SkillBars";
-import type { Characteristic } from "@/features/bands/types";
+import { SKILL_LABELS } from "@/features/bands/labels";
+import { MemberPortrait } from "@/features/bands/portrait/MemberPortrait";
+import type { Characteristic, Skills } from "@/features/bands/types";
 import type { FormerMember } from "@/types/former-member";
+import { formatPeriod } from "@/utils/period";
+import { formatMoney } from "@/utils/money";
 
 const DEPARTURE_REASONS: Record<string, string> = {
-  salario_atrasado: "Salário atrasado",
+  salario_atrasado: "salário atrasado",
 };
 
-function genderLabel(gender: string): string {
-  if (gender === "male") return "Masculino";
-  if (gender === "female") return "Feminino";
-  return gender;
-}
-
 /**
- * Presentational card for a former (departed) member: their data at departure
- * plus why/when they left, turns unpaid, last salary and their relationships.
+ * Ficha de um ex-integrante no estilo da revista (ADR-0002): o retrato com a
+ * expressão de quando saiu, quando e por que saiu, o humor na saída, os traços,
+ * a biografia, as habilidades e como estavam as relações com quem ficou.
+ *
+ * @param props.member - O retrato congelado de quem saiu.
+ * @param props.catalog - Catálogo de traços (nome e descrição).
  */
 export function FormerMemberCard({
   member,
@@ -27,65 +27,62 @@ export function FormerMemberCard({
   member: FormerMember;
   catalog: Map<string, Characteristic>;
 }) {
+  const role = SKILL_LABELS[member.primarySkill as keyof Skills] ?? member.primarySkill;
+
   return (
-    <Card withBorder padding="md">
-      <Stack gap="xs">
-        <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-          <Group gap="sm" wrap="nowrap" align="center" style={{ flex: 1, minWidth: 0 }}>
-            <MemberFace subject={member} size={44} />
-            <div style={{ minWidth: 0 }}>
-              <Text fw={600} style={{ wordBreak: "break-word" }}>
-                {member.name}
-              </Text>
-              <Text size="xs" c="dimmed">
-                {member.age} anos · {genderLabel(member.gender)}
-              </Text>
-            </div>
-          </Group>
-          <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-            <HappinessBadge value={member.happiness} />
-            <Badge color="red" variant="light">
-              Saiu · {member.leftAtYear}
-            </Badge>
-          </Group>
-        </Group>
-
-        <Text size="xs" c="dimmed">
+    <article
+      className="rv-profile"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(96px, 130px) 1fr",
+        gap: 18,
+        borderTop: "4px solid var(--rv-ink)",
+        paddingTop: 14,
+      }}
+    >
+      <div>
+        <MemberPortrait subject={member} tag="Saiu" />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div className="rv-nm" style={{ marginTop: 0 }}>{member.name}</div>
+        <div className="rv-role">
+          {role} · {member.age} anos
+        </div>
+        <p className="rv-caption">
+          Saiu em {formatPeriod(member.leftAtYear)} ·{" "}
           {DEPARTURE_REASONS[member.reason] ?? member.reason} ·{" "}
-          {member.unpaidTurns} turno(s) sem receber · último salário{" "}
-          {member.salary.toLocaleString("pt-BR")}
-        </Text>
-
+          {member.unpaidTurns} turno{member.unpaidTurns === 1 ? "" : "s"} sem receber ·
+          último salário {formatMoney(member.salary)}
+        </p>
+        <div style={{ marginTop: 4 }}>
+          <span className="rv-label" style={{ marginRight: 8 }}>Humor na saída</span>
+          <HappinessBadge value={member.happiness} />
+        </div>
         <CharacteristicChips ids={member.characteristics} catalog={catalog} />
-
-        <Text size="xs" c="dimmed">
+        <p className="rv-caption" style={{ margin: "4px 0 10px" }}>
           {member.biography}
-        </Text>
+        </p>
 
-        <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
-
-        {member.relationships.length > 0 && (
-          <div>
-            <Text size="xs" c="dimmed" fw={600} mb={4}>
-              Relacionamentos
-            </Text>
-            <Stack gap={2}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 18 }}>
+          <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
+          {member.relationships.length > 0 && (
+            <div className="rv-ledger" style={{ fontSize: 12 }}>
+              <div>
+                <b>Relações ao sair</b>
+                <span />
+              </div>
               {member.relationships.map((rel, index) => (
-                <Group key={index} justify="space-between" gap="xs">
-                  <Text size="xs">{rel.memberName}</Text>
-                  <Badge
-                    size="xs"
-                    variant="light"
-                    color={rel.level > 0 ? "teal" : rel.level < 0 ? "red" : "gray"}
-                  >
+                <div key={index}>
+                  <span>{rel.memberName}</span>
+                  <span className={rel.level > 0 ? "rv-pos" : rel.level < 0 ? "rv-neg" : undefined}>
                     {rel.level > 0 ? `+${rel.level}` : rel.level}
-                  </Badge>
-                </Group>
+                  </span>
+                </div>
               ))}
-            </Stack>
-          </div>
-        )}
-      </Stack>
-    </Card>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }

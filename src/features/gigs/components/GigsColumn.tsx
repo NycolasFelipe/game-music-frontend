@@ -5,6 +5,7 @@ import { formatSkillLevel } from "@/features/bands";
 import type { BandDetail } from "@/features/bands";
 import { useGigs, useGigTypes, usePlayGig } from "@/features/gigs/hooks/useGigs";
 import type { GigPreview, GigType } from "@/features/gigs/types";
+import { formatMoney } from "@/utils/money";
 
 /** Número com sinal no formato brasileiro. */
 function signed(value: number, digits = 2): string {
@@ -72,8 +73,8 @@ export function GigsColumn({
         notifications.show({
           title: preview.label,
           message:
-            `Cachê ${result.gig.fee.toLocaleString("pt-BR")} − custos ${result.gig.cost.toLocaleString("pt-BR")} = ` +
-            `${result.gig.net.toLocaleString("pt-BR")} · +${result.gig.fansGained.toLocaleString("pt-BR")} fãs · ` +
+            `Cachê ${formatMoney(result.gig.fee)} − custos ${formatMoney(result.gig.cost)} = ` +
+            `${formatMoney(result.gig.net)} · +${result.gig.fansGained.toLocaleString("pt-BR")} fãs · ` +
             `humor ${signed(result.gig.happinessDelta)}` +
             (gains ? ` · Na estrada: ${gains}` : ""),
           color: result.gig.happinessDelta >= 0 ? "teal" : "red",
@@ -99,7 +100,7 @@ export function GigsColumn({
           <p className="rv-mono" style={{ fontSize: 13 }}>
             A banda já cumpriu a temporada deste turno: {labelOf(playedNow.gigTypeId)},{" "}
             {playedNow.net >= 0 ? "+" : ""}
-            {Math.round(playedNow.net).toLocaleString("pt-BR")} no caixa, +{Math.round(playedNow.fansGained).toLocaleString("pt-BR")} fãs.
+            {formatMoney(playedNow.net)} no caixa, +{Math.round(playedNow.fansGained).toLocaleString("pt-BR")} fãs.
           </p>
         </>
       )}
@@ -118,7 +119,7 @@ export function GigsColumn({
           >
             <span className="rv-v">{row.label}</span>
             <span className={`rv-n ${row.net < 0 ? "rv-neg" : ""}`}>
-              {row.available ? Math.round(row.net).toLocaleString("pt-BR") : `nível ${row.minFameLevel}`}
+              {row.available ? formatMoney(row.net) : `nível ${row.minFameLevel}`}
             </span>
             <span className="rv-d">
               {row.available

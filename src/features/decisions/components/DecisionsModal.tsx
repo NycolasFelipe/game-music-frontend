@@ -1,7 +1,7 @@
-import { Badge, Button, Group, Modal, Stack, Text } from "@mantine/core";
+import { Button, Group } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconBolt } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef } from "react";
+import { InsertModal } from "@/components/revista";
 import { useCharacteristics } from "@/features/bands";
 import type { BandDetail, Characteristic } from "@/features/bands";
 import { usePendingDecisions } from "@/features/decisions/hooks/usePendingDecisions";
@@ -9,6 +9,7 @@ import { useDecisionsUi } from "@/features/decisions/store/decisions.store";
 import { ActiveEventDecision, useResolveActiveEvent } from "@/features/events";
 import {
   CreationEventStage,
+  LaunchSummary,
   useFinalizeRelease,
   useReleaseRevealUi,
   useResolveCreationEvent,
@@ -16,9 +17,11 @@ import {
 
 /**
  * The band's inbox: every decision that holds the clock, one at a time and in
- * one place. It opens by itself as soon as something new needs an answer, so a
- * studio session no longer waits behind the Discografia tab for the player to
- * go looking for it.
+ * one place, as a magazine insert (ADR-0002). It opens by itself as soon as
+ * something new needs an answer, so a studio session no longer waits behind
+ * the Discografia tab for the player to go looking for it.
+ *
+ * @param props.band - The band whose decisions are pending.
  */
 export function DecisionsModal({ band }: { band: BandDetail }) {
   const bandId = band.id;
@@ -67,7 +70,7 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
               (res.fameChange.leveledUp
                 ? ` · Subiu para o Nível ${res.fameChange.newLevel} de fama!`
                 : ""),
-            color: "teal",
+            color: "ink",
           }),
         onError: () =>
           notifications.show({
@@ -105,27 +108,38 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
     });
   }
 
+  const section =
+    current?.kind === "launch"
+      ? "Lançamento"
+      : current?.kind === "studio"
+        ? `No estúdio · gravando “${current.releaseTitle}”`
+        : "Decisão pendente · trava o fechamento da edição";
+  const heading =
+    current?.kind === "band"
+      ? current.event.title
+      : current?.kind === "studio"
+        ? "A banda precisa de você"
+        : current?.kind === "launch"
+          ? `“${current.releaseTitle}” está pronta.`
+          : "";
+
   return (
-    <Modal
+    <InsertModal
       opened={open && Boolean(current)}
       onClose={closeDecisions}
-      centered
-      size="lg"
-      title={
-        <Group gap={8}>
-          <IconBolt size={18} />
-          <Text fw={700}>
-            {current?.kind === "launch"
-              ? "Saiu do estúdio"
-              : "A banda precisa de você"}
-          </Text>
+      label={
+        <>
+          {section}
           {decisions.length > 1 && (
-            <Badge variant="light" color="yellow">
-              1 de {decisions.length}
-            </Badge>
+            <>
+              {" · "}
+              <span className="rv-red">1 de {decisions.length}</span>
+            </>
           )}
-        </Group>
+        </>
       }
+      title={heading}
+      size="lg"
     >
       {current?.kind === "band" && (
         <ActiveEventDecision
@@ -138,46 +152,31 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
       )}
 
       {current?.kind === "studio" && (
-        <Stack gap="sm">
-          <Text size="sm" c="dimmed">
-            No estúdio, gravando{" "}
-            <Text span fw={700}>
-              &ldquo;{current.releaseTitle}&rdquo;
-            </Text>
-          </Text>
-          <CreationEventStage
-            event={current.event}
-            index={current.index}
-            total={current.total}
-            pending={resolveSession.isPending}
-            onChoose={handleSessionChoice}
-          />
-        </Stack>
+        <CreationEventStage
+          event={current.event}
+          index={current.index}
+          total={current.total}
+          pending={resolveSession.isPending}
+          onChoose={handleSessionChoice}
+        />
       )}
 
       {current?.kind === "launch" && (
-        <Stack align="center" gap="xs" py="sm">
-          <Text fw={700} fz="lg" ta="center">
-            &ldquo;{current.releaseTitle}&rdquo; está pronta
-          </Text>
-          <Text size="sm" c="dimmed" ta="center" maw={400}>
-            A gravação terminou. Prense o disco quando quiser — ele espera no
-            rascunho até você mandar para o mundo.
-          </Text>
-          <Group mt="sm">
+        <div>
+          <LaunchSummary bandId={bandId} releaseId={current.releaseId} balance={band.balance} />
+          <p className="rv-caption">
+            O disco espera no rascunho até você mandar para o mundo.
+          </p>
+          <Group justify="flex-end" mt="lg" gap="xs">
             <Button variant="default" onClick={closeDecisions}>
               Ainda não
             </Button>
-            <Button
-              size="md"
-              onClick={handleLaunch}
-              loading={finalize.isPending}
-            >
+            <Button color="press" onClick={handleLaunch} loading={finalize.isPending}>
               Lançar {current.formatLabel}
             </Button>
           </Group>
-        </Stack>
+        </div>
       )}
-    </Modal>
+    </InsertModal>
   );
 }

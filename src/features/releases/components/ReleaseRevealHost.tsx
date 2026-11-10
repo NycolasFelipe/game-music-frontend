@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import { ReleaseRevealModal } from "@/features/releases/components/ReleaseRevealModal";
-import { useReviewTiers } from "@/features/releases/hooks/useReleaseCatalogs";
+import {
+  useQualityTiers,
+  useReleaseFormats,
+  useReviewTiers,
+} from "@/features/releases/hooks/useReleaseCatalogs";
 import { useReleaseRevealUi } from "@/features/releases/store/release-reveal.store";
 
 /**
@@ -11,6 +15,8 @@ import { useReleaseRevealUi } from "@/features/releases/store/release-reveal.sto
 export function ReleaseRevealHost() {
   const { release, closeReveal } = useReleaseRevealUi();
   const { data: reviewTiers } = useReviewTiers();
+  const { data: qualityTiers } = useQualityTiers();
+  const { data: formats } = useReleaseFormats();
 
   // Leaving the save drops the pending ceremony — the store outlives the page.
   useEffect(() => closeReveal, [closeReveal]);
@@ -19,6 +25,8 @@ export function ReleaseRevealHost() {
     <ReleaseRevealModal
       release={release}
       reviewTiers={reviewTiers}
+      qualityTiers={qualityTiers}
+      formatLabel={formats?.find((f) => f.id === release?.format)?.label}
       opened={Boolean(release)}
       onClose={closeReveal}
     />

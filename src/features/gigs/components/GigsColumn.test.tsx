@@ -98,7 +98,7 @@ describe("GigsColumn", () => {
     ];
     renderWithProviders(<GigsColumn band={band()} previews={previews} />);
 
-    expect(await screen.findByText("560")).toBeVisible();
+    expect(await screen.findByText("$560")).toBeVisible();
     expect(screen.getByText(/\+19 fãs · humor \+0,33 · a casa espera 0,15/)).toBeVisible();
   });
 

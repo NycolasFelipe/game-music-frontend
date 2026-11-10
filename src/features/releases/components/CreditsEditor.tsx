@@ -1,12 +1,4 @@
-import {
-  Badge,
-  Group,
-  Paper,
-  Popover,
-  Stack,
-  Text,
-  UnstyledButton,
-} from "@mantine/core";
+import { Popover } from "@mantine/core";
 import { useState } from "react";
 import {
   formatSkillLevel,
@@ -24,29 +16,25 @@ import {
 } from "@/features/releases/creation-forecast";
 import type { ReleaseCredits } from "@/features/releases/types";
 
-/** Color for a skill level, so a weak pick reads as weak at a glance. */
-function skillColor(level: number): string {
-  if (level >= 7) return "teal";
-  if (level >= 4) return "blue";
-  if (level >= 2) return "yellow";
-  return "gray";
-}
-
-/** Mantine color for how stretched a member is (ADR-0014 §1). */
-function focusColor(focus: number): string {
-  if (focus >= 0.95) return "gray";
-  if (focus >= 0.8) return "yellow";
-  return "red";
-}
+/** Nível baixo demais para assinar um instrumento sem pesar contra a obra. */
+const WEAK_LEVEL = 2;
 
 /**
- * A musician's token: avatar, name and one figure — how loaded they are (in the
- * roster) or how good they are here (on the stage).
+ * Ficha de um músico na escalação: rosto, nome e um número — quanto está
+ * carregado (no elenco) ou quanto vale aqui (no instrumento).
+ *
+ * @param props.member - O integrante.
+ * @param props.caption - Linha de baixo (funções ou nível).
+ * @param props.alert - Pinta a linha de baixo de vermelho.
+ * @param props.state - `idle` no elenco, `held` na mão, `placed` no instrumento.
+ * @param props.label - Nome acessível do botão.
+ * @param props.onClick - Pega, solta ou remove.
+ * @param props.onDragStart - Começa a arrastar (só no elenco).
  */
 function MemberToken({
   member,
   caption,
-  captionColor,
+  alert = false,
   state,
   label,
   onClick,
@@ -54,55 +42,43 @@ function MemberToken({
 }: {
   member: BandMember;
   caption: string;
-  captionColor?: string;
-  /** `idle` in the roster, `held` while picked up, `placed` inside a slot. */
+  alert?: boolean;
   state: "idle" | "held" | "placed";
   label: string;
   onClick: () => void;
   onDragStart?: () => void;
 }) {
-  const held = state === "held";
-
   return (
-    <UnstyledButton
+    <button
+      type="button"
       onClick={onClick}
       aria-label={label}
-      aria-pressed={held}
+      aria-pressed={state === "held"}
       draggable={Boolean(onDragStart)}
       onDragStart={onDragStart}
-      style={{
-        padding: "6px 10px",
-        borderRadius: 12,
-        border: held
-          ? "2px solid var(--mantine-color-blue-6)"
-          : "1px solid var(--mantine-color-default-border)",
-        background: held
-          ? "var(--mantine-color-blue-light)"
-          : state === "placed"
-            ? "var(--mantine-color-default-hover)"
-            : undefined,
-        transform: held ? "translateY(-3px) scale(1.04)" : undefined,
-        boxShadow: held ? "0 6px 14px rgba(0,0,0,0.18)" : undefined,
-        transition: "transform 120ms ease, box-shadow 120ms ease",
-        cursor: onDragStart ? "grab" : "pointer",
-      }}
+      className={`rv-token ${state === "held" ? "rv-held" : ""} ${state === "placed" ? "rv-placed" : ""}`}
+      style={{ cursor: onDragStart ? "grab" : "pointer" }}
     >
-      <Group gap={8} wrap="nowrap">
-        <MemberFace subject={member} size={26} />
-        <div>
-          <Text size="sm" fw={600} lh={1.1}>
-            {member.name}
-          </Text>
-          <Text size="xs" c={captionColor ?? "dimmed"} lh={1.2}>
-            {caption}
-          </Text>
-        </div>
-      </Group>
-    </UnstyledButton>
+      <MemberFace subject={member} size={28} />
+      <span>
+        <span className="rv-nm">{member.name}</span>
+        <span className="rv-cap" style={alert ? { color: "var(--rv-red)" } : undefined}>
+          {caption}
+        </span>
+      </span>
+    </button>
   );
 }
 
-/** Picks who signs an aspect starting from the instrument, ranked by skill. */
+/**
+ * Escolhe quem assina um instrumento a partir dele, com o elenco ordenado por
+ * habilidade naquele instrumento.
+ *
+ * @param props.aspect - O instrumento.
+ * @param props.members - O elenco.
+ * @param props.assigned - Quem já assina.
+ * @param props.onPick - Credita ou remove alguém.
+ */
 function SlotPicker({
   aspect,
   members,
@@ -120,72 +96,73 @@ function SlotPicker({
   );
 
   return (
-    <Popover opened={opened} onChange={setOpened} position="bottom" withArrow>
+    <Popover opened={opened} onChange={setOpened} position="bottom-start">
       <Popover.Target>
-        <UnstyledButton
+        <button
+          type="button"
+          className="rv-token rv-add"
           onClick={() => setOpened((o) => !o)}
           aria-label={`Escolher quem assina ${SKILL_LABELS[aspect]}`}
-          style={{
-            padding: "4px 10px",
-            borderRadius: 10,
-            border: "1px dashed var(--mantine-color-dimmed)",
-          }}
         >
-          <Text size="xs" c="dimmed">
-            {assigned.length === 0 ? "+ quem toca aqui" : "+ dividir"}
-          </Text>
-        </UnstyledButton>
+          {assigned.length === 0 ? "+ quem toca aqui" : "+ dividir"}
+        </button>
       </Popover.Target>
-      <Popover.Dropdown p={6}>
-        <Stack gap={4}>
-          {ranked.map((member) => (
-            <UnstyledButton
-              key={member.id}
-              onClick={() => {
-                onPick(member.id);
-                setOpened(false);
-              }}
-              aria-label={`${
-                assigned.includes(member.id) ? "Remover" : "Creditar"
-              } ${member.name} ${
-                assigned.includes(member.id) ? "de" : "em"
-              } ${SKILL_LABELS[aspect]}`}
-              style={{ padding: "4px 6px", borderRadius: 8 }}
-            >
-              <Group gap={8} justify="space-between" wrap="nowrap" w={190}>
-                <Group gap={6} wrap="nowrap">
+      <Popover.Dropdown p={0}>
+        <div style={{ minWidth: 220 }}>
+          {ranked.map((member) => {
+            const removing = assigned.includes(member.id);
+            return (
+              <button
+                key={member.id}
+                type="button"
+                className="rv-listing"
+                style={{ padding: "6px 10px", alignItems: "center" }}
+                onClick={() => {
+                  onPick(member.id);
+                  setOpened(false);
+                }}
+                aria-label={`${removing ? "Remover" : "Creditar"} ${member.name} ${
+                  removing ? "de" : "em"
+                } ${SKILL_LABELS[aspect]}`}
+              >
+                <span className="rv-v" style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 15 }}>
                   <MemberFace subject={member} size={20} />
-                  <Text size="sm">{member.name}</Text>
-                </Group>
-                <Badge
-                  size="sm"
-                  variant="light"
-                  color={
-                    assigned.includes(member.id)
-                      ? "gray"
-                      : skillColor(member.skills[aspect])
-                  }
+                  {member.name}
+                </span>
+                <span
+                  className="rv-n"
+                  style={{
+                    fontSize: 13,
+                    color: removing
+                      ? "var(--rv-soft)"
+                      : member.skills[aspect] < WEAK_LEVEL
+                        ? "var(--rv-red)"
+                        : undefined,
+                  }}
                 >
-                  {assigned.includes(member.id)
-                    ? "sai"
-                    : formatSkillLevel(member.skills[aspect])}
-                </Badge>
-              </Group>
-            </UnstyledButton>
-          ))}
-        </Stack>
+                  {removing ? "sai" : formatSkillLevel(member.skills[aspect])}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </Popover.Dropdown>
     </Popover>
   );
 }
 
 /**
- * The credits stage: the band's roster on top, the instruments below as
- * positions to fill. Pick a musician (click or drag) and drop them on the
- * instruments they will play — the position shows what that musician is worth
- * there, how stretched they already are (ADR-0014 §1) and what the chemistry of
- * a shared instrument adds (ADR-0014 §2). Aspects are ordered by how much the
- * chosen style leans on them.
+ * A escalação de uma obra: o elenco em cima e os instrumentos embaixo, como
+ * vagas a preencher. Pegue um músico (clique ou arraste) e solte nos
+ * instrumentos que ele vai tocar. Cada vaga mostra quanto o músico vale ali,
+ * quanto ele já está carregado (ADR-0014 §1) e a química de quem divide o
+ * instrumento (ADR-0014 §2). Os instrumentos vêm na ordem do peso no estilo.
+ *
+ * @param props.members - O elenco.
+ * @param props.value - Créditos atuais.
+ * @param props.onChange - Novos créditos.
+ * @param props.weights - Peso de cada instrumento no estilo; sem ele, ordem canônica.
+ * @param props.relationships - Relações da banda, para a química.
  */
 export function CreditsEditor({
   members,
@@ -197,9 +174,7 @@ export function CreditsEditor({
   members: BandMember[];
   value: ReleaseCredits;
   onChange: (next: ReleaseCredits) => void;
-  /** The style's per-aspect weights; when absent, the canonical order is used. */
   weights?: Record<keyof Skills, number>;
-  /** The band's relationships, for the chemistry of shared aspects. */
   relationships?: MemberRelationship[];
 }) {
   const [heldId, setHeldId] = useState<string | null>(null);
@@ -219,160 +194,130 @@ export function CreditsEditor({
   };
 
   return (
-    <Stack gap="sm">
-      <Paper withBorder radius="md" p="xs">
-        <Group gap="xs" wrap="wrap">
-          {members.map((member) => {
-            const count = load.get(member.id) ?? 0;
-            const focus = focusFactor(count);
-            return (
-              <MemberToken
-                key={member.id}
-                member={member}
-                state={member.id === heldId ? "held" : "idle"}
-                caption={
-                  count === 0
-                    ? "livre"
-                    : `${count} ${count === 1 ? "função" : "funções"}${
-                        focus < 1 ? ` · ${Math.round(focus * 100)}%` : ""
-                      }`
-                }
-                captionColor={count > 1 ? focusColor(focus) : undefined}
-                label={`Selecionar ${member.name}`}
-                onClick={() =>
-                  setHeldId((current) =>
-                    current === member.id ? null : member.id,
-                  )
-                }
-                onDragStart={() => setHeldId(member.id)}
-              />
-            );
-          })}
-        </Group>
-        <Text size="xs" c="dimmed" mt={6}>
-          {held
-            ? `${held.name} na mão — toque nos instrumentos que ${held.name.split(" ")[0]} vai tocar.`
-            : "Escolha um integrante (ou arraste) e distribua pelos instrumentos."}
-        </Text>
-      </Paper>
+    <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {members.map((member) => {
+          const count = load.get(member.id) ?? 0;
+          const focus = focusFactor(count);
+          return (
+            <MemberToken
+              key={member.id}
+              member={member}
+              state={member.id === heldId ? "held" : "idle"}
+              caption={
+                count === 0
+                  ? "livre"
+                  : `${count} ${count === 1 ? "função" : "funções"}${
+                      focus < 1 ? ` · foco ${Math.round(focus * 100)}%` : ""
+                    }`
+              }
+              alert={count > 1 && focus < 0.8}
+              label={`Selecionar ${member.name}`}
+              onClick={() =>
+                setHeldId((current) =>
+                  current === member.id ? null : member.id,
+                )
+              }
+              onDragStart={() => setHeldId(member.id)}
+            />
+          );
+        })}
+      </div>
+      <p className="rv-caption">
+        {held
+          ? `${held.name} na mão: toque nos instrumentos que ${held.name.split(" ")[0]} vai tocar.`
+          : "Escolha um integrante (ou arraste) e distribua pelos instrumentos."}
+      </p>
 
-      {aspects.map((aspect) => {
-        const weight = weights?.[aspect] ?? 0;
-        const stars = weights ? importanceStars(weight) : 0;
-        const assigned = value[aspect] ?? [];
-        const crucialAndEmpty = weight >= 0.2 && assigned.length === 0;
-        const best = bestMemberFor(members, aspect);
-        const chemistry = chemistryFactor(assigned, relationships);
-        const chemistryPercent = Math.round((chemistry - 1) * 100);
-        const holdsThis = held ? assigned.includes(held.id) : false;
+      <div style={{ borderTop: "2px solid var(--rv-ink)", marginTop: 10 }}>
+        {aspects.map((aspect) => {
+          const weight = weights?.[aspect] ?? 0;
+          const stars = weights ? importanceStars(weight) : 0;
+          const assigned = value[aspect] ?? [];
+          const crucialAndEmpty = weight >= 0.2 && assigned.length === 0;
+          const best = bestMemberFor(members, aspect);
+          const chemistry = chemistryFactor(assigned, relationships);
+          const chemistryPercent = Math.round((chemistry - 1) * 100);
+          const holdsThis = held ? assigned.includes(held.id) : false;
 
-        return (
-          <Paper
-            key={aspect}
-            withBorder
-            radius="md"
-            p="sm"
-            onDragOver={(event) => held && event.preventDefault()}
-            onDrop={() => held && !holdsThis && toggle(aspect, held.id)}
-            style={{
-              borderStyle: assigned.length === 0 ? "dashed" : "solid",
-              borderColor: crucialAndEmpty
-                ? "var(--mantine-color-red-6)"
-                : held
-                  ? "var(--mantine-color-blue-4)"
-                  : undefined,
-            }}
-          >
-            <Group justify="space-between" wrap="nowrap" mb={8}>
-              <Group gap={8} wrap="nowrap">
-                <Text fz={24} lh={1}>
-                </Text>
-                <div>
-                  <Text size="sm" fw={700} lh={1.1}>
-                    {SKILL_LABELS[aspect]}
-                  </Text>
-                  {weights && (
-                    <Text size="xs" c="dimmed" lh={1.2}>
-                      <Text span c="yellow.7">
-                        {"★".repeat(stars)}
-                      </Text>
-                      {`${"★".repeat(3 - stars)} · ${Math.round(weight * 100)}% da nota`}
-                    </Text>
-                  )}
-                </div>
-              </Group>
+          return (
+            <div
+              key={aspect}
+              className={`rv-slot ${crucialAndEmpty ? "rv-crucial" : ""}`}
+              onDragOver={(event) => held && event.preventDefault()}
+              onDrop={() => held && !holdsThis && toggle(aspect, held.id)}
+            >
+              <div>
+                <div className="rv-inst">{SKILL_LABELS[aspect]}</div>
+                {weights && (
+                  <div className="rv-caption" style={{ marginTop: 2 }}>
+                    <span style={{ color: "var(--rv-ink)" }}>{"★".repeat(stars)}</span>
+                    {`${"☆".repeat(3 - stars)} · ${Math.round(weight * 100)}% da nota`}
+                  </div>
+                )}
+              </div>
 
-              {chemistryPercent !== 0 && (
-                <Badge
-                  size="sm"
-                  variant="light"
-                  color={chemistryPercent > 0 ? "teal" : "red"}
-                >
-                  química{" "}
-                  {chemistryPercent > 0 ? "+" : ""}
-                  {chemistryPercent}%
-                </Badge>
-              )}
-            </Group>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {assigned.map((id) => {
+                  const player = members.find((m) => m.id === id);
+                  if (!player) return null;
+                  return (
+                    <MemberToken
+                      key={id}
+                      member={player}
+                      state="placed"
+                      caption={`nível ${formatSkillLevel(player.skills[aspect])}${
+                        id === best ? " · o melhor" : ""
+                      }`}
+                      alert={player.skills[aspect] < WEAK_LEVEL}
+                      label={`Remover ${player.name} de ${SKILL_LABELS[aspect]}`}
+                      onClick={() => toggle(aspect, id)}
+                    />
+                  );
+                })}
 
-            <Group gap="xs" wrap="wrap">
-              {assigned.map((id) => {
-                const player = members.find((m) => m.id === id);
-                if (!player) return null;
-                return (
-                  <MemberToken
-                    key={id}
-                    member={player}
-                    state="placed"
-                    caption={`${formatSkillLevel(player.skills[aspect])}${
-                      id === best ? " ⭐" : ""
-                    }`}
-                    captionColor={skillColor(player.skills[aspect])}
-                    label={`Remover ${player.name} de ${SKILL_LABELS[aspect]}`}
-                    onClick={() => toggle(aspect, id)}
-                  />
-                );
-              })}
-
-              {held && !holdsThis && (
-                <UnstyledButton
-                  onClick={() => toggle(aspect, held.id)}
-                  aria-label={`Creditar ${held.name} em ${SKILL_LABELS[aspect]}`}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: 12,
-                    border: "2px dashed var(--mantine-color-blue-5)",
-                    background: "var(--mantine-color-blue-light)",
-                  }}
-                >
-                  <Group gap={6} wrap="nowrap">
+                {held && !holdsThis && (
+                  <button
+                    type="button"
+                    className="rv-token rv-drop"
+                    onClick={() => toggle(aspect, held.id)}
+                    aria-label={`Creditar ${held.name} em ${SKILL_LABELS[aspect]}`}
+                  >
                     <MemberFace subject={held} size={22} />
-                    <Text size="xs" fw={700} c={skillColor(held.skills[aspect])}>
+                    <span className="rv-cap" style={{ color: "var(--rv-ink)" }}>
                       entra com {formatSkillLevel(held.skills[aspect])}
-                      {held.id === best ? " ⭐" : ""}
-                    </Text>
-                  </Group>
-                </UnstyledButton>
-              )}
+                      {held.id === best ? " · o melhor" : ""}
+                    </span>
+                  </button>
+                )}
 
-              {!held && (
-                <SlotPicker
-                  aspect={aspect}
-                  members={members}
-                  assigned={assigned}
-                  onPick={(memberId) => toggle(aspect, memberId)}
-                />
-              )}
-            </Group>
+                {!held && (
+                  <SlotPicker
+                    aspect={aspect}
+                    members={members}
+                    assigned={assigned}
+                    onPick={(memberId) => toggle(aspect, memberId)}
+                  />
+                )}
+                {crucialAndEmpty && (
+                  <span className="rv-note" style={{ margin: 0, alignSelf: "center" }}>
+                    ninguém assumiu
+                  </span>
+                )}
+              </div>
 
-            {crucialAndEmpty && (
-              <Text size="xs" c="red" mt={6}>
-                Instrumento decisivo neste estilo e ninguém assumiu.
-              </Text>
-            )}
-          </Paper>
-        );
-      })}
-    </Stack>
+              <div className="rv-mono" style={{ fontSize: 12, textAlign: "right" }}>
+                {chemistryPercent !== 0 && (
+                  <span className={chemistryPercent > 0 ? "rv-pos" : "rv-neg"}>
+                    química {chemistryPercent > 0 ? "+" : ""}
+                    {chemistryPercent}%
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

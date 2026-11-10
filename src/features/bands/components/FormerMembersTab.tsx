@@ -1,4 +1,4 @@
-import { Loader, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Loader } from "@mantine/core";
 import { useMemo } from "react";
 import { FormerMemberCard } from "@/features/bands/components/FormerMemberCard";
 import { useCharacteristics } from "@/features/bands/hooks/useBandOptions";
@@ -6,8 +6,10 @@ import { useFormerMembers } from "@/features/bands/hooks/useFormerMembers";
 import type { Characteristic } from "@/features/bands/types";
 
 /**
- * Ex-members tab: lists the band's former (departed) members with their
- * departure snapshot.
+ * Seção Ex-integrantes ("Onde estão agora"): a ficha de cada um que saiu, do
+ * mais recente ao mais antigo, como ficou no dia da saída.
+ *
+ * @param props.bandId - A banda.
  */
 export function FormerMembersTab({ bandId }: { bandId: string }) {
   const { data: formers, isLoading } = useFormerMembers(bandId);
@@ -21,27 +23,34 @@ export function FormerMembersTab({ bandId }: { bandId: string }) {
     [characteristics],
   );
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  if (!formers || formers.length === 0) {
-    return (
-      <Text size="sm" c="dimmed">
-        Nenhum ex-integrante ainda. Membros que saírem por salário atrasado
-        aparecerão aqui.
-      </Text>
-    );
-  }
+  const ordered = useMemo(
+    () => [...(formers ?? [])].sort((a, b) => b.leftAtYear - a.leftAtYear),
+    [formers],
+  );
 
   return (
-    <Stack gap="sm">
-      <Title order={4}>Ex-integrantes ({formers.length})</Title>
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
-        {formers.map((member) => (
-          <FormerMemberCard key={member.id} member={member} catalog={catalog} />
-        ))}
-      </SimpleGrid>
-    </Stack>
+    <div>
+      <div className="rv-kicker">Onde estão agora</div>
+      <h2 className="rv-head rv-md">
+        Ex-integrantes{ordered.length > 0 ? ` (${ordered.length})` : ""}
+      </h2>
+
+      {isLoading ? (
+        <Loader size="sm" />
+      ) : ordered.length === 0 ? (
+        <div className="rv-empty" style={{ textAlign: "left", padding: "16px 0" }}>
+          <p className="rv-deck">
+            Ninguém saiu da banda até agora. Quem sair por salário atrasado
+            aparece aqui, com a ficha completa.
+          </p>
+        </div>
+      ) : (
+        <div className="rv-cols2" style={{ gap: "26px 34px", marginTop: 10 }}>
+          {ordered.map((member) => (
+            <FormerMemberCard key={member.id} member={member} catalog={catalog} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

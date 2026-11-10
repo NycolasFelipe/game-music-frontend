@@ -127,7 +127,7 @@ describe("ReleaseCreationModal", () => {
     renderWithProviders(<ReleaseCreationModal band={band} onClose={vi.fn()} />);
 
     // Step 1: the style profile tells the player what the genre demands.
-    expect(await screen.findByText("O que este estilo cobra:")).toBeVisible();
+    expect(await screen.findByText(/O que este estilo cobra: Guitarra 28%/)).toBeVisible();
     const next = screen.getByRole("button", { name: "Produção →" });
     expect(next).toBeDisabled();
 
@@ -138,11 +138,11 @@ describe("ReleaseCreationModal", () => {
     // names the record being made — it follows the format the player picks.
     expect(await screen.findByText("Álbum")).toBeVisible();
     expect(screen.getByText("10–14 faixas")).toBeVisible();
-    expect(screen.getByText("Novo Single — Os Rebeldes")).toBeVisible();
+    expect(screen.getByText(/Novo Single · Os Rebeldes/)).toBeVisible();
 
     await user.click(screen.getByRole("radio", { name: /Álbum/ }));
     expect(
-      await screen.findByText("Novo Álbum — Os Rebeldes"),
+      await screen.findByText(/Novo Álbum · Os Rebeldes/),
     ).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Créditos →" }));

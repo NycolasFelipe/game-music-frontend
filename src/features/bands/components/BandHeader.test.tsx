@@ -36,7 +36,7 @@ describe("BandHeader", () => {
     expect(screen.getByText("Grunge")).toBeVisible();
     expect(screen.getByText("desde 1989")).toBeVisible();
     expect(screen.getByText("700")).toBeVisible();
-    expect(screen.getByText("8.320")).toBeVisible();
+    expect(screen.getByText("$8.320")).toBeVisible();
   });
 
   it("names the fame level and how far the next one is", () => {

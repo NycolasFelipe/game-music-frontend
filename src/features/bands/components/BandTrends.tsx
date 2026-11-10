@@ -12,6 +12,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { tone } from "@/components/halftone";
+import { formatMoney } from "@/utils/money";
 
 /** Minimal turn-history point (a Turn is assignable to this). */
 interface TurnPoint {
@@ -29,11 +31,11 @@ const compactYear = (year: number) =>
   `${Math.floor(year)}${year % 1 ? "½" : ""}`;
 const round1 = (v: number) => Math.round(v * 10) / 10;
 const axisTick = { fill: "var(--rv-soft)", fontSize: 11, fontFamily: "var(--rv-mono)" };
-const gridStroke = "var(--rv-faint)";
+const gridStroke = "var(--rv-soft)";
 
 const COLORS = {
   fans: "var(--rv-ink)",
-  money: "var(--rv-green)",
+  money: "var(--rv-ink)",
   humor: "var(--rv-red)",
   relacao: "var(--rv-soft)",
 };
@@ -75,7 +77,11 @@ function TrendTooltip({
           <Text key={String(entry.dataKey)} size="xs" c="dimmed">
             {entry.name}:{" "}
             <Text span fw={600} c="var(--mantine-color-text)">
-              {raw == null ? "—" : raw.toLocaleString("pt-BR")}
+              {raw == null
+                ? "—"
+                : entry.dataKey === "balance" || entry.dataKey === "money"
+                  ? formatMoney(raw)
+                  : raw.toLocaleString("pt-BR")}
             </Text>
           </Text>
         );
@@ -205,12 +211,12 @@ export function BandTrends({ turns }: { turns: TurnPoint[] }) {
                 data={combinedData}
                 margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
               >
-                <CartesianGrid stroke={gridStroke} vertical={false} />
+                <CartesianGrid stroke={gridStroke} strokeDasharray="1 4" vertical={false} />
                 <XAxis dataKey="label" tick={axisTick} tickMargin={8} />
                 <YAxis domain={[0, 100]} tick={axisTick} width={32} />
                 <Tooltip
                   content={<TrendTooltip normalized />}
-                  cursor={{ stroke: gridStroke }}
+                  cursor={{ stroke: "var(--rv-ink)", strokeDasharray: "1 3" }}
                 />
                 <Legend />
                 {show("fans") && (
@@ -253,6 +259,7 @@ export function BandTrends({ turns }: { turns: TurnPoint[] }) {
                     name="Relação"
                     stroke={COLORS.relacao}
                     strokeWidth={2}
+                    strokeDasharray="2 3"
                     dot={false}
                     connectNulls
                   />
@@ -269,13 +276,7 @@ export function BandTrends({ turns }: { turns: TurnPoint[] }) {
                 data={fanData}
                 margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
               >
-                <defs>
-                  <linearGradient id="fansFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.fans} stopOpacity={0.35} />
-                    <stop offset="100%" stopColor={COLORS.fans} stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={gridStroke} vertical={false} />
+                <CartesianGrid stroke={gridStroke} strokeDasharray="1 4" vertical={false} />
                 <XAxis dataKey="label" tick={axisTick} tickMargin={8} />
                 <YAxis
                   tick={axisTick}
@@ -283,14 +284,15 @@ export function BandTrends({ turns }: { turns: TurnPoint[] }) {
                   allowDecimals={false}
                   tickFormatter={(v: number) => v.toLocaleString("pt-BR")}
                 />
-                <Tooltip content={<TrendTooltip />} cursor={{ stroke: gridStroke }} />
+                <Tooltip content={<TrendTooltip />} cursor={{ stroke: "var(--rv-ink)", strokeDasharray: "1 3" }} />
                 <Area
                   type="monotone"
                   dataKey="fans"
                   name="Fãs"
                   stroke={COLORS.fans}
                   strokeWidth={2}
-                  fill="url(#fansFill)"
+                  fill={tone(2)}
+                  fillOpacity={1}
                   dot={fanData.length <= 12}
                   activeDot={{ r: 4 }}
                 />
@@ -307,27 +309,22 @@ export function BandTrends({ turns }: { turns: TurnPoint[] }) {
                 data={moneyData}
                 margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
               >
-                <defs>
-                  <linearGradient id="moneyFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.money} stopOpacity={0.35} />
-                    <stop offset="100%" stopColor={COLORS.money} stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={gridStroke} vertical={false} />
+                <CartesianGrid stroke={gridStroke} strokeDasharray="1 4" vertical={false} />
                 <XAxis dataKey="label" tick={axisTick} tickMargin={8} />
                 <YAxis
                   tick={axisTick}
                   width={56}
-                  tickFormatter={(v: number) => v.toLocaleString("pt-BR")}
+                  tickFormatter={(v: number) => formatMoney(v)}
                 />
-                <Tooltip content={<TrendTooltip />} cursor={{ stroke: gridStroke }} />
+                <Tooltip content={<TrendTooltip />} cursor={{ stroke: "var(--rv-ink)", strokeDasharray: "1 3" }} />
                 <Area
                   type="monotone"
                   dataKey="balance"
                   name="Caixa"
                   stroke={COLORS.money}
                   strokeWidth={2}
-                  fill="url(#moneyFill)"
+                  fill={tone(2)}
+                  fillOpacity={1}
                   dot={moneyData.length <= 12}
                   activeDot={{ r: 4 }}
                 />
@@ -344,10 +341,10 @@ export function BandTrends({ turns }: { turns: TurnPoint[] }) {
                 data={climateData}
                 margin={{ top: 8, right: 12, bottom: 0, left: 4 }}
               >
-                <CartesianGrid stroke={gridStroke} vertical={false} />
+                <CartesianGrid stroke={gridStroke} strokeDasharray="1 4" vertical={false} />
                 <XAxis dataKey="label" tick={axisTick} tickMargin={8} />
                 <YAxis domain={[-5, 5]} tick={axisTick} width={32} />
-                <Tooltip content={<TrendTooltip />} cursor={{ stroke: gridStroke }} />
+                <Tooltip content={<TrendTooltip />} cursor={{ stroke: "var(--rv-ink)", strokeDasharray: "1 3" }} />
                 <Legend />
                 <Line
                   type="monotone"
@@ -364,6 +361,7 @@ export function BandTrends({ turns }: { turns: TurnPoint[] }) {
                   name="Relação"
                   stroke={COLORS.relacao}
                   strokeWidth={2}
+                  strokeDasharray="2 3"
                   dot={climateData.length <= 12}
                   connectNulls
                 />

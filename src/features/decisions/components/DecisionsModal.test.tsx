@@ -21,12 +21,14 @@ vi.mock("@/features/releases/services/releases.api", () => ({
   listReleases: vi.fn(),
   getRelease: vi.fn(),
   getReleaseFormats: vi.fn(),
+  getBudgetTiers: vi.fn(),
   resolveCreationEvent: vi.fn(),
   finalizeRelease: vi.fn(),
 }));
 
 vi.mock("@/features/bands/services/bands.api", () => ({
   listCharacteristics: vi.fn(),
+  getBandOptions: vi.fn(),
 }));
 
 const band = {
@@ -75,6 +77,7 @@ const draft = {
   format: "ep",
   status: "em_criacao",
   productionTurnsLeft: 2,
+  creationLog: [],
   creationEvents: [session],
 } as unknown as Release & { creationEvents: CreationEvent[] };
 
@@ -82,6 +85,8 @@ describe("DecisionsModal", () => {
   beforeEach(() => {
     useDecisionsUi.setState({ open: false });
     vi.mocked(bandsApi.listCharacteristics).mockResolvedValue([]);
+    vi.mocked(bandsApi.getBandOptions).mockResolvedValue({ themes: [], origins: [], foundationYears: [] } as unknown as Awaited<ReturnType<typeof bandsApi.getBandOptions>>);
+    vi.mocked(releasesApi.getBudgetTiers).mockResolvedValue([]);
     vi.mocked(eventsApi.listActiveEvents).mockResolvedValue([]);
     vi.mocked(releasesApi.listReleases).mockResolvedValue([]);
     vi.mocked(releasesApi.getReleaseFormats).mockResolvedValue([

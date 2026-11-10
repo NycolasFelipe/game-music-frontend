@@ -1,64 +1,34 @@
-import { Badge, Group, Stack, Text } from "@mantine/core";
 import { formatSkillLevel, SKILL_LABELS } from "@/features/bands";
 import type {
   ReleaseMemberGrowth,
   ReleaseSkillGain,
 } from "@/features/releases/types";
 
-/** "Letras 4.2 → 4.6" for one developed aspect. */
+/** "Letras 4.2 → 4.6" para um instrumento que evoluiu. */
 function gainLabel(gain: ReleaseSkillGain): string {
   return `${SKILL_LABELS[gain.skill]} ${formatSkillLevel(gain.from)} → ${formatSkillLevel(gain.to)}`;
 }
 
-/** Signed happiness delta, e.g. "+0,5 humor". */
+/** Variação de humor com sinal, ex.: "+0,5". */
 function happinessLabel(delta: number): string {
+  if (delta === 0) return "—";
   const value = delta.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-  return `${delta > 0 ? "+" : ""}${value} humor`;
-}
-
-/** One member's row: the aspects they developed plus how the work felt. */
-function MemberGrowthRow({
-  entry,
-  compact,
-}: {
-  entry: ReleaseMemberGrowth;
-  compact: boolean;
-}) {
-  return (
-    <Group gap={6} wrap="wrap" justify={compact ? "flex-start" : "center"}>
-      <Text size="sm" fw={600}>
-        {entry.name}
-      </Text>
-      {entry.gains.map((gain) => (
-        <Badge
-          key={gain.skill}
-          size="sm"
-          variant={gain.leveledUp ? "filled" : "light"}
-          color={gain.leveledUp ? "yellow" : "teal"}
-        >
-          {gainLabel(gain)}
-          {gain.leveledUp ? ` · nível ${Math.floor(gain.to)}!` : ""}
-        </Badge>
-      ))}
-      {entry.happinessDelta !== 0 && (
-        <Text size="xs" c={entry.happinessDelta > 0 ? "teal" : "red"}>
-          {happinessLabel(entry.happinessDelta)}
-        </Text>
-      )}
-    </Group>
-  );
+  return `${delta > 0 ? "+" : ""}${value}`;
 }
 
 /**
- * What a work developed in the members credited on it (ADR-0012). Renders
- * nothing when the work predates the feature or nobody grew.
+ * O que uma obra desenvolveu em quem gravou (ADR-0012), como tabela da
+ * revista: integrante, instrumentos que evoluíram (subida de nível em
+ * vermelho) e humor. Não renderiza nada quando a obra é anterior ao recurso ou
+ * ninguém evoluiu.
+ *
+ * @param props.growth - Evolução por integrante.
+ * @returns A tabela, ou `null` sem evolução.
  */
 export function ReleaseGrowthList({
   growth,
-  compact = false,
 }: {
   growth: ReleaseMemberGrowth[] | undefined;
-  compact?: boolean;
 }) {
   const entries = (growth ?? []).filter(
     (entry) => entry.gains.length > 0 || entry.happinessDelta !== 0,
@@ -68,14 +38,37 @@ export function ReleaseGrowthList({
   }
 
   return (
-    <Stack gap={compact ? 2 : "xs"}>
-      {entries.map((entry) => (
-        <MemberGrowthRow
-          key={entry.memberId}
-          entry={entry}
-          compact={compact}
-        />
-      ))}
-    </Stack>
+    <table className="rv-box">
+      <thead>
+        <tr>
+          <th>Integrante</th>
+          <th className="rv-l">Evolução</th>
+          <th>Humor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {entries.map((entry) => (
+          <tr key={entry.memberId}>
+            <td>{entry.name}</td>
+            <td className="rv-l">
+              {entry.gains.length === 0
+                ? "—"
+                : entry.gains.map((gain, index) => (
+                    <span key={gain.skill}>
+                      {index > 0 && " · "}
+                      {gainLabel(gain)}
+                      {gain.leveledUp && (
+                        <b className="rv-red"> nível {Math.floor(gain.to)}</b>
+                      )}
+                    </span>
+                  ))}
+            </td>
+            <td className={entry.happinessDelta > 0 ? "rv-pos" : entry.happinessDelta < 0 ? "rv-neg" : undefined}>
+              {happinessLabel(entry.happinessDelta)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

@@ -43,9 +43,9 @@ describe("MemberSalaryControl", () => {
     const user = userEvent.setup();
     renderWithProviders(<MemberSalaryControl bandId="b-1" member={member} />);
 
-    expect(screen.getByText("300")).toBeInTheDocument();
+    expect(screen.getByText("$300")).toBeInTheDocument();
 
-    await user.click(screen.getByText("300"));
+    await user.click(screen.getByText("$300"));
 
     expect(await screen.findByLabelText("Novo salário")).toBeInTheDocument();
   });
@@ -54,7 +54,7 @@ describe("MemberSalaryControl", () => {
     const user = userEvent.setup();
     renderWithProviders(<MemberSalaryControl bandId="b-1" member={member} />);
 
-    await user.click(screen.getByText("300"));
+    await user.click(screen.getByText("$300"));
     const input = await screen.findByLabelText("Novo salário");
     fireEvent.change(input, { target: { value: "500" } });
     await user.click(screen.getByText("Salvar"));

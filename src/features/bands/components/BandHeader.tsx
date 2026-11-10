@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Masthead } from "@/components/revista";
 import type { BandDetail } from "@/features/bands/types";
 import { formatPeriod } from "@/utils/period";
+import { formatMoney } from "@/utils/money";
 
 /** Número com sinal, no formato brasileiro. */
 function signed(value: number, digits = 0): string {
@@ -59,11 +60,11 @@ export function BandHeader({
           {originLabel} · <span>{themeLabel}</span> · <span>desde {band.foundationYear}</span>
         </span>
         <span>
-          Caixa <span className={band.balance < 0 ? "rv-neg" : undefined}>{Math.round(band.balance).toLocaleString("pt-BR")}</span>
+          Caixa <span className={band.balance < 0 ? "rv-neg" : undefined}>{formatMoney(band.balance)}</span>
           {balanceDelta !== undefined && balanceDelta !== null && (
             <>
               {" · "}
-              <span className={balanceDelta >= 0 ? "rv-pos" : "rv-neg"}>{signed(balanceDelta)}</span>
+              <span className={balanceDelta >= 0 ? "rv-pos" : "rv-neg"}>{formatMoney(balanceDelta, { signed: true })}</span>
             </>
           )}
         </span>

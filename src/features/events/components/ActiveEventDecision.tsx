@@ -1,13 +1,19 @@
-import { Badge, Button, Group, Loader, Stack, Text, Title } from "@mantine/core";
-import { IconBolt } from "@tabler/icons-react";
+import { InsertOption, optionLetter } from "@/components/revista";
 import { MemberHoverName } from "@/features/bands";
 import type { BandMember, Characteristic } from "@/features/bands";
 import type { ActiveEvent } from "@/features/events/types";
 
 /**
- * One band decision, with its options as full-width choices. Presentational —
- * the caller owns the mutation, so the same card serves wherever a pending
- * decision needs answering.
+ * O corpo de uma decisão da banda, como matéria de encarte (ADR-0002): o texto
+ * com capitular, quem está envolvido e as alternativas A, B, C. O título fica
+ * na manchete do encarte, que é de quem chama. Apresentacional: quem chama é
+ * dono da mutação.
+ *
+ * @param props.event - O evento pendente.
+ * @param props.members - Integrantes da banda, para nomear os envolvidos.
+ * @param props.catalog - Catálogo de traços (ficha ao passar o mouse).
+ * @param props.pending - Verdadeiro enquanto a escolha é aplicada.
+ * @param props.onChoose - Chamado com a alternativa escolhida.
  */
 export function ActiveEventDecision({
   event,
@@ -17,10 +23,8 @@ export function ActiveEventDecision({
   onChoose,
 }: {
   event: ActiveEvent;
-  /** The band's members, to name the ones the event involves. */
   members: BandMember[];
   catalog: Map<string, Characteristic>;
-  /** True while the choice is being applied. */
   pending: boolean;
   onChoose: (optionId: string) => void;
 }) {
@@ -30,60 +34,32 @@ export function ActiveEventDecision({
     .filter((member): member is BandMember => Boolean(member));
 
   return (
-    <Stack gap="sm">
-      <Badge color="yellow" leftSection={<IconBolt size={12} />} w="fit-content">
-        Decisão pendente
-      </Badge>
-      <Title order={4}>{event.title}</Title>
-      <Text size="sm">{event.description}</Text>
+    <div>
+      <p className="rv-body rv-lede">{event.description}</p>
 
       {involved.length > 0 && (
-        <Group gap="lg">
-          <Text size="xs" c="dimmed" fw={600}>
-            Envolvidos:
-          </Text>
+        <p className="rv-caption" style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", alignItems: "center" }}>
+          <span>Envolvidos:</span>
           {involved.map((member) => (
             <MemberHoverName key={member.id} member={member} catalog={catalog} />
           ))}
-        </Group>
+        </p>
       )}
 
-      <Stack gap="xs" mt="xs">
-        {event.options.map((option) => (
-          <Button
+      <div style={{ marginTop: 14 }}>
+        {event.options.map((option, index) => (
+          <InsertOption
             key={option.id}
-            variant="default"
-            fullWidth
-            justify="flex-start"
-            h="auto"
-            py="sm"
-            onClick={() => onChoose(option.id)}
+            letter={optionLetter(index)}
+            label={option.label}
+            description={option.description}
             disabled={pending}
-          >
-            <Stack gap={2} align="flex-start" style={{ width: "100%" }}>
-              <Text fw={600} size="sm">
-                {option.label}
-              </Text>
-              <Text
-                size="xs"
-                c="dimmed"
-                style={{ whiteSpace: "normal", textAlign: "left" }}
-              >
-                {option.description}
-              </Text>
-            </Stack>
-          </Button>
+            onChoose={() => onChoose(option.id)}
+          />
         ))}
-      </Stack>
+      </div>
 
-      {pending && (
-        <Group gap="xs">
-          <Loader size="xs" />
-          <Text size="xs" c="dimmed">
-            Aplicando consequências…
-          </Text>
-        </Group>
-      )}
-    </Stack>
+      {pending && <p className="rv-caption">Aplicando as consequências…</p>}
+    </div>
   );
 }

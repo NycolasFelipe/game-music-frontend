@@ -1,36 +1,27 @@
 import {
   ActionIcon,
-  Alert,
-  Badge,
   Button,
   Group,
   Loader,
-  Modal,
-  Paper,
-  Progress,
   Select,
-  Stack,
-  Stepper,
-  Text,
   Textarea,
   TextInput,
   Tooltip,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconAlertTriangle, IconDice, IconDisc } from "@tabler/icons-react";
+import { IconDice } from "@tabler/icons-react";
 import { useState } from "react";
+import { InsertModal } from "@/components/revista";
 import { SKILL_LABELS, SKILL_ORDER, useBandOptions } from "@/features/bands";
 import type { BandDetail } from "@/features/bands";
 import { useDecisionsUi } from "@/features/decisions";
 import { CreditsEditor } from "@/features/releases/components/CreditsEditor";
+import { LaunchSummary } from "@/features/releases/components/LaunchSummary";
 import {
   BudgetPicker,
   FormatPicker,
 } from "@/features/releases/components/ProductionPickers";
-import {
-  importanceStars,
-  uncoveredCrucialAspects,
-} from "@/features/releases/creation-forecast";
+import { uncoveredCrucialAspects } from "@/features/releases/creation-forecast";
 import {
   useBudgetTiers,
   useGenerateReleaseConcept,
@@ -51,6 +42,7 @@ import type {
   ReleaseFormatId,
 } from "@/features/releases/types";
 import { ApiError } from "@/services/http";
+import { formatMoney } from "@/utils/money";
 
 /** The creation journey, start to launch. */
 const STEP_LABELS = [
@@ -68,10 +60,16 @@ function errorMessage(error: unknown): string {
 
 /**
  * Drives the full creation of a work as a staged journey: concept → production
- * → credits → studio sessions → launch. Each step shows what it costs and what
- * it is worth (the style's demands, the forecast quality), so the choices read
- * as decisions instead of a form. Closing mid-flow keeps the draft — it stays
- * in the discography to continue or discard later.
+ * → credits → studio sessions → launch, laid out as a magazine insert
+ * (ADR-0002). Each step shows what it costs and what it is worth (the style's
+ * demands, the cash after launch), so the choices read as decisions instead of
+ * a form. Closing mid-flow keeps the draft — it stays in the discography to
+ * continue or discard later.
+ *
+ * @param props.band - The band making the work.
+ * @param props.resumeReleaseId - An existing draft to reopen, if any.
+ * @param props.onClose - Closes the insert.
+ * @param props.onFinalized - Called with the launched work so the parent can reveal its reviews.
  */
 export function ReleaseCreationModal({
   band,
@@ -82,7 +80,6 @@ export function ReleaseCreationModal({
   band: BandDetail;
   resumeReleaseId?: string | null;
   onClose: () => void;
-  /** Called with the launched work so the parent can reveal its reviews. */
   onFinalized?: (release: Release) => void;
 }) {
   const bandId = band.id;
@@ -151,6 +148,24 @@ export function ReleaseCreationModal({
     (f) => f.id === (detail?.format ?? format),
   );
   const productionTurns = currentFormat?.productionTurns ?? 0;
+  const workName = currentFormat ? `${currentFormat.label}` : "obra";
+
+  const label =
+    stage === "config"
+      ? `Novo ${workName} · ${band.name} · passo ${configStep + 1} de 3`
+      : stage === "finalize"
+        ? `Lançamento · ${band.name}`
+        : `No estúdio · ${band.name}`;
+  const heading =
+    stage === "config"
+      ? STEP_LABELS[configStep]
+      : stage === "finalize" && detail
+        ? `“${detail.title}” está pronta.`
+        : stage === "events"
+          ? "Uma sessão espera sua palavra."
+          : detail
+            ? `Gravando “${detail.title}”`
+            : "No estúdio";
 
   function handleGenerateTitle() {
     genTitle.mutate(
@@ -183,7 +198,7 @@ export function ReleaseCreationModal({
             message:
               `${productionTurns} turno${productionTurns === 1 ? "" : "s"} de gravação pela frente. ` +
               "As decisões de estúdio chegam a você a cada turno.",
-            color: "blue",
+            color: "ink",
           });
           onClose();
         },
@@ -223,37 +238,50 @@ export function ReleaseCreationModal({
     cancel.mutate(releaseId, { onSuccess: onClose });
   }
 
+  const discardLink = (
+    <button
+      type="button"
+      className="rv-link"
+      style={{ color: "var(--rv-soft)" }}
+      onClick={handleDiscard}
+      disabled={cancel.isPending}
+    >
+      {cancel.isPending ? "Descartando…" : "Descartar obra"}
+    </button>
+  );
+
   return (
-    <Modal
+    <InsertModal
       opened
       onClose={onClose}
-      title={
-        <Group gap={8}>
-          <IconDisc size={20} />
-          <Text fw={700}>
-            {currentFormat ? `Novo ${currentFormat.label}` : "Nova obra"} —{" "}
-            {band.name}
-          </Text>
-        </Group>
-      }
-      centered
+      label={label}
+      title={heading}
       size="xl"
+      closeOnClickOutside={stage !== "config"}
     >
-      <Stack>
-        <Stepper
-          active={activeStep}
-          size="xs"
-          allowNextStepsSelect={false}
-          onStepClick={(index) => stage === "config" && setConfigStep(index)}
-        >
-          {STEP_LABELS.map((label) => (
-            <Stepper.Step key={label} label={label} />
-          ))}
-        </Stepper>
+      <nav className="rv-index" aria-label="Etapas da obra" style={{ marginTop: -6, marginBottom: 14 }}>
+        {STEP_LABELS.map((step, index) => {
+          const reachable = stage === "config" && index <= configStep && index < 3;
+          return (
+            <button
+              key={step}
+              type="button"
+              className={index === activeStep ? "rv-on" : undefined}
+              aria-current={index === activeStep ? "step" : undefined}
+              disabled={!reachable}
+              onClick={() => setConfigStep(index)}
+            >
+              <span className="rv-pg">{index + 1}</span>
+              {step}
+            </button>
+          );
+        })}
+      </nav>
 
-        {stage === "config" && configStep === 0 && (
-          <Stack>
-            <Group align="flex-end" gap="xs">
+      {stage === "config" && configStep === 0 && (
+        <div className="rv-form">
+          <div className="rv-field">
+            <Group align="flex-end" gap="xs" wrap="nowrap">
               <TextInput
                 label="Título"
                 placeholder="Nome da obra"
@@ -263,7 +291,7 @@ export function ReleaseCreationModal({
               />
               <Tooltip label="Sortear título">
                 <ActionIcon
-                  variant="light"
+                  variant="default"
                   size="lg"
                   onClick={handleGenerateTitle}
                   loading={genTitle.isPending}
@@ -273,10 +301,11 @@ export function ReleaseCreationModal({
                 </ActionIcon>
               </Tooltip>
             </Group>
+          </div>
 
+          <div className="rv-field">
             <Select
               label="Estilo musical"
-              description="Define quais aspectos pesam na nota da obra."
               data={(options?.themes ?? []).map((t) => ({
                 value: t.id,
                 label: t.label,
@@ -285,35 +314,31 @@ export function ReleaseCreationModal({
               onChange={(v) => v && setStyle(v)}
               searchable
             />
-
             {styleHighlights.length > 0 && (
-              <Paper withBorder p="xs" radius="md">
-                <Group gap="xs" wrap="wrap">
-                  <Text size="xs" c="dimmed" fw={600}>
-                    O que este estilo cobra:
-                  </Text>
-                  {styleHighlights.map(({ aspect, weight }) => (
-                    <Badge key={aspect} variant="light" size="sm">
-                      {SKILL_LABELS[aspect]} {"★".repeat(importanceStars(weight))}
-                    </Badge>
-                  ))}
-                </Group>
-              </Paper>
+              <p className="rv-note">
+                O que este estilo cobra:{" "}
+                {styleHighlights
+                  .map(({ aspect, weight }) => `${SKILL_LABELS[aspect]} ${Math.round(weight * 100)}%`)
+                  .join(" · ")}
+              </p>
             )}
+          </div>
 
-            <Group align="flex-end" gap="xs">
+          <div className="rv-field">
+            <Group align="flex-end" gap="xs" wrap="nowrap">
               <Textarea
-                label="Álbum conceitual"
+                label="Álbum conceitual (opcional)"
                 placeholder="A ideia por trás do disco"
                 value={concept}
                 onChange={(e) => setConcept(e.currentTarget.value)}
                 autosize
                 minRows={2}
                 flex={1}
+                styles={{ input: { fontSize: 16, fontWeight: 400, fontStyle: "italic" } }}
               />
               <Tooltip label="Sortear conceito">
                 <ActionIcon
-                  variant="light"
+                  variant="default"
                   size="lg"
                   onClick={handleGenerateConcept}
                   loading={genConcept.isPending}
@@ -323,45 +348,39 @@ export function ReleaseCreationModal({
                 </ActionIcon>
               </Tooltip>
             </Group>
+          </div>
 
-            <Group justify="flex-end" mt="sm">
-              <Button variant="subtle" color="gray" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => setConfigStep(1)}
-                disabled={!title.trim()}
-              >
-                Produção →
-              </Button>
-            </Group>
-          </Stack>
-        )}
+          <Group justify="space-between" mt="lg">
+            <Button variant="default" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setConfigStep(1)} disabled={!title.trim()}>
+              Produção →
+            </Button>
+          </Group>
+        </div>
+      )}
 
-        {stage === "config" && configStep === 1 && (
-          <Stack>
+      {stage === "config" && configStep === 1 && (
+        <div>
+          <div className="rv-cols2">
             <div>
-              <Text size="sm" fw={600}>
-                Formato
-              </Text>
-              <Text size="xs" c="dimmed" mb="xs">
+              <div className="rv-kicker">Formato</div>
+              <p className="rv-caption" style={{ marginBottom: 6 }}>
                 Discos maiores custam e alcançam mais, ensinam mais a quem gravou
-                — e ocupam mais turnos de estúdio.
-              </Text>
+                e ocupam mais turnos de estúdio.
+              </p>
               <FormatPicker
                 formats={formats ?? []}
                 value={format}
                 onChange={(id) => setFormat(id as ReleaseFormatId)}
               />
             </div>
-
             <div>
-              <Text size="sm" fw={600}>
-                Orçamento
-              </Text>
-              <Text size="xs" c="dimmed" mb="xs">
+              <div className="rv-kicker">Orçamento</div>
+              <p className="rv-caption" style={{ marginBottom: 10 }}>
                 Quanto melhor o estúdio, mais a obra rende em nota.
-              </Text>
+              </p>
               <BudgetPicker
                 tiers={tiers ?? []}
                 value={budgetTier}
@@ -369,102 +388,94 @@ export function ReleaseCreationModal({
                 baseCost={formatObj?.baseCost ?? null}
                 balance={band.balance}
               />
+              {estimatedCost !== null && (
+                <div className="rv-ledger" style={{ marginTop: 6 }}>
+                  <div>
+                    <span>Custo no lançamento</span>
+                    <span className={canAfford ? undefined : "rv-neg"}>
+                      {formatMoney(estimatedCost)}
+                    </span>
+                  </div>
+                  <div>
+                    <span>Caixa hoje</span>
+                    <span>{formatMoney(band.balance)}</span>
+                  </div>
+                </div>
+              )}
+              {!canAfford && (
+                <p className="rv-note">
+                  O caixa não cobre esta produção. Escolha um formato menor ou um
+                  estúdio mais barato.
+                </p>
+              )}
             </div>
+          </div>
 
-            {estimatedCost !== null && (
-              <Paper withBorder p="xs" radius="md">
-                <Group justify="space-between">
-                  <Text size="sm">
-                    Custo da produção:{" "}
-                    <Text span fw={700} c={canAfford ? undefined : "red"}>
-                      {estimatedCost.toLocaleString("pt-BR")}
-                    </Text>
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    Caixa: {band.balance.toLocaleString("pt-BR")}
-                  </Text>
-                </Group>
-              </Paper>
-            )}
-
-            {!canAfford && (
-              <Alert color="red" icon={<IconAlertTriangle size={16} />}>
-                O caixa não cobre esta produção. Escolha um formato menor ou um
-                estúdio mais barato.
-              </Alert>
-            )}
-
-            <Group justify="space-between" mt="sm">
-              <Button variant="default" onClick={() => setConfigStep(0)}>
-                ← Conceito
-              </Button>
-              <Button onClick={() => setConfigStep(2)} disabled={!canAfford}>
-                Créditos →
-              </Button>
-            </Group>
-          </Stack>
-        )}
-
-        {stage === "config" && configStep === 2 && (
-          <Stack>
-            <div>
-              <Text size="sm" fw={600}>
-                Escalação
-              </Text>
-              <Text size="xs" c="dimmed" mb="xs">
-                Quem acumula funções entrega menos em cada uma; quem divide um
-                instrumento com um amigo rende mais do que sozinho (e com um
-                desafeto, menos).
-              </Text>
-              <CreditsEditor
-                members={band.members}
-                value={credits}
-                onChange={setCredits}
-                weights={weights}
-                relationships={band.relationships}
-              />
-            </div>
-
-            {uncovered.length > 0 && (
-              <Alert color="yellow" icon={<IconAlertTriangle size={16} />}>
-                Sem ninguém em{" "}
-                {uncovered.map((a) => SKILL_LABELS[a]).join(", ")} — aspectos que
-                pesam muito neste estilo contam zero na nota.
-              </Alert>
-            )}
-
-            <Group justify="space-between" mt="sm">
-              <Button variant="default" onClick={() => setConfigStep(1)}>
-                ← Produção
-              </Button>
-              <Button
-                onClick={handleStart}
-                loading={start.isPending}
-                disabled={!title.trim() || !hasCredit || !canAfford}
-              >
-                Entrar no estúdio
-              </Button>
-            </Group>
-          </Stack>
-        )}
-
-        {stage === "loading" && (
-          <Group justify="center" py="xl">
-            <Loader />
+          <Group justify="space-between" mt="lg">
+            <Button variant="default" onClick={() => setConfigStep(0)}>
+              ← Conceito
+            </Button>
+            <Button onClick={() => setConfigStep(2)} disabled={!canAfford}>
+              Créditos →
+            </Button>
           </Group>
-        )}
+        </div>
+      )}
 
-        {stage === "events" && (
-          <Stack align="center" gap="sm" py="md">
-            <Alert
-              color="yellow"
-              icon={<IconAlertTriangle size={16} />}
-              w="100%"
-            >
-              Uma sessão de estúdio está esperando sua palavra — a gravação só
-              segue depois dela.
-            </Alert>
+      {stage === "config" && configStep === 2 && (
+        <div>
+          <div className="rv-kicker">Escalação</div>
+          <p className="rv-caption" style={{ marginBottom: 10 }}>
+            Quem acumula funções entrega menos em cada uma. Quem divide um
+            instrumento com um amigo rende mais do que sozinho, e com um
+            desafeto, menos.
+          </p>
+          <CreditsEditor
+            members={band.members}
+            value={credits}
+            onChange={setCredits}
+            weights={weights}
+            relationships={band.relationships}
+          />
+
+          {uncovered.length > 0 && (
+            <p className="rv-note">
+              Ninguém em {uncovered.map((a) => SKILL_LABELS[a]).join(", ")}: são
+              instrumentos que pesam muito neste estilo e vão contar zero na nota.
+            </p>
+          )}
+
+          <Group justify="space-between" mt="lg">
+            <Button variant="default" onClick={() => setConfigStep(1)}>
+              ← Produção
+            </Button>
             <Button
+              color="press"
+              onClick={handleStart}
+              loading={start.isPending}
+              disabled={!title.trim() || !hasCredit || !canAfford}
+            >
+              Entrar no estúdio
+            </Button>
+          </Group>
+        </div>
+      )}
+
+      {stage === "loading" && (
+        <Group justify="center" py="xl">
+          <Loader />
+        </Group>
+      )}
+
+      {stage === "events" && (
+        <div>
+          <p className="rv-deck">
+            A gravação só segue depois que você decidir o que fazer na sessão.
+          </p>
+          <Group justify="space-between" mt="lg">
+            {discardLink}
+            <Button
+              color="press"
               onClick={() => {
                 openDecisions();
                 onClose();
@@ -472,114 +483,62 @@ export function ReleaseCreationModal({
             >
               Ir para a decisão
             </Button>
-          </Stack>
-        )}
+          </Group>
+        </div>
+      )}
 
-        {stage === "recording" && detail && (
-          <Stack gap="sm" align="center" py="md">
-            <Text fw={700}>Gravando &ldquo;{detail.title}&rdquo;</Text>
-            <Text size="sm" c="dimmed" ta="center" maw={420}>
-              A banda está em estúdio. Faltam{" "}
-              <Text span fw={700}>
-                {detail.productionTurnsLeft} turno
-                {detail.productionTurnsLeft === 1 ? "" : "s"}
-              </Text>{" "}
-              para a obra ficar pronta — avance o tempo pela Visão geral. A cada
-              turno pode aparecer uma decisão de estúdio.
-            </Text>
-            {productionTurns > 0 && (
-              <Progress
-                value={
-                  ((productionTurns - detail.productionTurnsLeft) /
-                    productionTurns) *
-                  100
-                }
-                w="100%"
-                maw={420}
-                size="lg"
-                radius="xl"
-              />
-            )}
-            <Group justify="space-between" mt="sm" w="100%">
-              <Button
-                variant="subtle"
-                color="red"
-                onClick={handleDiscard}
-                loading={cancel.isPending}
-              >
-                Descartar
-              </Button>
+      {stage === "recording" && detail && (
+        <div>
+          <p className="rv-deck">
+            A banda está em estúdio. Falta
+            {detail.productionTurnsLeft === 1 ? "" : "m"}{" "}
+            {detail.productionTurnsLeft} turno
+            {detail.productionTurnsLeft === 1 ? "" : "s"} para a obra ficar
+            pronta.
+          </p>
+          {productionTurns > 0 && (
+            <div className="rv-tape" aria-hidden>
+              {Array.from({ length: Math.max(productionTurns, detail.productionTurnsLeft) }, (_, i) => {
+                const total = Math.max(productionTurns, detail.productionTurnsLeft);
+                const done = i < total - detail.productionTurnsLeft;
+                const now = i === total - detail.productionTurnsLeft;
+                return <i key={i} className={done ? "rv-done" : now ? "rv-now" : undefined} />;
+              })}
+            </div>
+          )}
+          <p className="rv-caption">
+            Cada quadro é um turno de estúdio. Feche a edição na aba Turno para
+            a gravação andar; a cada turno pode surgir uma decisão de estúdio.
+          </p>
+          <Group justify="space-between" mt="lg">
+            {discardLink}
+            <Button variant="default" onClick={onClose}>
+              Voltar à edição
+            </Button>
+          </Group>
+        </div>
+      )}
+
+      {stage === "finalize" && detail && releaseId && (
+        <div>
+          <LaunchSummary bandId={bandId} releaseId={releaseId} balance={band.balance} />
+          <Group justify="space-between" mt="lg">
+            {discardLink}
+            <Group gap="xs">
               <Button variant="default" onClick={onClose}>
-                Fechar
-              </Button>
-            </Group>
-          </Stack>
-        )}
-
-        {stage === "finalize" && detail && (
-          <Stack>
-            <Alert color="teal" title="A obra está pronta">
-              As sessões terminaram. Prense o disco e mande para o mundo.
-            </Alert>
-
-            <Paper withBorder p="md" radius="md">
-              <Stack gap={4}>
-                <Text fw={700} size="lg">
-                  {detail.title}
-                </Text>
-                {detail.concept && (
-                  <Text size="xs" c="dimmed" fs="italic">
-                    {detail.concept}
-                  </Text>
-                )}
-                <Group gap="xs" mt={4}>
-                  <Badge variant="light">
-                    {currentFormat?.label ?? detail.format}
-                  </Badge>
-                  <Badge variant="light" color="grape">
-                    {tiers?.find((t) => t.id === detail.budgetTier)?.label ??
-                      detail.budgetTier}
-                  </Badge>
-                  <Badge variant="light" color="gray">
-                    {options?.themes.find((t) => t.id === detail.style)?.label ??
-                      detail.style}
-                  </Badge>
-                </Group>
-                {detail.creationLog.length > 0 && (
-                  <Stack gap={2} mt="xs">
-                    <Text size="xs" fw={600} c="dimmed">
-                      No estúdio você decidiu:
-                    </Text>
-                    {detail.creationLog.map((entry) => (
-                      <Text key={entry.eventId} size="xs" c="dimmed">
-                        · {entry.choiceLabel}
-                      </Text>
-                    ))}
-                  </Stack>
-                )}
-              </Stack>
-            </Paper>
-
-            <Group justify="space-between" mt="sm">
-              <Button
-                variant="subtle"
-                color="red"
-                onClick={handleDiscard}
-                loading={cancel.isPending}
-              >
-                Descartar
+                Ainda não
               </Button>
               <Button
-                size="md"
+                color="press"
                 onClick={handleFinalize}
                 loading={finalize.isPending}
               >
                 Lançar {currentFormat?.label ?? "obra"}
               </Button>
             </Group>
-          </Stack>
-        )}
-      </Stack>
-    </Modal>
+          </Group>
+        </div>
+      )}
+    </InsertModal>
   );
 }

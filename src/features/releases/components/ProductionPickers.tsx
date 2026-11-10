@@ -1,61 +1,19 @@
-import { Badge, Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 import type { BudgetTier, ReleaseFormat } from "@/features/releases/types";
+import { formatMoney } from "@/utils/money";
 
-/** A 0..1 ratio rendered as five pips — the game-y way to compare stats. */
-function Pips({ value, color }: { value: number; color: string }) {
+/** Uma razão 0..1 como cinco pontos tipográficos (●●●○○). */
+function pips(value: number): string {
   const filled = Math.max(1, Math.min(5, Math.round(value * 5)));
-  return (
-    <Text size="xs" c={color} lh={1}>
-      {"●".repeat(filled)}
-      <Text span c="dimmed">
-        {"●".repeat(5 - filled)}
-      </Text>
-    </Text>
-  );
-}
-
-/** A selectable card shared by both pickers. */
-function PickerCard({
-  selected,
-  onSelect,
-  children,
-}: {
-  selected: boolean;
-  onSelect: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <Paper
-      withBorder
-      p="sm"
-      radius="md"
-      role="radio"
-      aria-checked={selected}
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelect();
-        }
-      }}
-      style={{
-        cursor: "pointer",
-        borderColor: selected ? "var(--mantine-color-blue-6)" : undefined,
-        borderWidth: selected ? 2 : 1,
-        background: selected ? "var(--mantine-color-blue-light)" : undefined,
-        transition: "transform 120ms ease, background 120ms ease",
-        transform: selected ? "translateY(-2px)" : undefined,
-      }}
-    >
-      {children}
-    </Paper>
-  );
+  return "●".repeat(filled) + "○".repeat(5 - filled);
 }
 
 /**
- * Picks the release format as cards: tracks, cost, reach and how much the work
- * develops the band (ADR-0012) — the trade-off a dropdown was hiding.
+ * Escolha do formato como lista de classificados (ADR-0002): faixas, alcance,
+ * quanto ensina a quem grava (ADR-0012), turnos de estúdio e custo-base.
+ *
+ * @param props.formats - Catálogo de formatos.
+ * @param props.value - Formato escolhido.
+ * @param props.onChange - Troca o formato.
  */
 export function FormatPicker({
   formats,
@@ -70,51 +28,45 @@ export function FormatPicker({
   const maxGain = Math.max(...formats.map((f) => f.skillGain), 1);
 
   return (
-    <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="xs" role="radiogroup">
-      {formats.map((format) => (
-        <PickerCard
-          key={format.id}
-          selected={format.id === value}
-          onSelect={() => onChange(format.id)}
-        >
-          <Stack gap={4}>
-            <Group gap={6} wrap="nowrap">
-              <Text size="sm" fw={700}>
-                {format.label}
-              </Text>
-            </Group>
-            <Text size="xs" c="dimmed">
-              {format.minTracks}–{format.maxTracks} faixas
-            </Text>
-            <Group gap={4} wrap="nowrap">
-              <Text size="xs" c="dimmed" w={54}>
-                Alcance
-              </Text>
-              <Pips value={format.baseReach / maxReach} color="teal" />
-            </Group>
-            <Group gap={4} wrap="nowrap">
-              <Text size="xs" c="dimmed" w={54}>
-                Ensina
-              </Text>
-              <Pips value={format.skillGain / maxGain} color="grape" />
-            </Group>
-            <Text size="xs" c="dimmed">
-              base {format.baseCost.toLocaleString("pt-BR")}
-            </Text>
-            <Text size="xs" fw={600} c="grape">
-              {format.productionTurns} turno
-              {format.productionTurns === 1 ? "" : "s"} de estúdio
-            </Text>
-          </Stack>
-        </PickerCard>
-      ))}
-    </SimpleGrid>
+    <div role="radiogroup" aria-label="Formato">
+      {formats.map((format) => {
+        const selected = format.id === value;
+        return (
+          <button
+            key={format.id}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            className={`rv-listing ${selected ? "rv-sel" : ""}`}
+            onClick={() => onChange(format.id)}
+          >
+            <span className="rv-v" style={selected ? { color: "var(--rv-red)" } : undefined}>
+              {format.label}
+            </span>
+            <span className="rv-n">{formatMoney(format.baseCost)}</span>
+            <span className="rv-d">
+              <span>{format.minTracks}–{format.maxTracks} faixas</span>
+              {" · "}alcance {pips(format.baseReach / maxReach)}
+              {" · "}ensina {pips(format.skillGain / maxGain)}
+              {" · "}
+              {format.productionTurns} turno{format.productionTurns === 1 ? "" : "s"} de estúdio
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
 /**
- * Picks the budget tier as cards, showing what the money buys (quality) and
- * what it costs, plus the resulting price for the chosen format.
+ * Escolha do orçamento como anúncios classificados: o que o dinheiro compra
+ * (nota) e quanto custa no formato escolhido, marcando o que não cabe no caixa.
+ *
+ * @param props.tiers - Faixas de orçamento.
+ * @param props.value - Faixa escolhida.
+ * @param props.onChange - Troca a faixa.
+ * @param props.baseCost - Custo-base do formato escolhido, para o preço de cada faixa.
+ * @param props.balance - Caixa da banda.
  */
 export function BudgetPicker({
   tiers,
@@ -126,55 +78,41 @@ export function BudgetPicker({
   tiers: BudgetTier[];
   value: string;
   onChange: (id: string) => void;
-  /** The chosen format's base cost, to price each tier. */
   baseCost: number | null;
-  /** The band's cash, to flag the tiers it cannot afford. */
   balance: number;
 }) {
   return (
-    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="xs" role="radiogroup">
+    <div role="radiogroup" aria-label="Orçamento">
       {tiers.map((tier) => {
         const cost =
           baseCost === null
             ? null
             : Math.round(baseCost * tier.costMultiplier * 100) / 100;
         const affordable = cost === null || cost <= balance;
+        const bonus = Math.round((tier.qualityMultiplier - 1) * 100);
+        const selected = tier.id === value;
 
         return (
-          <PickerCard
+          <button
             key={tier.id}
-            selected={tier.id === value}
-            onSelect={() => onChange(tier.id)}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            className={`rv-classified ${selected ? "rv-sel" : ""}`}
+            onClick={() => onChange(tier.id)}
           >
-            <Stack gap={4}>
-              <Group gap={6} wrap="nowrap" justify="space-between">
-                <Group gap={6} wrap="nowrap">
-                  <Text size="sm" fw={700}>
-                    {tier.label}
-                  </Text>
-                </Group>
-                <Badge
-                  size="sm"
-                  variant="light"
-                  color={tier.qualityMultiplier >= 1 ? "teal" : "gray"}
-                >
-                  {tier.qualityMultiplier >= 1 ? "+" : ""}
-                  {Math.round((tier.qualityMultiplier - 1) * 100)}% nota
-                </Badge>
-              </Group>
-              <Text size="xs" c="dimmed" lh={1.3}>
-                {tier.description}
-              </Text>
-              {cost !== null && (
-                <Text size="xs" fw={600} c={affordable ? undefined : "red"}>
-                  {cost.toLocaleString("pt-BR")}
-                  {!affordable && " — não cabe no caixa"}
-                </Text>
-              )}
-            </Stack>
-          </PickerCard>
+            <b>
+              {tier.label}
+              {cost !== null && ` — ${formatMoney(cost)}`}
+            </b>
+            <p>
+              {tier.description} Nota {bonus >= 0 ? "+" : "−"}
+              {Math.abs(bonus)}%.
+              {!affordable && <span className="rv-red"> Não cabe no caixa.</span>}
+            </p>
+          </button>
         );
       })}
-    </SimpleGrid>
+    </div>
   );
 }

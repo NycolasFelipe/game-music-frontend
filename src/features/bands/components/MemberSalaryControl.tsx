@@ -17,6 +17,7 @@ import {
   useUpdateMemberSalary,
 } from "@/features/bands/hooks/useMemberSalary";
 import type { BandMember } from "@/features/bands/types";
+import { formatMoney } from "@/utils/money";
 
 const REASON_LABELS: Record<string, string> = {
   inicial: "Inicial",
@@ -53,7 +54,7 @@ export function MemberSalaryControl({
         onSuccess: () => {
           notifications.show({
             color: "teal",
-            message: `Salário de ${member.name} ajustado para ${amount.toLocaleString("pt-BR")}.`,
+            message: `Salário de ${member.name} ajustado para ${formatMoney(amount)}.`,
           });
           setOpened(false);
         },
@@ -97,7 +98,7 @@ export function MemberSalaryControl({
             Salário — {member.name}
           </Text>
           <Text size="xs" c="dimmed">
-            Alvo: {member.salaryTarget.toLocaleString("pt-BR")} por turno
+            Alvo: {formatMoney(member.salaryTarget)} por turno
           </Text>
           {member.salaryAtRisk && (
             <Text size="xs" c="red" fw={600}>
@@ -139,7 +140,7 @@ export function MemberSalaryControl({
               {history.data.map((entry, index) => (
                 <Group key={index} justify="space-between" gap="xs">
                   <Text size="xs">
-                    {entry.amount.toLocaleString("pt-BR")}
+                    {formatMoney(entry.amount)}
                   </Text>
                   <Text size="xs" c="dimmed">
                     {REASON_LABELS[entry.reason] ?? entry.reason} ·{" "}

@@ -1,4 +1,5 @@
 import { SmartTooltip } from "@/components/SmartTooltip";
+import { formatMoney } from "@/utils/money";
 
 /**
  * Shows a member's salary next to their target, in red when below target (mood
@@ -21,8 +22,8 @@ export function SalaryBadge({
   const tooltip = atRisk
     ? "Salário atrasado — o integrante pode deixar a banda se não for pago"
     : belowTarget
-      ? `Abaixo do alvo (${target.toLocaleString("pt-BR")}) — o humor cai a cada turno`
-      : `No alvo (${target.toLocaleString("pt-BR")}) — satisfeito`;
+      ? `Abaixo do alvo (${formatMoney(target)}) — o humor cai a cada turno`
+      : `No alvo (${formatMoney(target)}) — satisfeito`;
 
   return (
     <SmartTooltip label={tooltip} multiline w={240} withArrow>
@@ -34,9 +35,9 @@ export function SalaryBadge({
         Salário{" "}
         <span className={atRisk || belowTarget ? "rv-red" : undefined}>
           {atRisk ? "atrasado " : ""}
-          {salary.toLocaleString("pt-BR")}
+          {formatMoney(salary)}
         </span>
-        <span style={{ color: "var(--rv-soft)" }}> / alvo {target.toLocaleString("pt-BR")}</span>
+        <span style={{ color: "var(--rv-soft)" }}> / alvo {formatMoney(target)}</span>
       </span>
     </SmartTooltip>
   );

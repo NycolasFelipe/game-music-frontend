@@ -10,6 +10,7 @@ import {
 } from "@/components/halftone";
 import type { QualityTier, Release, ReviewTier } from "@/features/releases/types";
 import { formatPeriod } from "@/utils/period";
+import { formatMoney } from "@/utils/money";
 
 /** Keyframes do disco girando (sessões de estúdio). Renderize uma vez por página. */
 export const VINYL_KEYFRAMES = `
@@ -245,7 +246,7 @@ export function VinylRecord({
           </p>
         )}
         <div className="rv-caption">
-          +{(release.fansGained ?? 0).toLocaleString("pt-BR")} fãs · receita {Math.round(revenue).toLocaleString("pt-BR")}
+          +{(release.fansGained ?? 0).toLocaleString("pt-BR")} fãs · receita {formatMoney(revenue)}
           {release.royaltyTurnsLeft > 0 ? ` · royalties por mais ${release.royaltyTurnsLeft} turnos` : ""}
         </div>
       </div>

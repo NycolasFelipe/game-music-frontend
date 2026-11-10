@@ -5,6 +5,7 @@ import { ReleaseCreationModal } from "@/features/releases/components/ReleaseCrea
 import { useReleaseFormats } from "@/features/releases/hooks/useReleaseCatalogs";
 import { useReleases } from "@/features/releases/hooks/useReleases";
 import { useReleaseRevealUi } from "@/features/releases/store/release-reveal.store";
+import { formatMoney } from "@/utils/money";
 
 /**
  * Coluna Estúdio da aba Turno (ADR-0002): a obra em produção (ou pronta), ou
@@ -68,7 +69,7 @@ export function StudioColumn({
           {(formats ?? []).slice(0, 4).map((format) => (
             <button key={format.id} type="button" className="rv-listing" onClick={() => setOpen(true)}>
               <span className="rv-v">{format.label}</span>
-              <span className="rv-n">{format.baseCost.toLocaleString("pt-BR")}</span>
+              <span className="rv-n">{formatMoney(format.baseCost)}</span>
               <span className="rv-d">
                 {format.productionTurns} turno{format.productionTurns === 1 ? "" : "s"} de estúdio
               </span>

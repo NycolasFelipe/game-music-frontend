@@ -1,19 +1,16 @@
-import { Badge, Group, Paper, Progress, Stack, Text } from "@mantine/core";
+import { InsertOption, optionLetter } from "@/components/revista";
 import { VINYL_KEYFRAMES } from "@/features/releases/components/VinylRecord";
 import type { CreationEvent, CreationEventKind } from "@/features/releases/types";
 
-/** Display metadata per creation-event kind (flavor for the studio session). */
-const KINDS: Record<
-  CreationEventKind,
-  { label: string; color: string }
-> = {
-  conflito_visao: { label: "Conflito de visão", color: "red" },
-  ideia_maluca: { label: "Ideia maluca", color: "yellow" },
-  perfeccionismo: { label: "Perfeccionismo", color: "blue" },
-  preguica: { label: "Preguiça", color: "gray" },
+/** Nome de cada tipo de sessão de estúdio, como chapéu da matéria. */
+const KIND_LABELS: Record<CreationEventKind, string> = {
+  conflito_visao: "Conflito de visão",
+  ideia_maluca: "Ideia maluca",
+  perfeccionismo: "Perfeccionismo",
+  preguica: "Preguiça",
 };
 
-/** A small vinyl spinning while the session runs. */
+/** Um vinil pequeno girando enquanto a sessão acontece. */
 function SpinningDisc() {
   return (
     <div
@@ -24,7 +21,6 @@ function SpinningDisc() {
         borderRadius: "50%",
         background:
           "repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.6) 0 1.5px, rgba(255,255,255,0.05) 1.5px 3px), radial-gradient(circle at 36% 30%, #3a3a3a, #050505 62%)",
-        boxShadow: "0 0 0 1px rgba(255,255,255,0.08)",
         animation: "vinylSpin 3s linear infinite",
         flexShrink: 0,
       }}
@@ -43,9 +39,16 @@ function SpinningDisc() {
 }
 
 /**
- * One studio session: the decision that came up while recording, with its
- * options as cards. The player's choice quietly nudges the work's quality —
- * the odds stay hidden (the backend never sends them).
+ * Uma sessão de estúdio como encarte (ADR-0002): o tipo da sessão, a fita com
+ * o andamento da gravação, a fala de quem puxou o assunto e as alternativas.
+ * A escolha mexe na qualidade da obra sem mostrar as chances (o backend nunca
+ * as envia).
+ *
+ * @param props.event - A sessão pendente.
+ * @param props.index - Número da sessão (a partir de 1).
+ * @param props.total - Total de sessões da obra.
+ * @param props.pending - Verdadeiro enquanto a escolha é aplicada.
+ * @param props.onChoose - Chamado com a alternativa escolhida.
  */
 export function CreationEventStage({
   event,
@@ -55,85 +58,44 @@ export function CreationEventStage({
   onChoose,
 }: {
   event: CreationEvent;
-  /** 1-based index of this session. */
   index: number;
   total: number;
   pending: boolean;
   onChoose: (optionId: string) => void;
 }) {
-  const kind = KINDS[event.kind];
-
   return (
-    <Stack gap="sm">
+    <div>
       <style>{VINYL_KEYFRAMES}</style>
 
-      <Group gap="sm" wrap="nowrap">
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <SpinningDisc />
-        <Stack gap={4} flex={1}>
-          <Group justify="space-between" wrap="nowrap">
-            <Text size="xs" fw={700} tt="uppercase" c="dimmed">
-              Sessão {index} de {total}
-            </Text>
-            <Badge variant="light" color={kind.color}>
-              {kind.label}
-            </Badge>
-          </Group>
-          <Progress
-            value={((index - 1) / total) * 100}
-            size="sm"
-            radius="xl"
-            color={kind.color}
-          />
-        </Stack>
-      </Group>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+            <span className="rv-kicker">{KIND_LABELS[event.kind]}</span>
+            <span className="rv-label">Sessão {index} de {total}</span>
+          </div>
+          <div className="rv-tape" style={{ margin: "6px 0 0" }} aria-hidden>
+            {Array.from({ length: total }, (_, i) => (
+              <i key={i} className={i < index - 1 ? "rv-done" : i === index - 1 ? "rv-now" : undefined} />
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <Paper withBorder p="md" radius="md">
-        <Text fs="italic" ta="center">
-          &ldquo;{event.prompt}&rdquo;
-        </Text>
-      </Paper>
+      <p className="rv-pull">“{event.prompt}”</p>
 
-      <Stack gap="xs">
-        {event.options.map((option) => (
-          <Paper
+      <div>
+        {event.options.map((option, i) => (
+          <InsertOption
             key={option.id}
-            withBorder
-            p="sm"
-            radius="md"
-            role="button"
-            tabIndex={pending ? -1 : 0}
-            aria-disabled={pending}
-            onClick={() => !pending && onChoose(option.id)}
-            onKeyDown={(keyEvent) => {
-              if (!pending && (keyEvent.key === "Enter" || keyEvent.key === " ")) {
-                keyEvent.preventDefault();
-                onChoose(option.id);
-              }
-            }}
-            style={{
-              cursor: pending ? "progress" : "pointer",
-              opacity: pending ? 0.6 : 1,
-              transition: "transform 120ms ease, border-color 120ms ease",
-            }}
-            onMouseEnter={(hoverEvent) => {
-              hoverEvent.currentTarget.style.transform = "translateX(4px)";
-              hoverEvent.currentTarget.style.borderColor =
-                "var(--mantine-color-blue-5)";
-            }}
-            onMouseLeave={(hoverEvent) => {
-              hoverEvent.currentTarget.style.transform = "none";
-              hoverEvent.currentTarget.style.borderColor = "";
-            }}
-          >
-            <Text fw={600} size="sm">
-              {option.label}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {option.description}
-            </Text>
-          </Paper>
+            letter={optionLetter(i)}
+            label={option.label}
+            description={option.description}
+            disabled={pending}
+            onChoose={() => onChoose(option.id)}
+          />
         ))}
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 }
