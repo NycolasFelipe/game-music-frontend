@@ -17,6 +17,8 @@ interface GuestPickerProps {
   /** Ids currently on the guest list. */
   selected: string[];
   onToggle: (memberId: string) => void;
+  /** Replaces the whole guest list (the "todos"/"ninguém" shortcut). */
+  onSetAll?: (memberIds: string[]) => void;
 }
 
 /** The label a node or card answers to, so both views query the same way. */
@@ -260,13 +262,29 @@ function GuestGraph({
  */
 export function GuestPicker(props: GuestPickerProps) {
   const [view, setView] = usePeopleView();
+  const everyoneGoes =
+    props.members.length > 0 &&
+    props.members.every((member) => props.selected.includes(member.id));
 
   return (
     <Stack gap="sm">
       <Group justify="space-between" wrap="wrap" gap="xs">
-        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-          Quem vai ({props.selected.length})
-        </Text>
+        <Group gap="sm">
+          <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+            Quem vai ({props.selected.length})
+          </Text>
+          {props.onSetAll && (
+            <button
+              type="button"
+              className="rv-link"
+              onClick={() =>
+                props.onSetAll?.(everyoneGoes ? [] : props.members.map((member) => member.id))
+              }
+            >
+              {everyoneGoes ? "Ninguém" : "Todos"}
+            </button>
+          )}
+        </Group>
         <SegmentedControl
           size="xs"
           value={view}

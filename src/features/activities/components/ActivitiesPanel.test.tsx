@@ -164,6 +164,20 @@ describe("ActivitiesPanel", () => {
     expect(screen.getByText(/relação \+1\s*\(até \+3\)/)).toBeVisible();
   });
 
+  it("takes the whole band, or nobody, with one click", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ActivitiesPanel band={band()} />);
+    await openInsert(user);
+
+    await user.click(await screen.findByRole("button", { name: "Todos" }));
+    expect(screen.getByRole("checkbox", { name: "Tirar Ana" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Tirar Beto" })).toBeChecked();
+    expect(screen.getByText("Quem vai (2)")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Ninguém" }));
+    expect(screen.getByText("Quem vai (0)")).toBeVisible();
+  });
+
   it("picks guests on the relationship circle too", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ActivitiesPanel band={band()} />);

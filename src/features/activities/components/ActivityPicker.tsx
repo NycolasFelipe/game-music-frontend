@@ -111,6 +111,7 @@ export function ActivityPicker({
           relationships={band.relationships}
           selected={guests}
           onToggle={toggleGuest}
+          onSetAll={setGuests}
         />
         {worstLevel !== null && worstLevel < 0 && (
           <p className="rv-note">
