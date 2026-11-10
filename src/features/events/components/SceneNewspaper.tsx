@@ -1,6 +1,5 @@
 import { Fragment, type ReactNode } from "react";
 import { usePassiveEvents } from "@/features/events/hooks/useEvents";
-import type { PassiveEvent } from "@/features/events/types";
 import { formatPeriod } from "@/utils/period";
 
 /** Editoria do jornal por tipo de notícia da cena. */
@@ -19,7 +18,22 @@ const SECTION_LABELS: Record<string, string> = {
 const BRIEFS = 3;
 
 /**
- * Põe em negrito os nomes de artistas citados, como num jornal.
+ * Uma notícia do jornal: da cena (eventos passivos) ou da própria banda
+ * (lançamentos, montados por quem chama).
+ */
+export interface NewspaperItem {
+  id: string;
+  /** Período da notícia (ano do jogo, `.5` no 2º semestre). */
+  year: number;
+  /** Editoria (chapéu em vermelho). */
+  section: string;
+  description: string;
+  /** Nomes a destacar em negrito. */
+  artists: string[];
+}
+
+/**
+ * Põe em negrito os nomes citados, como num jornal.
  *
  * @param text - O texto da notícia.
  * @param artists - Nomes a destacar.
@@ -36,51 +50,69 @@ function withArtists(text: string, artists: string[]): ReactNode {
 }
 
 /**
- * Uma notícia da cena: editoria, data e o texto.
+ * Uma notícia: editoria, data e o texto.
  *
- * @param props.event - A notícia.
+ * @param props.item - A notícia.
  * @param props.lead - Se é a manchete do jornal.
  */
-function NewsItem({ event, lead }: { event: PassiveEvent; lead: boolean }) {
+function NewsItem({ item, lead }: { item: NewspaperItem; lead: boolean }) {
   return (
     <article className={lead ? "rv-news-lead" : "rv-news-brief"}>
       <div className="rv-news-dateline">
-        <span className="rv-red">{SECTION_LABELS[event.type] ?? "Cena"}</span> · {formatPeriod(event.year)}
+        <span className="rv-red">{item.section}</span> · {formatPeriod(item.year)}
       </div>
-      <p>{withArtists(event.description, event.artists ?? [])}</p>
+      <p>{withArtists(item.description, item.artists)}</p>
     </article>
   );
 }
 
 /**
- * "Gazeta do Groove": as notícias do mundo da música como um jornal dentro da
- * revista (ADR-0002). A mais recente é a manchete; as anteriores viram notas em
- * colunas. Saídas de integrantes ficam de fora, porque têm encarte próprio e
- * ficam no Arquivo.
+ * "Gazeta do Groove": as notícias do ano como um jornal dentro da revista
+ * (ADR-0002). Só entra o que é do ano corrente; o que é mais antigo fica no
+ * Arquivo. As notícias da própria banda (`bandNews`, ex.: um disco lançado)
+ * têm prioridade na manchete; depois vêm as da cena, da mais recente para a
+ * mais antiga. Saídas de integrantes ficam de fora, porque têm encarte próprio.
  *
  * @param props.bandId - A banda.
- * @param props.currentYear - Período atual, para marcar o que é desta edição.
+ * @param props.currentYear - Período atual, para filtrar o ano e marcar o que é desta edição.
+ * @param props.bandNews - Notícias da banda montadas por quem chama.
  * @param props.footer - Rodapé (ex.: link para o Arquivo).
- * @returns O jornal, ou nada enquanto não houver notícia.
+ * @returns O jornal, ou nada enquanto não houver notícia no ano.
  */
 export function SceneNewspaper({
   bandId,
   currentYear,
+  bandNews = [],
   footer,
 }: {
   bandId: string;
   currentYear: number;
+  bandNews?: NewspaperItem[];
   footer?: ReactNode;
 }) {
   const { data } = usePassiveEvents(bandId);
-  const news = (data ?? [])
-    .filter((event) => event.type !== "saida_integrante")
-    .sort((a, b) => b.year - a.year);
+  const thisYear = Math.floor(currentYear);
+  const inYear = (item: NewspaperItem) => Math.floor(item.year) === thisYear;
+  const newestFirst = (a: NewspaperItem, b: NewspaperItem) => b.year - a.year;
 
+  const ours = bandNews.filter(inYear).sort(newestFirst);
+  const scene = (data ?? [])
+    .filter((event) => event.type !== "saida_integrante")
+    .map<NewspaperItem>((event) => ({
+      id: event.id,
+      year: event.year,
+      section: SECTION_LABELS[event.type] ?? "Cena",
+      description: event.description,
+      artists: event.artists ?? [],
+    }))
+    .filter(inYear)
+    .sort(newestFirst);
+
+  const news = [...ours, ...scene];
   if (news.length === 0) return null;
 
   const [lead, ...rest] = news;
-  const fresh = lead.year >= currentYear;
+  const fresh = news.some((item) => item.year >= currentYear);
 
   return (
     <section className="rv-news" aria-label="Gazeta do Groove">
@@ -89,14 +121,14 @@ export function SceneNewspaper({
         <div className="rv-news-meta">
           <span>{formatPeriod(currentYear)}</span>
           <span>Notícias do mundo da música</span>
-          <span>{fresh ? "Última hora" : "Sem novidade nesta edição"}</span>
+          <span>{fresh ? "Última hora" : `Notícias de ${thisYear}`}</span>
         </div>
       </header>
-      <NewsItem event={lead} lead />
+      <NewsItem item={lead} lead />
       {rest.length > 0 && (
         <div className="rv-news-cols">
-          {rest.slice(0, BRIEFS).map((event) => (
-            <NewsItem key={event.id} event={event} lead={false} />
+          {rest.slice(0, BRIEFS).map((item) => (
+            <NewsItem key={item.id} item={item} lead={false} />
           ))}
         </div>
       )}

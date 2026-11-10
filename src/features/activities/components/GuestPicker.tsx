@@ -23,7 +23,33 @@ interface GuestPickerProps {
 const toggleLabel = (name: string, going: boolean) =>
   `${going ? "Tirar" : "Levar"} ${name}`;
 
-/** One member as a card, in or out of the guest list. */
+/**
+ * O humor com sinal e uma casa, no formato brasileiro ("+2,0", "−1,5").
+ *
+ * @param value - Humor de −5 a 5.
+ * @returns O humor formatado.
+ */
+function moodLabel(value: number): string {
+  const rounded = roundMood(value);
+  const abs = Math.abs(rounded).toLocaleString("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return rounded > 0 ? `+${abs}` : rounded < 0 ? `−${abs}` : `±${abs}`;
+}
+
+/**
+ * Humor arredondado a uma casa, para o sinal e a cor baterem com o número
+ * mostrado (−0,04 é "±0,0", não um "−0,0" vermelho).
+ *
+ * @param value - Humor de −5 a 5.
+ * @returns O humor com uma casa decimal.
+ */
+function roundMood(value: number): number {
+  return Math.round(value * 10) / 10 || 0;
+}
+
+/** One member as a card, in or out of the guest list, with their mood. */
 function GuestCard({
   member,
   going,
@@ -57,7 +83,16 @@ function GuestCard({
       }}
     >
       <Text size="xs" ff="monospace" fw={600} c={going ? "var(--rv-paper)" : undefined}>
-        {member.name}
+        {member.name}{" "}
+        <span
+          aria-label={`humor ${moodLabel(member.happiness)}`}
+          style={{
+            fontWeight: 400,
+            color: roundMood(member.happiness) < 0 ? "var(--rv-red)" : going ? "var(--rv-faint)" : "var(--rv-soft)",
+          }}
+        >
+          {moodLabel(member.happiness)}
+        </span>
       </Text>
     </Paper>
   );
@@ -65,8 +100,9 @@ function GuestCard({
 
 /**
  * The same circle the relationships graph draws, turned into a picker: click a
- * node to put that person on the guest list. Only the bonds whose *both* ends
- * are going light up — the activity mends exactly those, so the player sees
+ * node to put that person on the guest list. Each face carries the member's mood
+ * beside it (inward, so the right-hand side never clips). Only the bonds whose
+ * *both* ends are going light up — the activity mends exactly those, so the player sees
  * what the money buys before spending it.
  */
 function GuestGraph({
@@ -174,6 +210,23 @@ function GuestGraph({
                     strokeWidth: going ? 4 : 1.5,
                   }}
                 />
+                <text
+                  x={pos[index].x + (pos[index].x > center + 1 ? -21 : 21)}
+                  y={pos[index].y - 9}
+                  fontSize={12}
+                  fontWeight={600}
+                  textAnchor={pos[index].x > center + 1 ? "end" : "start"}
+                  aria-label={`humor ${moodLabel(member.happiness)}`}
+                  style={{
+                    fill: roundMood(member.happiness) < 0 ? "var(--rv-red)" : "var(--rv-ink)",
+                    fontFamily: "var(--rv-mono)",
+                    stroke: "var(--rv-paper)",
+                    strokeWidth: 3,
+                    paintOrder: "stroke",
+                  }}
+                >
+                  {moodLabel(member.happiness)}
+                </text>
                 <text
                   x={pos[index].x}
                   y={pos[index].y + 36}

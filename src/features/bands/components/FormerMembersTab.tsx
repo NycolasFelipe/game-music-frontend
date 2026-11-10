@@ -39,10 +39,7 @@ export function FormerMembersTab({ bandId }: { bandId: string }) {
         <Loader size="sm" />
       ) : ordered.length === 0 ? (
         <div className="rv-empty" style={{ textAlign: "left", padding: "16px 0" }}>
-          <p className="rv-deck">
-            Ninguém saiu da banda até agora. Quem sair por salário atrasado
-            aparece aqui, com a ficha completa.
-          </p>
+          <p className="rv-deck">Ninguém saiu da banda até agora.</p>
         </div>
       ) : (
         <div className="rv-cols2" style={{ gap: "26px 34px", marginTop: 10 }}>

@@ -15,8 +15,16 @@ import {
 import type { BandDetail, Characteristic, Skills } from "@/features/bands";
 import { useDecisionsUi, usePendingDecisions } from "@/features/decisions";
 import { SceneNewspaper } from "@/features/events";
+import type { NewspaperItem } from "@/features/events";
 import { GigsColumn } from "@/features/gigs";
-import { marketNote, StudioColumn } from "@/features/releases";
+import {
+  marketNote,
+  StudioColumn,
+  useReleaseFormats,
+  useReleaseRevealUi,
+  useReleases,
+} from "@/features/releases";
+import type { Release } from "@/features/releases";
 import { useAdvanceTurn, useTurnPanel } from "@/features/turns";
 import type { AdvanceTurnResult, TurnPanel } from "@/features/turns";
 import type { FormerMember } from "@/types/former-member";
@@ -113,10 +121,36 @@ function advanceMessage(result: AdvanceTurnResult, nameOf: (id: string) => strin
 }
 
 /**
+ * Um disco lançado pela banda como notícia de jornal: quem lançou, o quê e a
+ * primeira frase da crítica (ou os fãs conquistados, quando não há crítica).
+ *
+ * @param bandName - Nome da banda (vai em negrito).
+ * @param release - A obra lançada.
+ * @param formatLabel - Formato por extenso ("EP", "Álbum"…).
+ * @returns A notícia para a Gazeta do Groove.
+ */
+function releaseNews(bandName: string, release: Release, formatLabel: string): NewspaperItem {
+  const noun = formatLabel === formatLabel.toUpperCase() ? formatLabel : formatLabel.toLowerCase();
+  const quote = release.criticComments[0];
+  const tail = quote
+    ? ` “${quote.text}”, diz ${quote.author}.`
+    : ` O disco conquista ${Math.round(release.fansGained ?? 0).toLocaleString("pt-BR")} novos fãs.`;
+  return {
+    id: `release-${release.id}`,
+    year: release.releasedAtYear ?? 0,
+    section: "Exclusivo",
+    description: `${bandName} lança o ${noun} “${release.title}”.${tail}`,
+    artists: [bandName],
+  };
+}
+
+/**
  * Aba Turno (ADR-0002): tudo o que se faz num turno numa tela só. A capa com a
  * foto da banda e a matéria do momento, as pendências, as colunas Palco,
  * Convívio e Estúdio, e o fechamento com a previsão do caixa e o botão que
  * avança o tempo. Pendências e previsão vêm do painel do turno (ADR-0022).
+ * A Gazeta do Groove no topo traz as notícias do ano, com os discos da banda
+ * na manchete.
  */
 export function BandTurnTab({ band }: { band: BandDetail }) {
   const { data: panel } = useTurnPanel(band.id);
@@ -127,6 +161,10 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
   const advance = useAdvanceTurn(band.id);
   const [departures, setDepartures] = useState<FormerMember[]>([]);
   const [departureOpen, setDepartureOpen] = useState(false);
+  const { data: releases } = useReleases(band.id);
+  const { data: formats } = useReleaseFormats();
+  // The work being revealed stays out of the paper until the ceremony ends.
+  const revealing = useReleaseRevealUi((state) => state.release);
 
   const catalog = useMemo(
     () => new Map<string, Characteristic>((characteristics ?? []).map((c) => [c.id, c])),
@@ -140,6 +178,9 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
   const pending = panel?.pending ?? [];
   const blockingCount = Math.max(blocking.length, pending.filter((p) => p.blocking).length);
   const forecast = panel?.forecast;
+  const bandNews = (releases ?? [])
+    .filter((r) => r.status === "lancada" && r.releasedAtYear !== null && r.id !== revealing?.id)
+    .map((r) => releaseNews(band.name, r, formats?.find((f) => f.id === r.format)?.label ?? r.format));
 
   function handleAdvance() {
     advance.mutate(undefined, {
@@ -173,6 +214,7 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
       <SceneNewspaper
         bandId={band.id}
         currentYear={band.currentYear}
+        bandNews={bandNews}
         footer={
           <Link to={`/bands/${band.id}/arquivo`} className="rv-link">
             Todas as notícias no Arquivo →
