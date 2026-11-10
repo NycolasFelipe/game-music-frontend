@@ -36,6 +36,7 @@ const options = (heldThisTurn = 0): ActivityOptions => ({
   nextSaturation: heldThisTurn === 0 ? 1 : 0.5,
   hostilityRisk: 0.06,
   troubleChanceMax: 0.8,
+  relationshipCap: 3,
   activities: [
     {
       id: "jantar",
@@ -151,6 +152,16 @@ describe("ActivitiesPanel", () => {
     expect(screen.getByText(/não se suporta/)).toBeVisible();
     // 0.05 + 5 * 0.06 = 0.35 — a dinner turns risky because of who was invited.
     expect(screen.getByText("risco médio")).toBeVisible();
+  });
+
+  it("says how far a night out can take a relationship (ADR-0029)", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ActivitiesPanel band={band()} />);
+    await openInsert(user);
+    await user.click(await screen.findByRole("checkbox", { name: "Levar Ana" }));
+    await user.click(screen.getByRole("checkbox", { name: "Levar Beto" }));
+
+    expect(screen.getByText(/relação \+1\s*\(até \+3\)/)).toBeVisible();
   });
 
   it("picks guests on the relationship circle too", async () => {

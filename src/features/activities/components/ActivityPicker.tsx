@@ -144,7 +144,8 @@ export function ActivityPicker({
               </span>
               <span className="rv-d">
                 humor +{activity.happinessGain.toString().replace(".", ",")} · relação +
-                {activity.relationshipGain} · <span className={risk.high ? "rv-red" : undefined}>{risk.label}</span>
+                {activity.relationshipGain}
+                {options ? ` (até +${options.relationshipCap})` : ""} · <span className={risk.high ? "rv-red" : undefined}>{risk.label}</span>
               </span>
             </button>
           );
