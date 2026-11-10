@@ -1,17 +1,14 @@
 import {
   Button,
   Group,
-  Modal,
   MultiSelect,
   NumberInput,
-  Select,
   SimpleGrid,
-  Stack,
-  Text,
   Textarea,
   TextInput,
 } from "@mantine/core";
 import { useState } from "react";
+import { InsertModal } from "@/components/revista";
 import { SKILL_LABELS, SKILL_ORDER } from "@/features/bands/labels";
 import type {
   Characteristic,
@@ -24,6 +21,15 @@ const GENDERS = [
   { value: "female", label: "Feminino" },
   { value: "neutral", label: "Neutro" },
 ];
+
+/** Skill labels read like the audition cards: mono, lowercase, no tracking. */
+const SKILL_INPUT_STYLES = {
+  label: {
+    font: "400 12px var(--rv-mono)",
+    textTransform: "lowercase",
+    letterSpacing: 0,
+  },
+} as const;
 
 /**
  * Editor for a generated member candidate. Enforces the same bounds the backend
@@ -58,10 +64,6 @@ export function MemberEditModal({
     value: c.id,
     label: c.name,
   }));
-  const skillOptions = SKILL_ORDER.map((key) => ({
-    value: key,
-    label: SKILL_LABELS[key],
-  }));
 
   const valid =
     name.trim() !== "" &&
@@ -87,64 +89,93 @@ export function MemberEditModal({
   }
 
   return (
-    <Modal opened onClose={onClose} title="Editar integrante" centered size="lg">
-      <Stack>
-        <TextInput
-          label="Nome"
-          value={name}
-          onChange={(e) => setName(e.currentTarget.value)}
-          required
-        />
-
-        <Group grow>
-          <NumberInput
-            label="Idade"
-            min={16}
-            max={30}
-            value={age}
-            onChange={setAge}
-            clampBehavior="strict"
+    <InsertModal opened onClose={onClose} label="Ficha do candidato" title="Editar integrante" size="lg">
+      <div className="rv-form">
+        <div className="rv-field">
+          <TextInput
+            label="Nome"
+            value={name}
+            onChange={(e) => setName(e.currentTarget.value)}
+            required
           />
-          <Select
-            label="Gênero"
-            data={GENDERS}
-            value={gender}
-            onChange={setGender}
-            allowDeselect={false}
+        </div>
+
+        <SimpleGrid cols={2} spacing="lg">
+          <div className="rv-field">
+            <NumberInput
+              label="Idade"
+              min={16}
+              max={30}
+              value={age}
+              onChange={setAge}
+              clampBehavior="strict"
+              hideControls
+            />
+          </div>
+          <div className="rv-field">
+            <NumberInput
+              label="Felicidade (−5 a 5)"
+              min={-5}
+              max={5}
+              value={happiness}
+              onChange={setHappiness}
+              clampBehavior="strict"
+              hideControls
+            />
+          </div>
+        </SimpleGrid>
+
+        <div className="rv-field">
+          <span className="rv-field-label">Gênero</span>
+          <div className="rv-seg" role="radiogroup" aria-label="Gênero">
+            {GENDERS.map((g) => (
+              <button
+                key={g.value}
+                type="button"
+                role="radio"
+                aria-checked={gender === g.value}
+                className={gender === g.value ? "rv-on" : undefined}
+                onClick={() => setGender(g.value)}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="rv-field">
+          <MultiSelect
+            label="Características (2 a 4)"
+            data={traitOptions}
+            value={traits}
+            onChange={setTraits}
+            maxValues={4}
+            searchable
+            error={traits.length < 2 ? "Escolha ao menos 2" : undefined}
           />
-          <NumberInput
-            label="Felicidade"
-            min={-5}
-            max={5}
-            value={happiness}
-            onChange={setHappiness}
-            clampBehavior="strict"
-          />
-        </Group>
+        </div>
 
-        <MultiSelect
-          label="Características (2 a 4)"
-          data={traitOptions}
-          value={traits}
-          onChange={setTraits}
-          maxValues={4}
-          searchable
-          error={traits.length < 2 ? "Escolha ao menos 2" : undefined}
-        />
+        <div className="rv-field">
+          <span className="rv-field-label">Habilidade principal</span>
+          <div className="rv-seg" role="radiogroup" aria-label="Habilidade principal">
+            {SKILL_ORDER.map((key) => (
+              <button
+                key={key}
+                type="button"
+                role="radio"
+                aria-checked={primarySkill === key}
+                className={primarySkill === key ? "rv-on" : undefined}
+                onClick={() => setPrimarySkill(key)}
+              >
+                {SKILL_LABELS[key]}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        <Select
-          label="Habilidade principal"
-          data={skillOptions}
-          value={primarySkill}
-          onChange={setPrimarySkill}
-          allowDeselect={false}
-        />
-
-        <div>
-          <Text size="sm" fw={500} mb={4}>
-            Habilidades (0–10)
-          </Text>
-          <SimpleGrid cols={{ base: 2, sm: 3 }}>
+        <div className="rv-field">
+          <span className="rv-field-label">Habilidades (0 a 10)</span>
+          <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="lg">
             {SKILL_ORDER.map((key) => (
               <NumberInput
                 key={key}
@@ -156,30 +187,35 @@ export function MemberEditModal({
                   setSkills((prev) => ({ ...prev, [key]: Number(value) || 0 }))
                 }
                 clampBehavior="strict"
+                hideControls
+                styles={SKILL_INPUT_STYLES}
               />
             ))}
           </SimpleGrid>
         </div>
 
-        <Textarea
-          label="Biografia"
-          value={biography}
-          onChange={(e) => setBiography(e.currentTarget.value)}
-          autosize
-          minRows={2}
-          maxRows={6}
-          required
-        />
+        <div className="rv-field">
+          <Textarea
+            label="Biografia"
+            value={biography}
+            onChange={(e) => setBiography(e.currentTarget.value)}
+            autosize
+            minRows={2}
+            maxRows={6}
+            required
+            styles={{ input: { font: "400 16px/1.5 var(--rv-serif)" } }}
+          />
+        </div>
+      </div>
 
-        <Group justify="flex-end" mt="sm">
-          <Button variant="subtle" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button onClick={save} disabled={!valid}>
-            Salvar
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
+      <Group justify="space-between" mt="lg">
+        <Button variant="default" onClick={onClose}>
+          Cancelar
+        </Button>
+        <Button onClick={save} disabled={!valid}>
+          Salvar
+        </Button>
+      </Group>
+    </InsertModal>
   );
 }
