@@ -4,6 +4,7 @@ import type { BandDetail } from "@/features/bands";
 import { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
 import { useReleaseFormats } from "@/features/releases/hooks/useReleaseCatalogs";
 import { useReleases } from "@/features/releases/hooks/useReleases";
+import { marketNote } from "@/features/releases/market";
 import { useReleaseRevealUi } from "@/features/releases/store/release-reveal.store";
 import { formatMoney } from "@/utils/money";
 
@@ -36,9 +37,7 @@ export function StudioColumn({
   const market =
     nextMarketMultiplier === undefined || nextMarketMultiplier === null
       ? null
-      : (launchesThisYear ?? 0) === 0
-        ? "Primeira obra do ano: mercado cheio."
-        : `Seria a ${(launchesThisYear ?? 0) + 1}ª obra do ano: o mercado paga ×${nextMarketMultiplier.toLocaleString("pt-BR")}.`;
+      : marketNote(launchesThisYear ?? 0, nextMarketMultiplier);
 
   return (
     <div>
@@ -75,7 +74,7 @@ export function StudioColumn({
               </span>
             </button>
           ))}
-          {market && <p className="rv-note">{market}</p>}
+          {market && <p className={market.penalty ? "rv-note" : "rv-caption"}>{market.text}</p>}
           <Button mt="xs" onClick={() => setOpen(true)}>
             Criar obra
           </Button>

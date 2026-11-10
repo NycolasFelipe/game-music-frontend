@@ -36,6 +36,7 @@ export function ActivitiesPanel({
   const { data: history } = useBandActivities(band.id);
   const hold = useHoldActivity(band.id);
   const [guests, setGuests] = useState<string[]>([]);
+  const [pickedId, setPickedId] = useState<string | null>(null);
 
   const memberName = (id: string) =>
     band.members.find((member) => member.id === id)?.name ?? "alguém";
@@ -75,6 +76,18 @@ export function ActivitiesPanel({
       activity.troubleChance + hostility * (options?.hostilityRisk ?? 0),
     );
   }
+
+  // The first activity leads until the player picks another one.
+  const picked =
+    options?.activities.find((activity) => activity.id === pickedId) ??
+    options?.activities[0] ??
+    null;
+  const pickedCost = picked ? costOf(picked) : null;
+  const pickedFits =
+    picked !== null &&
+    guests.length >= picked.minParticipants &&
+    guests.length <= picked.maxParticipants;
+  const pickedAffordable = pickedCost !== null && band.balance >= pickedCost;
 
   function handleHold(activity: ActivityOption) {
     hold.mutate(
@@ -136,38 +149,47 @@ export function ActivitiesPanel({
           const fits =
             guests.length >= activity.minParticipants &&
             guests.length <= activity.maxParticipants;
-          const affordable = cost !== null && band.balance >= cost;
           const risk = riskBadge(riskOf(activity));
+          const isPicked = activity.id === picked?.id;
 
           return (
-            <div key={activity.id} className="rv-classified" style={{ cursor: "default" }}>
-              <b>
-                {activity.label}
-                {fits && cost !== null ? ` — ${formatMoney(cost)}` : ""}
-              </b>
-              <p>
-                Humor +{activity.happinessGain.toString().replace(".", ",")}, relação +
-                {activity.relationshipGain}, {activity.minParticipants}–{activity.maxParticipants} pessoas,{" "}
-                <span className={risk.high ? "rv-red" : undefined}>{risk.label}</span>.
-              </p>
-              <Button
-                mt={8}
-                size="compact-xs"
-                variant={fits && affordable ? "filled" : "default"}
-                disabled={!fits || !affordable}
-                loading={hold.isPending}
-                onClick={() => handleHold(activity)}
-              >
-                {!fits
-                  ? `Leve ${activity.minParticipants}–${activity.maxParticipants}`
-                  : !affordable
-                    ? "Caixa insuficiente"
-                    : `Marcar · ${cost !== null ? formatMoney(cost) : ""}`}
-              </Button>
-            </div>
+            <button
+              key={activity.id}
+              type="button"
+              className={`rv-listing ${isPicked ? "rv-sel" : ""}`}
+              aria-pressed={isPicked}
+              onClick={() => setPickedId(activity.id)}
+            >
+              <span className="rv-v">{activity.label}</span>
+              <span className="rv-n">
+                {fits && cost !== null
+                  ? formatMoney(cost)
+                  : `${activity.minParticipants}–${activity.maxParticipants} pess.`}
+              </span>
+              <span className="rv-d">
+                humor +{activity.happinessGain.toString().replace(".", ",")} · relação +
+                {activity.relationshipGain} · <span className={risk.high ? "rv-red" : undefined}>{risk.label}</span>
+              </span>
+            </button>
           );
         })}
       </div>
+
+      {picked && (
+        <div>
+          <Button
+            disabled={!pickedFits || !pickedAffordable}
+            loading={hold.isPending}
+            onClick={() => handleHold(picked)}
+          >
+            {!pickedFits
+              ? `Leve ${picked.minParticipants}–${picked.maxParticipants}`
+              : !pickedAffordable
+                ? "Caixa insuficiente"
+                : `Marcar · ${pickedCost !== null ? formatMoney(pickedCost) : ""}`}
+          </Button>
+        </div>
+      )}
 
       {(history ?? []).length > 0 && (
         <div className="rv-ledger">

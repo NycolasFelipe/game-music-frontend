@@ -6,6 +6,7 @@ export { ReleaseCard } from "@/features/releases/components/ReleaseCard";
 export { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
 export { CreationEventStage } from "@/features/releases/components/CreationEventStage";
 export { LaunchSummary } from "@/features/releases/components/LaunchSummary";
+export { marketNote } from "@/features/releases/market";
 export { ReleaseRevealHost } from "@/features/releases/components/ReleaseRevealHost";
 export { useReleaseRevealUi } from "@/features/releases/store/release-reveal.store";
 export {

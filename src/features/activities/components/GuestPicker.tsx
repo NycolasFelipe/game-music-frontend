@@ -88,9 +88,9 @@ function GuestGraph({
   );
 
   const n = members.length;
-  const size = 340;
+  const size = 300;
   const center = size / 2;
-  const radius = size / 2 - 48;
+  const radius = size / 2 - 44;
   const pos = members.map((_, index) => {
     const theta = -Math.PI / 2 + (2 * Math.PI * index) / n;
     return {
@@ -98,6 +98,11 @@ function GuestGraph({
       y: center + radius * Math.sin(theta),
     };
   });
+
+  // Frame only the faces and their names: with three or four members the
+  // circle leaves empty bands above and below that stretch the column.
+  const top = Math.min(...pos.map((p) => p.y)) - 22;
+  const bottom = Math.max(...pos.map((p) => p.y)) + 44;
 
   const edges: Array<{ i: number; j: number; level: number; live: boolean }> =
     [];
@@ -117,8 +122,8 @@ function GuestGraph({
 
   return (
     <Stack align="center" gap={4}>
-      <Box style={{ width: "100%", maxWidth: size }}>
-        <svg viewBox={`0 0 ${size} ${size}`} width="100%">
+      <Box style={{ width: "100%", maxWidth: 260 }}>
+        <svg viewBox={`0 ${top} ${size} ${bottom - top}`} width="100%">
           {edges.map((edge) => (
             <line
               key={`${edge.i}-${edge.j}`}
@@ -188,9 +193,9 @@ function GuestGraph({
         </svg>
       </Box>
 
-      <Text size="xs" c="dimmed" ta="center">
+      <p className="rv-caption" style={{ margin: 0, textAlign: "center" }}>
         Clique em quem vai — acendem as relações que a saída vai mexer
-      </Text>
+      </p>
     </Stack>
   );
 }

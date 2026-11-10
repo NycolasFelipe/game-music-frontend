@@ -16,7 +16,7 @@ import type { BandDetail, Characteristic, Skills } from "@/features/bands";
 import { useDecisionsUi, usePendingDecisions } from "@/features/decisions";
 import { SceneNewspaper } from "@/features/events";
 import { GigsColumn } from "@/features/gigs";
-import { StudioColumn } from "@/features/releases";
+import { marketNote, StudioColumn } from "@/features/releases";
 import { useAdvanceTurn, useTurnPanel } from "@/features/turns";
 import type { AdvanceTurnResult, TurnPanel } from "@/features/turns";
 import type { FormerMember } from "@/types/former-member";
@@ -43,10 +43,9 @@ function coverStory(band: BandDetail, panel: TurnPanel | undefined, blocking: nu
     return {
       kicker: "Matéria de capa · Pronto para lançar",
       head: `"${release.title}" ficou pronto. E agora?`,
-      deck:
-        panel?.studio.nextMarketMultiplier != null && (panel?.studio.launchesThisYear ?? 0) > 0
-          ? `A gravação terminou. Seria a ${(panel?.studio.launchesThisYear ?? 0) + 1}ª obra do ano, e o mercado paga ×${panel.studio.nextMarketMultiplier.toLocaleString("pt-BR")}.`
-          : "A gravação terminou e o mercado está cheio de espaço para ela.",
+      deck: `A gravação terminou. ${
+        marketNote(panel?.studio.launchesThisYear ?? 0, panel?.studio.nextMarketMultiplier ?? 1, "esta").text
+      }`,
       cta: "Lançar",
     };
   }
