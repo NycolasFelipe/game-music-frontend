@@ -1,3 +1,4 @@
+import type { MemberAppearance } from "@/types/appearance";
 import type {
   Band,
   BandDetail,
@@ -66,11 +67,18 @@ export function generateCandidates(count: number): Promise<MemberCandidate[]> {
   return http.post<MemberCandidate[]>("/band-members/candidates", { count });
 }
 
-/** Generates a single fresh avatar emoji for a gender. */
+/**
+ * Generates a fresh look for a candidate: the avatar emoji and, since ADR-0023
+ * do backend, the matching appearance (the age decides whether a beard fits).
+ */
 export function regenerateAvatar(
   gender: string,
-): Promise<{ avatar: string }> {
-  return http.post<{ avatar: string }>("/band-members/avatar", { gender });
+  age?: number,
+): Promise<{ avatar: string; appearance?: MemberAppearance }> {
+  return http.post<{ avatar: string; appearance?: MemberAppearance }>("/band-members/avatar", {
+    gender,
+    ...(age !== undefined ? { age } : {}),
+  });
 }
 
 /** Lists the characteristic (trait) catalog with display data. */

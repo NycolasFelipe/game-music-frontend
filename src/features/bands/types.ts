@@ -1,3 +1,5 @@
+import type { MemberAppearance, PhotoScene } from "@/types/appearance";
+
 /** Fame standing derived from a band's fan count (mirrors the backend). */
 export interface Fame {
   level: number;
@@ -29,6 +31,8 @@ export interface Band {
   balance: number;
   /** Whether salaries are raised automatically each turn (ADR-0013). */
   autoSalaryAdjust: boolean;
+  /** Where the band's group photo is taken (ADR-0023; absent on older APIs). */
+  photoScene?: PhotoScene | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,6 +55,8 @@ export interface BandMember {
   age: number;
   gender: string;
   avatar: string;
+  /** How the member looks in photos (ADR-0023; absent on older APIs). */
+  appearance?: MemberAppearance | null;
   happiness: number;
   characteristics: string[];
   skills: Skills;
@@ -113,6 +119,8 @@ export interface CreateBandMemberSeed {
   age: number;
   gender: string;
   avatar: string;
+  /** Keeps the look the player saw at the audition (ADR-0023). */
+  appearance?: MemberAppearance | null;
   happiness: number;
   characteristics: string[];
   skills: Skills;
@@ -140,6 +148,8 @@ export interface MemberCandidate {
   age: number;
   gender: string;
   avatar: string;
+  /** How the candidate looks in photos (ADR-0023; absent on older APIs). */
+  appearance?: MemberAppearance | null;
   happiness: number;
   characteristics: string[];
   skills: Skills;

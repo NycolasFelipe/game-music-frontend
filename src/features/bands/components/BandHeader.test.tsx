@@ -32,7 +32,7 @@ describe("BandHeader", () => {
       <BandHeader band={band()} themeLabel="Grunge" originLabel="São Paulo" />,
     );
 
-    expect(screen.getByText("Os Rebeldes")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Os Rebeldes" })).toBeVisible();
     expect(screen.getByText("Grunge")).toBeVisible();
     expect(screen.getByText("desde 1989")).toBeVisible();
     expect(screen.getByText("700")).toBeVisible();
@@ -67,6 +67,6 @@ describe("BandHeader", () => {
       <BandHeader band={maxed} themeLabel="Grunge" originLabel="São Paulo" />,
     );
 
-    expect(screen.getByText("No topo da escada")).toBeVisible();
+    expect(screen.getByText(/No topo da escada/)).toBeVisible();
   });
 });

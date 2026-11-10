@@ -7,6 +7,7 @@ import {
   pairKey,
   type RelationshipsViewProps,
 } from "@/features/bands/components/relationship-utils";
+import { FaceThumb } from "@/features/bands/portrait/MemberPortrait";
 import type { RelationshipLevelInfo } from "@/features/bands/types";
 
 function LegendDot({ hex, label }: { hex: string; label: string }) {
@@ -15,7 +16,7 @@ function LegendDot({ hex, label }: { hex: string; label: string }) {
       <Box
         w={12}
         h={12}
-        style={{ backgroundColor: hex, borderRadius: 3, flexShrink: 0 }}
+        style={{ backgroundColor: hex, flexShrink: 0 }}
       />
       <Text size="xs" c="dimmed">
         {label}
@@ -95,7 +96,8 @@ export function RelationshipGraph({
                   style={{
                     stroke: levelHex(e.level),
                     strokeWidth: 1 + Math.abs(e.level) * 0.7 + (active ? 1.5 : 0),
-                    opacity: active ? 1 : 0.7,
+                    strokeDasharray: e.level < 0 ? "6 4" : undefined,
+                    opacity: active ? 1 : 0.8,
                   }}
                 />
                 {/* Wide invisible hit area for easy hovering. */}
@@ -119,31 +121,21 @@ export function RelationshipGraph({
 
           {members.map((member, i) => (
             <g key={member.id}>
+              <FaceThumb
+                subject={{ gender: "", age: 25, happiness: 0, ...member }}
+                x={pos[i].x} y={pos[i].y} r={22} />
               <circle
                 cx={pos[i].x}
                 cy={pos[i].y}
-                r={20}
-                style={{
-                  fill: "var(--mantine-color-body)",
-                  stroke: "var(--mantine-color-default-border)",
-                  strokeWidth: 1,
-                }}
+                r={22}
+                style={{ fill: "none", stroke: "var(--rv-ink)", strokeWidth: 2 }}
               />
               <text
                 x={pos[i].x}
-                y={pos[i].y}
-                fontSize={22}
-                textAnchor="middle"
-                dominantBaseline="central"
-              >
-                {member.avatar}
-              </text>
-              <text
-                x={pos[i].x}
-                y={pos[i].y + 34}
+                y={pos[i].y + 36}
                 fontSize={11}
                 textAnchor="middle"
-                style={{ fill: "var(--mantine-color-dimmed)" }}
+                style={{ fill: "var(--rv-ink)", fontFamily: "var(--rv-mono)" }}
               >
                 {firstName(member.name)}
               </text>
@@ -153,7 +145,7 @@ export function RelationshipGraph({
       </Box>
 
       <Group gap="lg" justify="center">
-        <LegendDot hex={levelHex(-4)} label="Hostil" />
+        <LegendDot hex={levelHex(-4)} label="Hostil (tracejado)" />
         <LegendDot hex={levelHex(0)} label="Neutro" />
         <LegendDot hex={levelHex(4)} label="Próximo" />
       </Group>
@@ -161,7 +153,7 @@ export function RelationshipGraph({
       {hovered?.info ? (
         <Text size="sm" ta="center">
           <Text span fw={600}>
-            {hovered.info.emoji} {hovered.info.name}
+            {hovered.info.name}
           </Text>{" "}
           <Text size="xs" c="dimmed">
             {hovered.info.description}

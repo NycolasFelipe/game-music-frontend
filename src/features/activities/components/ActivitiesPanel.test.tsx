@@ -123,7 +123,7 @@ describe("ActivitiesPanel", () => {
 
     expect(screen.getByText(/não se suporta/)).toBeVisible();
     // 0.05 + 5 * 0.06 = 0.35 — a dinner turns risky because of who was invited.
-    expect(screen.getByText("🟡 risco médio")).toBeVisible();
+    expect(screen.getByText("risco médio")).toBeVisible();
   });
 
   it("picks guests on the relationship circle too", async () => {

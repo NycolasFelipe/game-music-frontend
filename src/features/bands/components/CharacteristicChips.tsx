@@ -1,18 +1,29 @@
-import { Badge, Group } from "@mantine/core";
 import { SmartTooltip } from "@/components/SmartTooltip";
 import type { Characteristic } from "@/features/bands/types";
 
-/** Badge color per trait rarity (mirrors the original game). */
-const RARITY_COLORS: Record<string, string> = {
-  common: "gray",
-  uncommon: "green",
-  rare: "blue",
-  legendary: "violet",
-};
+/**
+ * Traços que costumam dar problema no elenco. Vão em vermelho, como um aviso
+ * de redação; os demais em tinta.
+ */
+const TROUBLE_TRAITS = new Set([
+  "hothead",
+  "erratic",
+  "envious",
+  "lazy",
+  "greedy",
+  "plagiarist",
+  "manipulator",
+  "jealous",
+  "paranoid",
+  "dazzled",
+  "validation_seeker",
+  "insecure",
+  "individualist",
+]);
 
 /**
- * Renders characteristic ids as labelled chips, using the backend catalog for
- * names/descriptions (falls back to the id while the catalog loads).
+ * Traços como selos tipográficos (ADR-0002), com nome e descrição vindos do
+ * catálogo do backend (usa o id enquanto o catálogo carrega).
  */
 export function CharacteristicChips({
   ids,
@@ -22,7 +33,7 @@ export function CharacteristicChips({
   catalog: Map<string, Characteristic>;
 }) {
   return (
-    <Group gap={4}>
+    <div className="rv-traits">
       {ids.map((id) => {
         const trait = catalog.get(id);
         return (
@@ -34,16 +45,12 @@ export function CharacteristicChips({
             withArrow
             events={{ hover: true, focus: true, touch: true }}
           >
-            <Badge
-              variant="light"
-              color={RARITY_COLORS[trait?.rarity ?? "common"] ?? "gray"}
-              style={{ cursor: "help" }}
-            >
+            <span className={`rv-trait ${TROUBLE_TRAITS.has(id) ? "rv-bad" : ""}`} tabIndex={0}>
               {trait?.name ?? id}
-            </Badge>
+            </span>
           </SmartTooltip>
         );
       })}
-    </Group>
+    </div>
   );
 }

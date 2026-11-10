@@ -442,7 +442,7 @@ export function ReleaseCreationModal({
                 loading={start.isPending}
                 disabled={!title.trim() || !hasCredit || !canAfford}
               >
-                🎬 Entrar no estúdio
+                Entrar no estúdio
               </Button>
             </Group>
           </Stack>
@@ -477,9 +477,6 @@ export function ReleaseCreationModal({
 
         {stage === "recording" && detail && (
           <Stack gap="sm" align="center" py="md">
-            <Text fz={40} lh={1}>
-              🎚️
-            </Text>
             <Text fw={700}>Gravando &ldquo;{detail.title}&rdquo;</Text>
             <Text size="sm" c="dimmed" ta="center" maw={420}>
               A banda está em estúdio. Faltam{" "}

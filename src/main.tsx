@@ -5,12 +5,13 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { useAuthStore } from "@/features/auth";
-import { theme } from "@/lib/theme";
+import { cssVariablesResolver, theme } from "@/lib/theme";
 import { router } from "@/routes/router";
 import { queryClient } from "@/services/queryClient";
 import { setAuthTokenGetter, setUnauthorizedHandler } from "@/services/http";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "@/styles/revista.css";
 
 // Composition root: inject auth concerns into the (feature-agnostic) HTTP layer.
 setAuthTokenGetter(() => useAuthStore.getState().token);
@@ -24,7 +25,11 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={theme} defaultColorScheme="auto">
+      <MantineProvider
+        theme={theme}
+        cssVariablesResolver={cssVariablesResolver}
+        forceColorScheme="light"
+      >
         <Notifications />
         <RouterProvider router={router} />
       </MantineProvider>

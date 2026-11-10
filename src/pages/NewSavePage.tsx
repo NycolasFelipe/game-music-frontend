@@ -12,7 +12,6 @@ import {
   Stepper,
   Text,
   TextInput,
-  Title,
   Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -23,10 +22,13 @@ import {
   IconWand,
 } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useBlocker, useNavigate } from "react-router-dom";
+import { Link, useBlocker, useNavigate } from "react-router-dom";
+import { Masthead } from "@/components/revista";
 import {
   BandNameConfigModal,
+  BandPhoto,
   MemberCard,
+  resolveScene,
   MemberEditModal,
   useBandOptions,
   useCharacteristics,
@@ -136,11 +138,13 @@ export function NewSavePage() {
 
   function regenerateAvatarFor(candidate: MemberCandidate) {
     setRegeneratingAvatarId(candidate.id);
-    regenerateAvatar.mutate(candidate.gender, {
+    regenerateAvatar.mutate({ gender: candidate.gender, age: candidate.age }, {
       onSuccess: (data) => {
         setCandidates((cs) =>
           cs.map((c) =>
-            c.id === candidate.id ? { ...c, avatar: data.avatar } : c,
+            c.id === candidate.id
+              ? { ...c, avatar: data.avatar, appearance: data.appearance ?? c.appearance }
+              : c,
           ),
         );
       },
@@ -202,6 +206,7 @@ export function NewSavePage() {
         age: c.age,
         gender: c.gender,
         avatar: c.avatar,
+        appearance: c.appearance ?? undefined,
         happiness: c.happiness,
         characteristics: c.characteristics,
         skills: c.skills,
@@ -222,13 +227,15 @@ export function NewSavePage() {
   }
 
   return (
-    <Container py="xl" size="lg">
-      <Group justify="space-between" mb="lg">
-        <Title order={2}>Novo save</Title>
-        <Button variant="subtle" color="gray" onClick={() => navigate("/")}>
+    <Container py={0} px={0} size="lg">
+      <div className="rv-topline">
+        <Link to="/">← Banca</Link>
+        <span>Nova banda · passo {step + 1} de 3</span>
+        <button type="button" className="rv-link" style={{ color: "var(--rv-soft)" }} onClick={() => navigate("/")}>
           Cancelar
-        </Button>
-      </Group>
+        </button>
+      </div>
+      <Masthead title={["A banda", "Audições", "Revisão"][step] ?? "Nova banda"} />
 
       <Modal
         opened={blocker.state === "blocked"}
@@ -404,6 +411,7 @@ export function NewSavePage() {
                 catalog={catalog}
                 selected={selected.has(candidate.id)}
                 onToggle={() => toggle(candidate.id)}
+                crop="wide"
                 onRegenerateAvatar={() => regenerateAvatarFor(candidate)}
                 avatarRegenerating={regeneratingAvatarId === candidate.id}
                 actions={
@@ -435,7 +443,13 @@ export function NewSavePage() {
       )}
 
       {step === 2 && (
-        <Stack maw={520}>
+        <Stack maw={720}>
+          <BandPhoto
+            members={candidates.filter((c) => selected.has(c.id)).map((c) => ({ ...c, happiness: c.happiness ?? 0 }))}
+            scene={resolveScene(name || "nova")}
+            label="Formação escolhida"
+            tag="Edição nº 1"
+          />
           <Text fw={600}>Confira antes de criar:</Text>
           <Text>
             <strong>{name}</strong> —{" "}

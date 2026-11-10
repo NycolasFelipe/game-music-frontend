@@ -1,5 +1,6 @@
 import { Badge, Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 import { SmartTooltip } from "@/components/SmartTooltip";
+import { MemberFace } from "@/features/bands/portrait/MemberPortrait";
 import {
   buildLookups,
   firstName,
@@ -32,7 +33,7 @@ export function RelationshipCards({
       {members.map((member) => (
         <Paper key={member.id} withBorder p="md" radius="md">
           <Group gap="sm" mb="sm" wrap="nowrap">
-            <Text fz={26}>{member.avatar}</Text>
+            <MemberFace subject={{ gender: "", age: 25, happiness: 0, ...member }} size={34} />
             <Text fw={600} truncate>
               {member.name}
             </Text>
@@ -54,7 +55,7 @@ export function RelationshipCards({
                     gap="sm"
                   >
                     <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
-                      <Text fz={18}>{other.avatar}</Text>
+                      <MemberFace subject={{ gender: "", age: 25, happiness: 0, ...other }} size={22} />
                       <Text size="sm" truncate>
                         {firstName(other.name)}
                       </Text>
@@ -71,7 +72,7 @@ export function RelationshipCards({
                         color={levelColor(level ?? 0)}
                         style={{ cursor: "help", flexShrink: 0 }}
                       >
-                        {info ? `${info.emoji} ${info.name}` : `Nível ${level}`}
+                        {info ? info.name : `Nível ${level}`}
                       </Badge>
                     </SmartTooltip>
                   </Group>

@@ -5,22 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Music Tycoon</title>
     <meta name="description" content="Simulador de Produção Musical" />
-    <script>
-      // Apply the persisted color scheme before first paint (no flash).
-      (function () {
-        try {
-          var v = localStorage.getItem("mantine-color-scheme-value");
-          if (v === "dark" || v === "light") {
-            document.documentElement.setAttribute(
-              "data-mantine-color-scheme",
-              v,
-            );
-          }
-        } catch (e) {
-          /* ignore */
-        }
-      })();
-    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Libre+Franklin:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap"
+    />
   </head>
   <body>
     <div id="root"></div>

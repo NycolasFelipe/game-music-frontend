@@ -1,28 +1,6 @@
-import {
-  Badge,
-  Button,
-  Group,
-  Loader,
-  Stack,
-  Text,
-  Timeline,
-  Title,
-} from "@mantine/core";
-import { notifications } from "@mantine/notifications";
-import {
-  IconBolt,
-  IconPlayerTrackNext,
-  IconSparkles,
-  IconUserMinus,
-  IconWorld,
-} from "@tabler/icons-react";
-import { useMemo, useState } from "react";
-import { DepartureModal, useCharacteristics } from "@/features/bands";
-import type { BandDetail, Characteristic } from "@/features/bands";
-import type { FormerMember } from "@/types/former-member";
-import { usePendingDecisions, useDecisionsUi } from "@/features/decisions";
+import { Loader } from "@mantine/core";
+import type { BandDetail } from "@/features/bands";
 import { useActiveEvents, usePassiveEvents } from "@/features/events";
-import { useAdvanceTurn } from "@/features/turns";
 import { formatPeriod } from "@/utils/period";
 
 interface TimelineEntry {
@@ -36,107 +14,14 @@ interface TimelineEntry {
   outcome?: string;
 }
 
-/** Main tab: advance turns, resolve pending decisions, and read the timeline. */
+/**
+ * Arquivo (ADR-0002): a história da banda, edição por edição. Eventos da cena,
+ * decisões tomadas (com a escolha e o desfecho) e saídas de integrantes.
+ */
 export function BandTimelineTab({ band }: { band: BandDetail }) {
   const bandId = band.id;
-  const { data: activeEvents, isLoading: loadingActive } =
-    useActiveEvents(bandId);
-  const { data: passiveEvents, isLoading: loadingPassive } =
-    usePassiveEvents(bandId);
-  const advance = useAdvanceTurn(bandId);
-  const { data: characteristics } = useCharacteristics();
-  const { blocking } = usePendingDecisions(bandId);
-  const openDecisions = useDecisionsUi((state) => state.openDecisions);
-
-  const catalog = useMemo(
-    () =>
-      new Map<string, Characteristic>(
-        (characteristics ?? []).map((c) => [c.id, c]),
-      ),
-    [characteristics],
-  );
-
-  const [departures, setDepartures] = useState<FormerMember[]>([]);
-  const [departureModalOpen, setDepartureModalOpen] = useState(false);
-
-  const memberById = new Map(band.members.map((m) => [m.id, m]));
-
-  function handleAdvance() {
-    advance.mutate(undefined, {
-      onSuccess: (result) => {
-        const departed = result.departures.map((d) => d.name).join(", ");
-
-        const lines = [
-          result.activeEvent
-            ? "Um evento requer sua decisão!"
-            : result.passiveEvent
-              ? "Novidades na cena musical."
-              : "Tudo tranquilo por enquanto.",
-        ];
-        if (result.salariesPaid > 0 || result.salariesDue > 0) {
-          lines.push(
-            `Folha: ${result.salariesPaid.toLocaleString("pt-BR")} de ${result.salariesDue.toLocaleString("pt-BR")} pagos` +
-              (result.salariesFullyPaid ? "." : " (caixa insuficiente)."),
-          );
-        }
-
-        if (result.salaryRaises.length > 0) {
-          const raises = result.salaryRaises
-            .map(
-              (raise) =>
-                `${raise.name} ${raise.from.toLocaleString("pt-BR")} → ${raise.to.toLocaleString("pt-BR")}`,
-            )
-            .join(", ");
-          lines.push(`Salários ajustados: ${raises}.`);
-        }
-
-        if (result.production) {
-          const { title, turnsLeft, ready, newSession } = result.production;
-          lines.push(
-            ready
-              ? `"${title}" saiu do estúdio e está pronta para lançar.`
-              : `"${title}" segue em produção — falta${turnsLeft === 1 ? "" : "m"} ${turnsLeft} turno${turnsLeft === 1 ? "" : "s"}.` +
-                  (newSession ? " Uma decisão de estúdio apareceu." : ""),
-          );
-        }
-
-        const atRisk = result.atRiskMemberIds
-          .map((id) => memberById.get(id)?.name ?? "um integrante")
-          .join(", ");
-        if (atRisk) {
-          lines.push(`Salário atrasado — risco de saída: ${atRisk}.`);
-        }
-        if (departed) {
-          lines.push(`Deixou a banda: ${departed}.`);
-        }
-
-        // Show the departure modal with the ex-members' full snapshots.
-        if (result.departures.length > 0) {
-          setDepartures(result.departures);
-          setDepartureModalOpen(true);
-        }
-
-        notifications.show({
-          title: `Turno avançado — ${result.period}`,
-          message: lines.join(" "),
-          color: departed
-            ? "red"
-            : atRisk
-              ? "orange"
-              : result.activeEvent
-                ? "yellow"
-                : !result.salariesFullyPaid
-                  ? "orange"
-                  : "blue",
-        });
-      },
-      onError: () =>
-        notifications.show({
-          color: "red",
-          message: "Resolva o evento pendente antes de avançar.",
-        }),
-    });
-  }
+  const { data: activeEvents, isLoading: loadingActive } = useActiveEvents(bandId);
+  const { data: passiveEvents, isLoading: loadingPassive } = usePassiveEvents(bandId);
 
   const entries: TimelineEntry[] = [
     ...(passiveEvents ?? []).map((p) => ({
@@ -163,123 +48,51 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
   const loading = loadingActive || loadingPassive;
 
   return (
-    <Stack gap="xl">
-      <DepartureModal
-        members={departures}
-        catalog={catalog}
-        opened={departureModalOpen}
-        onClose={() => setDepartureModalOpen(false)}
-      />
+    <>
+      <div className="rv-kicker">Arquivo</div>
+      <h2 className="rv-head rv-md">Edições anteriores</h2>
 
-      {/* Advance control */}
-      <Group justify="space-between" wrap="wrap">
-        <div>
-          <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-            Período atual
-          </Text>
-          <Text fz={20} fw={700}>
-            {formatPeriod(band.currentYear)}
-          </Text>
-        </div>
-        {blocking.length > 0 ? (
-          <Button
-            size="md"
-            color="yellow"
-            leftSection={<IconBolt size={18} />}
-            onClick={openDecisions}
-          >
-            Resolver {blocking.length} decisã{blocking.length === 1 ? "o" : "es"}
-          </Button>
-        ) : (
-          <Button
-            size="md"
-            leftSection={<IconPlayerTrackNext size={18} />}
-            onClick={handleAdvance}
-            loading={advance.isPending}
-          >
-            Avançar turno
-          </Button>
-        )}
-      </Group>
+      {loading && <Loader color="ink" />}
 
-      {/* Timeline */}
-      <div>
-        <Title order={5} mb="md">
-          Linha do tempo
-        </Title>
+      {!loading && entries.length === 0 && (
+        <p className="rv-deck">Feche edições para a história da banda começar a acontecer.</p>
+      )}
 
-        {loading && <Loader />}
-
-        {!loading && entries.length === 0 && (
-          <Text size="sm" c="dimmed">
-            Avance turnos para a história da banda começar a acontecer.
-          </Text>
-        )}
-
-        {entries.length > 0 && (
-          <Timeline bulletSize={24} lineWidth={2} active={-1}>
-            {entries.map((entry) => {
-              const color =
-                entry.kind === "departure"
-                  ? "red"
-                  : entry.kind === "passive"
-                    ? "gray"
-                    : entry.resolved
-                      ? "teal"
-                      : "yellow";
-              const bullet =
-                entry.kind === "departure" ? (
-                  <IconUserMinus size={13} />
-                ) : entry.kind === "passive" ? (
-                  <IconWorld size={13} />
-                ) : entry.resolved ? (
-                  <IconSparkles size={13} />
-                ) : (
-                  <IconBolt size={13} />
-                );
-
-              return (
-                <Timeline.Item
-                  key={entry.key}
-                  color={color}
-                  bullet={bullet}
-                  title={
-                    <Group gap="xs" wrap="nowrap">
-                      <Text size="sm" fw={600}>
-                        {entry.title ??
-                          (entry.kind === "departure"
-                            ? "Saída de integrante"
-                            : "Cena musical")}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {formatPeriod(entry.year)}
-                      </Text>
-                    </Group>
-                  }
-                >
-                  <Text size="sm" c="dimmed">
-                    {entry.description}
-                  </Text>
-                  {entry.kind === "active" && entry.resolved && (
-                    <Text size="xs" mt={4}>
-                      Você escolheu:{" "}
-                      <Text span fw={600}>
-                        {entry.chosenLabel ?? "—"}
-                      </Text>
-                      {entry.outcome ? ` — ${entry.outcome}` : ""}
-                    </Text>
-                  )}
-                  {entry.kind === "active" && !entry.resolved && (
-                    <Badge size="xs" color="yellow" mt={4}>
-                      Decisão pendente
-                    </Badge>
-                  )}
-                </Timeline.Item>
-              );
-            })}
-          </Timeline>
-        )}
-      </div>
-    </Stack>
+      {entries.map((entry) => (
+        <article
+          key={entry.key}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "150px 1fr",
+            gap: 16,
+            padding: "12px 0",
+            borderBottom: "1px solid var(--rv-ink)",
+          }}
+        >
+          <div className="rv-mono" style={{ fontSize: 12, textTransform: "uppercase" }}>
+            {formatPeriod(entry.year)}
+          </div>
+          <div>
+            <div className={`rv-tierword ${entry.kind === "departure" || (entry.kind === "active" && !entry.resolved) ? "rv-red" : ""}`}>
+              {entry.kind === "departure"
+                ? "Saída de integrante"
+                : entry.kind === "passive"
+                  ? "Cena musical"
+                  : entry.resolved
+                    ? "Decisão"
+                    : "Decisão pendente"}
+            </div>
+            {entry.title && <div style={{ font: "900 20px/1.2 var(--rv-serif)", margin: "2px 0" }}>{entry.title}</div>}
+            <p style={{ margin: "4px 0 0" }}>{entry.description}</p>
+            {entry.kind === "active" && entry.resolved && (
+              <p className="rv-caption">
+                Você escolheu: <b>{entry.chosenLabel ?? "—"}</b>
+                {entry.outcome ? `. ${entry.outcome}` : ""}
+              </p>
+            )}
+          </div>
+        </article>
+      ))}
+    </>
   );
 }

@@ -1,23 +1,6 @@
 import { Badge, Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 import type { BudgetTier, ReleaseFormat } from "@/features/releases/types";
 
-/** Cover art per format — reads faster than a label in a dropdown. */
-const FORMAT_EMOJI: Record<string, string> = {
-  single: "💿",
-  ep: "📀",
-  lp: "🎶",
-  album: "🏆",
-  acoustic: "🪕",
-  live: "🎪",
-};
-
-/** Studio vibe per budget tier. */
-const BUDGET_EMOJI: Record<string, string> = {
-  caseiro: "🛋️",
-  estudio: "🎛️",
-  grande: "🏛️",
-};
-
 /** A 0..1 ratio rendered as five pips — the game-y way to compare stats. */
 function Pips({ value, color }: { value: number; color: string }) {
   const filled = Math.max(1, Math.min(5, Math.round(value * 5)));
@@ -96,7 +79,6 @@ export function FormatPicker({
         >
           <Stack gap={4}>
             <Group gap={6} wrap="nowrap">
-              <Text>{FORMAT_EMOJI[format.id] ?? "💿"}</Text>
               <Text size="sm" fw={700}>
                 {format.label}
               </Text>
@@ -120,7 +102,7 @@ export function FormatPicker({
               base {format.baseCost.toLocaleString("pt-BR")}
             </Text>
             <Text size="xs" fw={600} c="grape">
-              🎚️ {format.productionTurns} turno
+              {format.productionTurns} turno
               {format.productionTurns === 1 ? "" : "s"} de estúdio
             </Text>
           </Stack>
@@ -167,7 +149,6 @@ export function BudgetPicker({
             <Stack gap={4}>
               <Group gap={6} wrap="nowrap" justify="space-between">
                 <Group gap={6} wrap="nowrap">
-                  <Text>{BUDGET_EMOJI[tier.id] ?? "🎛️"}</Text>
                   <Text size="sm" fw={700}>
                     {tier.label}
                   </Text>

@@ -1,201 +1,193 @@
+import { useId } from "react";
+import type { ReactNode } from "react";
 import {
-  Badge,
-  Group,
-  HoverCard,
-  Stack,
-  Text,
-  UnstyledButton,
-} from "@mantine/core";
-import { useHover } from "@mantine/hooks";
-import { qualityTierColor, reviewTierColor } from "@/features/releases/labels";
-import type {
-  QualityTier,
-  Release,
-  ReviewTier,
-} from "@/features/releases/types";
+  HALFTONE_INK as INK,
+  HALFTONE_PAPER as PAPER,
+  HALFTONE_RED as RED,
+  seeded,
+  svgId,
+  tone,
+} from "@/components/halftone";
+import type { QualityTier, Release, ReviewTier } from "@/features/releases/types";
 import { formatPeriod } from "@/utils/period";
 
-/** Keyframes for the spinning vinyl — render once per page. */
+/** Keyframes do disco girando (sessões de estúdio). Renderize uma vez por página. */
 export const VINYL_KEYFRAMES = `
 @keyframes vinylSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `;
 
-/** Fixed outer footprint — every shelf item is the same size, single or double. */
-const FRAME = 112;
-
-/** Deterministic 32-bit hash of a string (FNV-1a), for a per-disc appearance. */
-function hashString(value: string): number {
-  let hash = 2166136261;
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-/** Label colorways (Mantine color names), for the disc's center label. */
-const LABEL_COLORS = [
-  "red",
-  "pink",
-  "grape",
-  "violet",
-  "indigo",
-  "blue",
-  "cyan",
-  "teal",
-  "green",
-  "lime",
-  "yellow",
-  "orange",
-];
-
-/** Metallic frame rings for the mid tiers. */
-const BRONZE = "linear-gradient(135deg, #e0a060, #8c5a2b, #cd7f32)";
-const SILVER = "linear-gradient(135deg, #f5f5f5, #a8a8a8, #e8e8e8)";
-
-/** Disc-body surfaces. */
-const BLACK_BODY =
-  "repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,0.55) 0 1.5px, rgba(255,255,255,0.03) 1.5px 3px), radial-gradient(circle at 36% 30%, #3a3a3a, #050505 62%)";
-/** Grande: the whole disc is polished gold. */
-const GOLD_BODY = [
-  "repeating-radial-gradient(circle at 50% 50%, rgba(255,230,150,0.08) 0 2px, rgba(255,255,255,0.03) 2px 4px)",
-  "radial-gradient(circle at 35% 25%, rgba(255,255,255,0.9), transparent 22%)",
-  "conic-gradient(from 210deg at 50% 50%, #6d4b00, #b47d00, #ffd54f, #fff7c7, #ffcc33, #b8860b, #ffd54f, #fff3a0, #6d4b00)",
-  "radial-gradient(circle at 50% 50%, #fff8d0 0%, #ffd54f 42%, #d4af37 70%, #7a5200 100%)",
-].join(", ");
 /**
- * Obra-prima: an icy diamond — small facets, mostly white/steel-blue with a very
- * subtle spectral "fire", plus sparkles (blended with `screen`).
+ * Acabamento por faixa de qualidade (ADR-0002), herdado da estante anterior:
+ * fracasso liso, medíocre com aro escuro ("bronze"), sólido com aro claro de
+ * fio duplo ("prata"), grande em vinil vermelho ("ouro") e obra-prima com dois
+ * discos claros num estojo preto ("diamante duplo").
  */
-const DIAMOND_BG = [
-  // sparkles
-  "radial-gradient(circle at 30% 26%, #ffffff, transparent 15%)",
-  "radial-gradient(circle at 72% 73%, rgba(255,255,255,0.85), transparent 12%)",
-  // faint spectral fire between the facets
-  "repeating-conic-gradient(from 12deg at 50% 50%, rgba(255,170,190,0.16) 0 3deg, rgba(0,0,0,0) 3deg 9deg, rgba(170,255,215,0.14) 9deg 12deg, rgba(0,0,0,0) 12deg 18deg, rgba(180,195,255,0.16) 18deg 21deg, rgba(0,0,0,0) 21deg 27deg)",
-  // small icy facets (thin wedges)
-  "conic-gradient(from 200deg at 50% 50%, #ffffff 0deg, #ffffff 15deg, #f8fbff 45deg, #eaf4ff 90deg, #d7e9ff 170deg, #c9e0ff 210deg, #d7e9ff 250deg, #eef6ff 310deg, #fbfdff 345deg, #ffffff 360deg)"
-].join(", ");
-const DIAMOND_BLEND = "screen, screen, screen, normal";
-
-interface Frame {
-  /** Metallic ring around a black disc (mid tiers). */
-  ring?: string;
-  width: number;
-  double?: boolean;
-  /** Overrides the whole disc body style (top tiers). */
-  bodyStyle?: React.CSSProperties;
-  /** Forces a black center label (top tiers). */
+interface DiscFrame {
+  ring: number;
+  ringTone?: number;
+  doubleRule?: boolean;
+  body?: string;
+  groove?: string;
   blackCenter?: boolean;
-  /** Sits the disc(s) on a black case/jacket (diamond only). */
-  cased?: boolean;
+  double?: boolean;
 }
 
-const FRAMES: Record<string, Frame> = {
-  fracasso: { width: 0 },
-  mediocre: { ring: BRONZE, width: 5 },
-  solido: { ring: SILVER, width: 6 },
-  grande: { width: 0, bodyStyle: { background: GOLD_BODY }, blackCenter: true },
-  "obra-prima": {
-    width: 0,
-    bodyStyle: {
-      background: DIAMOND_BG,
-      backgroundBlendMode: DIAMOND_BLEND,
-    },
-    blackCenter: true,
-    double: true,
-    cased: true,
-  },
+const FRAMES: Record<string, DiscFrame> = {
+  fracasso: { ring: 0 },
+  mediocre: { ring: 5, ringTone: 6 },
+  solido: { ring: 6, ringTone: 1, doubleRule: true },
+  grande: { ring: 0, body: tone(8, true), groove: PAPER, blackCenter: true },
+  "obra-prima": { ring: 0, body: tone(1), groove: INK, blackCenter: true, double: true },
 };
 
-/** A single spinning vinyl disc — black by default, or a special body/ring. */
-function Disc({
-  size,
-  bodyStyle,
-  labelBg,
-  labelFraction = 0.42,
-  ring,
-  ringWidth,
-  spinning,
-  style,
+const LABEL_DECOR = ["none", "ring", "split", "stripes"] as const;
+
+/** Título curto para o rótulo; título longo vira iniciais ("Céu de Cimento" → "CC"). */
+function labelText(title: string): string {
+  const base = title.replace(/^Obra /, "");
+  if (base.length <= 5) return base;
+  const initials = base
+    .split(/\s+/)
+    .filter((w) => w.length > 2)
+    .map((w) => w[0].toUpperCase())
+    .join("")
+    .slice(0, 4);
+  return initials || base.slice(0, 4);
+}
+
+/** Um disco: corpo, sulcos, reflexo, rótulo sorteado pelo id e furo. */
+function DiscBody({
+  release,
+  cx,
+  cy,
+  r,
+  frame,
+  uid,
 }: {
-  size: number;
-  /** Disc-body style overrides (defaults to the black vinyl). */
-  bodyStyle?: React.CSSProperties;
-  /** Center-label background. */
-  labelBg: string;
-  /** Center-label diameter as a fraction of the disc (smaller = more surface). */
-  labelFraction?: number;
-  ring?: string;
-  ringWidth: number;
-  spinning: boolean;
-  style?: React.CSSProperties;
+  release: Pick<Release, "id" | "title">;
+  cx: number;
+  cy: number;
+  r: number;
+  frame: DiscFrame;
+  uid: string;
 }) {
-  const labelSize = size * labelFraction;
+  const rnd = seeded(`${release.id}:label`);
+  const fill = rnd() < 0.5 ? RED : PAPER;
+  const other = fill === RED ? PAPER : RED;
+  const decor = LABEL_DECOR[Math.floor(rnd() * LABEL_DECOR.length)];
+  const inner = r - frame.ring;
+  const labelR = inner * (frame.blackCenter ? 0.26 : 0.42);
+  const groove = frame.groove ?? PAPER;
+  const short = labelText(release.title);
+  const fontSize = Math.max(4, labelR * (short.length > 4 ? 0.34 : 0.48));
+
+  const wedge = (a0: number, a1: number) => {
+    const p = (a: number) =>
+      `${(cx + inner * Math.cos((a * Math.PI) / 180)).toFixed(1)},${(cy + inner * Math.sin((a * Math.PI) / 180)).toFixed(1)}`;
+    return `M${cx},${cy} L${p(a0)} A${inner},${inner} 0 0 1 ${p(a1)} Z`;
+  };
+  const grooves: ReactNode[] = [];
+  for (let g = labelR + 3; g < inner - 1.5; g += 2.6) {
+    grooves.push(
+      <circle key={g} cx={cx} cy={cy} r={g.toFixed(1)} fill="none" stroke={groove} strokeWidth=".35" opacity=".45" />,
+    );
+  }
+
+  let decoration: ReactNode = null;
+  if (decor === "ring") {
+    decoration = (
+      <circle cx={cx} cy={cy} r={labelR * 0.8} fill="none" stroke={fill === RED ? PAPER : INK} strokeWidth="1" />
+    );
+  } else if (decor === "split") {
+    decoration = <rect x={cx - labelR} y={cy + labelR * 0.12} width={labelR * 2} height={labelR} fill={other} />;
+  } else if (decor === "stripes") {
+    decoration = [0.3, 0.48, 0.66].map((k) => (
+      <rect key={k} x={cx - labelR} y={cy + labelR * k} width={labelR * 2} height={labelR * 0.09} fill={other} />
+    ));
+  }
 
   return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        boxSizing: "border-box",
-        padding: ringWidth,
-        background: ring ?? "transparent",
-        boxShadow: ring ? "0 2px 6px rgba(0,0,0,0.35)" : undefined,
-        ...style,
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          background: BLACK_BODY,
-          boxShadow: "0 4px 10px rgba(0,0,0,0.45), inset 0 0 18px rgba(0,0,0,0.35)",
-          animation: spinning ? "vinylSpin 3.2s linear infinite" : undefined,
-          ...bodyStyle,
-        }}
+    <g className="rv-spin" style={{ transformOrigin: `${cx}px ${cy}px` }}>
+      {frame.ring > 0 && (
+        <>
+          <circle cx={cx} cy={cy} r={r} fill={tone(frame.ringTone ?? 6)} stroke={INK} strokeWidth="1.4" />
+          {frame.doubleRule && (
+            <circle cx={cx} cy={cy} r={r - frame.ring / 2} fill="none" stroke={INK} strokeWidth=".7" />
+          )}
+        </>
+      )}
+      <circle cx={cx} cy={cy} r={inner} fill={frame.body ?? INK} stroke={INK} strokeWidth="1.4" />
+      <path
+        d={`${wedge(-140, -112)} ${wedge(40, 68)}`}
+        fill={frame.body ? (groove === INK ? tone(3) : tone(6, true)) : tone(8)}
+      />
+      {grooves}
+      {frame.blackCenter ? (
+        <circle cx={cx} cy={cy} r={labelR} fill={INK} />
+      ) : (
+        <>
+          <clipPath id={`${uid}l`}>
+            <circle cx={cx} cy={cy} r={labelR} />
+          </clipPath>
+          <circle cx={cx} cy={cy} r={labelR} fill={fill} />
+          <g clipPath={`url(#${uid}l)`}>{decoration}</g>
+        </>
+      )}
+      <text
+        x={cx}
+        y={cy - labelR * 0.3}
+        textAnchor="middle"
+        fontFamily="Playfair Display, Georgia, serif"
+        fontWeight="900"
+        fontSize={fontSize.toFixed(1)}
+        fill={frame.blackCenter || fill === RED ? PAPER : INK}
       >
-        <div
-          style={{
-            width: labelSize,
-            height: labelSize,
-            borderRadius: "50%",
-            background: labelBg,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 0 0 3px rgba(0,0,0,0.25)",
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              width: 7,
-              height: 7,
-              borderRadius: "50%",
-              background: "#0a0a0a",
-              boxShadow: "inset 0 0 2px #000",
-            }}
-          />
-        </div>
-      </div>
-    </div>
+        {short}
+      </text>
+      <circle cx={cx} cy={cy} r={Math.max(1.6, labelR * 0.1)} fill={PAPER} stroke={INK} strokeWidth=".6" />
+    </g>
   );
 }
 
 /**
- * A launched work shown as a vinyl record on the shelf: a unique-looking disc
- * (color/label seeded by its id) framed by a metal that reflects its quality
- * (bronze → silver → gold → platinum; a masterpiece is a double-platinum pair).
- * Every shelf item keeps the same footprint. Hovering spins it and shows a quick
- * preview; clicking opens the details modal.
+ * Disco de vinil de uma obra (ADR-0002), num quadro 120 × 120. Gira ao passar
+ * o mouse quando está dentro de um elemento `.rv-disc-hover`.
+ *
+ * @param props.release - A obra (id para o rótulo, título e faixa).
+ */
+export function VinylDisc({
+  release,
+}: {
+  release: Pick<Release, "id" | "title" | "qualityTier">;
+}) {
+  const uid = svgId(useId());
+  const frame = FRAMES[release.qualityTier ?? ""] ?? FRAMES.fracasso;
+  return (
+    <svg className="rv-disc" viewBox="0 0 120 120" role="img" aria-label={`Disco ${release.title}`}>
+      {frame.double ? (
+        <>
+          <rect x="1" y="1" width="118" height="118" rx="7" fill={INK} />
+          <rect x="5" y="5" width="110" height="110" rx="5" fill="none" stroke={PAPER} strokeWidth=".5" opacity=".4" />
+          <DiscBody release={release} cx={48.8} cy={59.8} r={40.8} frame={frame} uid={`${uid}a`} />
+          <DiscBody release={release} cx={71.2} cy={59.8} r={40.8} frame={frame} uid={`${uid}b`} />
+        </>
+      ) : (
+        <DiscBody release={release} cx={60} cy={60} r={58} frame={frame} uid={uid} />
+      )}
+    </svg>
+  );
+}
+
+/**
+ * Uma obra lançada como resenha de revista: o disco, a faixa, o título, a
+ * primeira frase da crítica, os números e a nota. Clicar abre os detalhes.
+ *
+ * @param props.release - A obra lançada.
+ * @param props.formatLabel - Formato por extenso.
+ * @param props.qualityTier - Faixa de qualidade (rótulo).
+ * @param props.criticTier - Faixa da crítica.
+ * @param props.publicTier - Faixa do público.
+ * @param props.onClick - Abre os detalhes.
  */
 export function VinylRecord({
   release,
@@ -212,189 +204,63 @@ export function VinylRecord({
   publicTier?: ReviewTier;
   onClick: () => void;
 }) {
-  const { hovered, ref } = useHover();
-
-  const labelColor =
-    LABEL_COLORS[hashString(`${release.id}:label`) % LABEL_COLORS.length];
-  const frame = FRAMES[release.qualityTier ?? ""] ?? { width: 0 };
-  const year =
-    release.releasedAtYear !== null ? Math.floor(release.releasedAtYear) : null;
-
-  // The disc's overall rating: the average of the critic and public stars (falls
-  // back to the quality when there are no reviews).
-  const overallStars =
-    criticTier && publicTier
-      ? Math.round((criticTier.stars + publicTier.stars) / 2)
-      : release.quality !== null
-        ? Math.max(1, Math.round(release.quality / 20))
-        : 0;
-
-  const labelBg = frame.blackCenter
-    ? "#0a0a0a"
-    : `var(--mantine-color-${labelColor}-8)`;
-
-  const discProps = {
-    bodyStyle: frame.bodyStyle,
-    labelBg,
-    // A smaller black center gives more room to the gold/diamond surface.
-    labelFraction: frame.blackCenter ? 0.26 : 0.42,
-    spinning: hovered,
-  };
+  const quote = (release.criticComments ?? [])[0];
+  const revenue = (release.masterRevenueTotal ?? 0) + (release.publishingRevenueTotal ?? 0);
+  const stars = (tier?: ReviewTier) => (tier ? "★".repeat(tier.stars) + "☆".repeat(5 - tier.stars) : "");
 
   return (
-    <HoverCard
-      openDelay={120}
-      closeDelay={40}
-      position="top"
-      withArrow
-      shadow="md"
-      width={260}
+    <article
+      className="rv-disc-hover"
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(80px, 120px) 1fr auto",
+        gap: 16,
+        padding: "14px 0",
+        borderBottom: "1px solid var(--rv-ink)",
+        cursor: "pointer",
+        alignItems: "start",
+      }}
     >
-      <HoverCard.Target>
-        <UnstyledButton
-          ref={ref}
-          onClick={onClick}
-          style={{
-            transform: hovered ? "translateY(-4px)" : "none",
-            transition: "transform 200ms ease",
-          }}
-        >
-          <Stack align="center" gap={6} w={FRAME}>
-            <div
-              style={{
-                width: FRAME,
-                height: FRAME,
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                ...(frame.cased
-                  ? {
-                      background:
-                        "linear-gradient(160deg, #1a1a1a, #050505)",
-                      borderRadius: 8,
-                      boxShadow:
-                        "inset 0 0 10px rgba(0,0,0,0.8), 0 4px 10px rgba(0,0,0,0.4)",
-                    }
-                  : {}),
-              }}
-            >
-              {frame.double ? (
-                <>
-                  <Disc
-                    size={FRAME * 0.68}
-                    ring={frame.ring}
-                    ringWidth={frame.width}
-                    {...discProps}
-                    style={{
-                      position: "absolute",
-                      left: FRAME * 0.07,
-                      top: FRAME * 0.16,
-                    }}
-                  />
-                  <Disc
-                    size={FRAME * 0.68}
-                    ring={frame.ring}
-                    ringWidth={frame.width}
-                    {...discProps}
-                    style={{
-                      position: "absolute",
-                      right: FRAME * 0.07,
-                      top: FRAME * 0.16,
-                    }}
-                  />
-                </>
-              ) : (
-                <Disc
-                  size={FRAME}
-                  ring={frame.ring}
-                  ringWidth={frame.width}
-                  {...discProps}
-                />
-              )}
-            </div>
-
-            <Text size="xs" fw={600} ta="center" lineClamp={1} w={FRAME}>
-              {release.title}
-            </Text>
-            <Text size="10px" c="dimmed" ta="center" lineClamp={1} w={FRAME}>
-              {formatLabel}
-              {year !== null ? ` · ${year}` : ""}
-            </Text>
-            {overallStars > 0 && (
-              <Text size="10px" ta="center" w={FRAME} c="yellow.6">
-                {stars(overallStars)}
-              </Text>
-            )}
-          </Stack>
-        </UnstyledButton>
-      </HoverCard.Target>
-
-      <HoverCard.Dropdown>
-        <Stack gap={6}>
-          <div>
-            <Text fw={700} size="sm">
-              {release.title}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {formatLabel}
-              {release.releasedAtYear !== null &&
-                ` · ${formatPeriod(release.releasedAtYear)}`}
-            </Text>
-          </div>
-
-          {release.qualityTier && (
-            <Badge
-              color={qualityTierColor(release.qualityTier)}
-              variant="light"
-              w="fit-content"
-            >
-              {qualityTier
-                ? `${qualityTier.emoji} ${qualityTier.label}`
-                : release.qualityTier}
-            </Badge>
-          )}
-
-          {release.criticScore !== null && (
-            <Group gap="lg">
-              <Text size="xs">
-                <Text span fw={600}>
-                  Crítica
-                </Text>{" "}
-                <Text span c={reviewTierColor(release.criticTier)}>
-                  {criticTier ? stars(criticTier.stars) : ""}
-                </Text>{" "}
-                {Math.round(release.criticScore)}
-              </Text>
-              <Text size="xs">
-                <Text span fw={600}>
-                  Público
-                </Text>{" "}
-                <Text span c={reviewTierColor(release.publicTier)}>
-                  {publicTier ? stars(publicTier.stars) : ""}
-                </Text>{" "}
-                {Math.round(release.publicScore ?? 0)}
-              </Text>
-            </Group>
-          )}
-
-          {release.concept && (
-            <Text size="xs" c="dimmed" lineClamp={2}>
-              {release.concept}
-            </Text>
-          )}
-
-          <Text size="10px" c="dimmed">
-            Clique para ver os detalhes.
-          </Text>
-        </Stack>
-      </HoverCard.Dropdown>
-    </HoverCard>
+      <VinylDisc release={release} />
+      <div style={{ minWidth: 0 }}>
+        <div className={`rv-tierword ${release.qualityTier === "fracasso" ? "rv-red" : ""}`}>
+          {qualityTier?.label ?? release.qualityTier} · {formatLabel}
+          {release.releasedAtYear !== null ? ` · ${formatPeriod(release.releasedAtYear)}` : ""}
+        </div>
+        <div style={{ font: "900 22px/1.1 var(--rv-serif)" }}>
+          “<span>{release.title}</span>”
+        </div>
+        {quote && (
+          <p style={{ margin: "6px 0 0" }}>
+            <i>"{quote.text}"</i> <span className="rv-caption">— {quote.author}</span>
+          </p>
+        )}
+        <div className="rv-caption">
+          +{(release.fansGained ?? 0).toLocaleString("pt-BR")} fãs · receita {Math.round(revenue).toLocaleString("pt-BR")}
+          {release.royaltyTurnsLeft > 0 ? ` · royalties por mais ${release.royaltyTurnsLeft} turnos` : ""}
+        </div>
+      </div>
+      <div style={{ textAlign: "right" }}>
+        <b style={{ font: "900 34px/1 var(--rv-serif)", display: "block" }}>
+          {release.quality !== null ? Math.round(release.quality) : "—"}
+        </b>
+        <span className="rv-label">nota</span>
+        <div className="rv-mono" style={{ fontSize: 12, marginTop: 4 }}>
+          crítica {stars(criticTier)} {release.criticScore !== null ? Math.round(release.criticScore) : ""}
+        </div>
+        <div className="rv-mono" style={{ fontSize: 12 }}>
+          público {stars(publicTier)} {release.publicScore !== null ? Math.round(release.publicScore) : ""}
+        </div>
+      </div>
+    </article>
   );
-}
-
-/** Renders a 1..5 star rating with filled and empty stars. */
-function stars(count: number): string {
-  const filled = Math.max(0, Math.min(5, count));
-  return "⭐".repeat(filled) + "☆".repeat(5 - filled);
 }

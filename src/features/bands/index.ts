@@ -2,6 +2,11 @@
 export { BandNameConfigModal } from "@/features/bands/components/BandNameConfigModal";
 export { BandGameOptions } from "@/features/bands/components/BandGameOptions";
 export { BandHeader } from "@/features/bands/components/BandHeader";
+export { BandPhoto } from "@/features/bands/portrait/BandPhoto";
+export { FaceThumb, MemberFace, MemberPortrait } from "@/features/bands/portrait/MemberPortrait";
+export { resolveScene, SCENE_TEXT } from "@/features/bands/portrait/scenes";
+export type { PortraitSubject } from "@/features/bands/portrait/looks";
+export { BandCover } from "@/features/bands/components/BandCover";
 export { BandStatistics } from "@/features/bands/components/BandStatistics";
 export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";
 export { DepartureModal } from "@/features/bands/components/DepartureModal";
@@ -28,6 +33,7 @@ export {
   catalogKeys,
   useBandOptions,
   useCharacteristics,
+  useHappinessLevels,
   useRelationshipLevels,
   useSkillDescriptions,
 } from "@/features/bands/hooks/useBandOptions";

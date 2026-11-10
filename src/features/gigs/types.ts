@@ -53,3 +53,20 @@ export interface GigResult {
   fanCount: number;
   skillGains: GigSkillGain[];
 }
+
+/**
+ * Expected outcome of playing a circuit now (from the turn panel, ADR-0022 do
+ * backend). Mirrors the panel's preview so the page can pass it straight in.
+ */
+export interface GigPreview {
+  gigTypeId: string;
+  label: string;
+  minFameLevel: number;
+  available: boolean;
+  expectedPerformance: number;
+  fee: number;
+  cost: number;
+  net: number;
+  fansGained: number;
+  happinessDelta: number;
+}

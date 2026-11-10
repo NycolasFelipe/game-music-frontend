@@ -1,99 +1,49 @@
-import {
-  Badge,
-  Button,
-  Card,
-  Container,
-  Group,
-  Loader,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Loader, Text } from "@mantine/core";
 import { Link } from "react-router-dom";
+import { Masthead } from "@/components/revista";
 import { useCurrentUser } from "@/features/auth";
-import { DeleteBandButton, useBandOptions, useBands } from "@/features/bands";
-import { EmptyState } from "@/components/EmptyState";
-import { formatPeriod } from "@/utils/period";
+import { BandCover, useBandOptions, useBands } from "@/features/bands";
 
-/** Post-login home: user data + save history + continue / create a save. */
+/** A banca (ADR-0002): uma capa por save, mais a vaga para fundar uma banda nova. */
 export function HomePage() {
   const { data: user } = useCurrentUser();
   const { data: bands, isLoading, isError } = useBands();
   const { data: options } = useBandOptions();
 
-  const themeLabel = (id: string) =>
-    options?.themes.find((t) => t.id === id)?.label ?? id;
+  const themeLabel = (id: string) => options?.themes.find((t) => t.id === id)?.label ?? id;
 
   return (
-    <Container py="xl" size="md">
-      <Stack gap={0} mb="xl">
-        <Title order={2}>Olá, {user?.username ?? "…"}</Title>
-        <Text size="sm" c="dimmed">
-          {user ? `ID: ${user.id}` : "Carregando usuário…"}
+    <>
+      <div className="rv-topline">
+        <span>Banca do assinante · {user?.username ?? "…"}</span>
+      </div>
+      <Masthead title="A banca" small />
+      <div className="rv-issue">
+        <span>
+          {bands ? `${bands.length} banda${bands.length === 1 ? "" : "s"} em circulação` : "Carregando…"}
+        </span>
+      </div>
+
+      {isLoading && <Loader mt="md" color="ink" />}
+      {isError && (
+        <Text c="red" mt="md">
+          Falha ao carregar seus saves.
         </Text>
-      </Stack>
-
-      <Group justify="space-between" mb="md">
-        <Title order={4}>Seus saves</Title>
-        <Button component={Link} to="/saves/new">
-          Criar novo save
-        </Button>
-      </Group>
-
-      {isLoading && <Loader />}
-      {isError && <Text c="red">Falha ao carregar seus saves.</Text>}
-
-      {bands && bands.length === 0 && (
-        <EmptyState
-          title="Nenhum save ainda"
-          description="Crie sua primeira banda para começar a jogar."
-          action={
-            <Button component={Link} to="/saves/new" mt="sm">
-              Criar novo save
-            </Button>
-          }
-        />
       )}
 
-      {bands && bands.length > 0 && (
-        <SimpleGrid cols={{ base: 1, sm: 2 }}>
-          {bands.map((band) => (
-            <Card key={band.id} withBorder padding="lg">
-              <Stack gap="xs">
-                <Group justify="space-between" wrap="nowrap" align="flex-start">
-                  <Text fw={600} size="lg">
-                    {band.name}
-                  </Text>
-                  <Group gap="xs" wrap="nowrap">
-                    <Badge variant="light">{themeLabel(band.theme)}</Badge>
-                    <DeleteBandButton bandId={band.id} bandName={band.name} />
-                  </Group>
-                </Group>
-                <Text size="sm" c="dimmed">
-                  {formatPeriod(band.currentYear)}
-                </Text>
-                <Group gap="xs">
-                  <Badge color="grape" variant="light">
-                    {band.fame.title} · Nível {band.fame.level}
-                  </Badge>
-                  <Badge color="gray" variant="light">
-                    {band.fanCount.toLocaleString("pt-BR")} fãs
-                  </Badge>
-                </Group>
-                <Button
-                  component={Link}
-                  to={`/bands/${band.id}`}
-                  variant="light"
-                  mt="xs"
-                >
-                  Continuar
-                </Button>
-              </Stack>
-            </Card>
-          ))}
-        </SimpleGrid>
-      )}
-    </Container>
+      <div className="rv-covers">
+        {(bands ?? []).map((band) => (
+          <BandCover key={band.id} band={band} themeLabel={themeLabel(band.theme)} />
+        ))}
+        <Link to="/saves/new" className="rv-mag rv-new">
+          <div>
+            <div className="rv-t" style={{ fontSize: 28 }}>
+              Nova <em>banda</em>
+            </div>
+            <div className="rv-meta">Fundar uma banda e lançar a edição nº 1</div>
+          </div>
+        </Link>
+      </div>
+    </>
   );
 }

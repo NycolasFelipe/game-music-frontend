@@ -5,12 +5,12 @@ import type { CreationEvent, CreationEventKind } from "@/features/releases/types
 /** Display metadata per creation-event kind (flavor for the studio session). */
 const KINDS: Record<
   CreationEventKind,
-  { label: string; emoji: string; color: string }
+  { label: string; color: string }
 > = {
-  conflito_visao: { label: "Conflito de visão", emoji: "⚔️", color: "red" },
-  ideia_maluca: { label: "Ideia maluca", emoji: "💡", color: "yellow" },
-  perfeccionismo: { label: "Perfeccionismo", emoji: "🔬", color: "blue" },
-  preguica: { label: "Preguiça", emoji: "😴", color: "gray" },
+  conflito_visao: { label: "Conflito de visão", color: "red" },
+  ideia_maluca: { label: "Ideia maluca", color: "yellow" },
+  perfeccionismo: { label: "Perfeccionismo", color: "blue" },
+  preguica: { label: "Preguiça", color: "gray" },
 };
 
 /** A small vinyl spinning while the session runs. */
@@ -34,7 +34,7 @@ function SpinningDisc() {
           width: 10,
           height: 10,
           borderRadius: "50%",
-          background: "var(--mantine-color-blue-5)",
+          background: "var(--rv-red)",
           margin: "12px auto",
         }}
       />
@@ -75,7 +75,7 @@ export function CreationEventStage({
               Sessão {index} de {total}
             </Text>
             <Badge variant="light" color={kind.color}>
-              {kind.emoji} {kind.label}
+              {kind.label}
             </Badge>
           </Group>
           <Progress

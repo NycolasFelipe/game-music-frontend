@@ -101,7 +101,7 @@ export function MemberSalaryControl({
           </Text>
           {member.salaryAtRisk && (
             <Text size="xs" c="red" fw={600}>
-              ⚠️ Salário atrasado — o integrante pode deixar a banda se não for
+              Salário atrasado: o integrante pode deixar a banda se não for
               pago.
             </Text>
           )}

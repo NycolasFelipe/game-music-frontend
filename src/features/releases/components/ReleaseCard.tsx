@@ -22,7 +22,7 @@ import { formatPeriod } from "@/utils/period";
 /** Renders a 1..5 star rating with filled and empty stars. */
 function stars(count: number): string {
   const filled = Math.max(0, Math.min(5, count));
-  return "⭐".repeat(filled) + "☆".repeat(5 - filled);
+  return "★".repeat(filled) + "☆".repeat(5 - filled);
 }
 
 /** A launched work in the discography. */
@@ -66,7 +66,7 @@ export function ReleaseCard({
               variant="light"
               size="lg"
             >
-              {qualityTier ? `${qualityTier.emoji} ${qualityTier.label}` : release.qualityTier}
+              {qualityTier ? qualityTier.label : release.qualityTier}
             </Badge>
           )}
         </Group>

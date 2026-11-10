@@ -115,7 +115,7 @@ Mapa feature ↔ backend:
 | `bands` | `GET/POST /bands`, `GET/DELETE /bands/:id`, `GET /bands/generate-name`, `GET /bands/:id/fame`, `GET/PATCH /bands/:id/relationships` |
 | `band-members` | membros compostos em `GET /bands/:id` |
 | `events` | `POST/GET /bands/:id/events`, `POST /bands/:id/events/:eventId/resolve`, `POST/GET /bands/:id/passive-events` |
-| `turns` | `POST /bands/:id/turns/advance`, `GET /bands/:id/turns` |
+| `turns` | `POST /bands/:id/turns/advance`, `GET /bands/:id/turns`, `GET /bands/:id/turns/panel` (ADR-0002) |
 
 > **Fama** é valor **derivado** (nível 0–30 a partir de `fanCount`): já vem
 > embutida em cada resposta de banda e há `GET /bands/:id/fame`. No frontend é

@@ -4,6 +4,8 @@
  * departure returned by advancing a turn), so it lives in global `types/`.
  */
 
+import type { MemberAppearance } from "@/types/appearance";
+
 /** One relationship the member had at departure. */
 export interface FormerMemberRelationship {
   /** The other member's name at the time. */
@@ -22,6 +24,8 @@ export interface FormerMember {
   age: number;
   gender: string;
   avatar: string;
+  /** How the member looks in photos (absent in older snapshots). */
+  appearance?: MemberAppearance | null;
   /** Happiness at departure. */
   happiness: number;
   characteristics: string[];

@@ -1,3 +1,4 @@
+import type { MemberAppearance } from "@/types/appearance";
 import type {
   MemberRelationship,
   RelationshipLevelInfo,
@@ -8,6 +9,11 @@ export interface RelationshipMember {
   id: string;
   name: string;
   avatar: string;
+  /** Usados no retrato do nó; sem eles o rosto sai neutro. */
+  gender?: string;
+  age?: number;
+  happiness?: number;
+  appearance?: MemberAppearance | null;
 }
 
 /** Shared props for every relationship visualization. */
@@ -25,20 +31,16 @@ export const pairKey = (a: string, b: string) => [a, b].sort().join("|");
 
 /** Mantine color name per relationship level (red hostile → green close). */
 export function levelColor(level: number): string {
-  if (level <= -3) return "red";
-  if (level < 0) return "orange";
+  if (level < 0) return "red";
   if (level === 0) return "gray";
-  if (level <= 2) return "teal";
-  return "green";
+  return "ink";
 }
 
-/** Fixed hex per level, for SVG strokes (theme-independent, readable on both). */
+/** Cor do traço por nível (ADR-0002): hostilidade em vermelho, afinidade em tinta. */
 export function levelHex(level: number): string {
-  if (level <= -3) return "#e03131";
-  if (level < 0) return "#e8590c";
-  if (level === 0) return "#adb5bd";
-  if (level <= 2) return "#0ca678";
-  return "#2f9e44";
+  if (level < 0) return "#d4241b";
+  if (level === 0) return "#b9b1a3";
+  return "#131211";
 }
 
 /** Builds `pairKey → level` and `level → info` lookups. */

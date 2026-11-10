@@ -3,6 +3,7 @@ import {
   MemberCard,
   type MemberCardData,
 } from "@/features/bands/components/MemberCard";
+import { MemberFace } from "@/features/bands/portrait/MemberPortrait";
 import type { Characteristic } from "@/features/bands/types";
 
 /**
@@ -23,7 +24,7 @@ export function MemberHoverName({
           wrap="nowrap"
           style={{ cursor: "help", display: "inline-flex" }}
         >
-          <Text component="span">{member.avatar}</Text>
+          <MemberFace subject={{ ...member, happiness: member.happiness ?? 0 }} size={20} />
           <Text component="span" size="sm" fw={600} td="underline">
             {member.name}
           </Text>

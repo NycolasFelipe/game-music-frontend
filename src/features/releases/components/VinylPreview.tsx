@@ -4,10 +4,7 @@ import {
   useQualityTiers,
   useReviewTiers,
 } from "@/features/releases/hooks/useReleaseCatalogs";
-import {
-  VINYL_KEYFRAMES,
-  VinylRecord,
-} from "@/features/releases/components/VinylRecord";
+import { VinylRecord } from "@/features/releases/components/VinylRecord";
 import type { Release } from "@/features/releases/types";
 
 /** One sample per quality tier, to preview the disc/frame variations. */
@@ -86,18 +83,7 @@ export function VinylPreview() {
       />
 
       {on && (
-        <div
-          style={{
-            padding: "28px 20px 18px",
-            borderRadius: 10,
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.10))",
-            borderBottom: "12px solid #6b4a2f",
-            boxShadow:
-              "inset 0 -3px 8px rgba(0,0,0,0.25), 0 8px 14px rgba(0,0,0,0.18)",
-          }}
-        >
-          <style>{VINYL_KEYFRAMES}</style>
+        <div>
           <Group gap="xl" wrap="wrap" align="flex-start">
             {SAMPLES.map((sample) => (
               <VinylRecord

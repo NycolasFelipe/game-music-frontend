@@ -177,7 +177,7 @@ function ReviewSection({
               textShadow: "0 0 12px rgba(255, 210, 60, 0.85)",
             }}
           >
-            ✨ Obra-prima ✨
+            Obra-prima
           </Text>
         </Reveal>
       )}

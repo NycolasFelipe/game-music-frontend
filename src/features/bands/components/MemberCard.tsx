@@ -1,18 +1,20 @@
-import { ActionIcon, Box, Card, Group, Loader, Stack, Text, Tooltip } from "@mantine/core";
-import { useHover } from "@mantine/hooks";
-import { IconRefresh } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 import { CharacteristicChips } from "@/features/bands/components/CharacteristicChips";
 import { HappinessBadge } from "@/features/bands/components/HappinessBadge";
 import { SkillBars } from "@/features/bands/components/SkillBars";
+import { SKILL_LABELS } from "@/features/bands/labels";
+import { MemberPortrait } from "@/features/bands/portrait/MemberPortrait";
 import type { Characteristic, Skills } from "@/features/bands/types";
+import type { MemberAppearance } from "@/types/appearance";
 
 /** The shape shared by generated candidates and persisted members. */
 export interface MemberCardData {
+  id: string;
   name: string;
   age: number;
   gender: string;
   avatar: string;
+  appearance?: MemberAppearance | null;
   happiness?: number;
   primarySkill: string;
   skills: Skills;
@@ -20,80 +22,20 @@ export interface MemberCardData {
   biography: string;
 }
 
-function genderLabel(gender: string): string {
-  if (gender === "male") return "Masculino";
-  if (gender === "female") return "Feminino";
-  return gender;
-}
-
 /**
- * The member avatar. When `onRegenerate` is provided, hovering fades the emoji
- * and reveals a regenerate button (used for editable candidates).
+ * Ficha de um integrante ou candidato no estilo da revista (ADR-0002): retrato
+ * em retícula, nome, função, humor, traços, biografia e habilidades.
+ *
+ * @param props.member - Integrante ou candidato.
+ * @param props.catalog - Catálogo de traços (nome e descrição).
+ * @param props.selected - Marcado nas audições (contorno e etiqueta "Aprovado").
+ * @param props.onToggle - Clique na ficha (seleção nas audições).
+ * @param props.actions - Ações extras abaixo do humor (ex.: salário).
+ * @param props.onRegenerateAvatar - Oferece "novo visual" sobre o retrato.
+ * @param props.avatarRegenerating - Se o novo visual está sendo gerado.
+ * @param props.crop - Recorte do retrato: 3:4 (`portrait`) ou 4:3 (`wide`).
+ * @param props.tag - Etiqueta vermelha sobre o retrato (ex.: "Em crise").
  */
-function MemberAvatar({
-  avatar,
-  onRegenerate,
-  loading,
-}: {
-  avatar: string;
-  onRegenerate?: () => void;
-  loading?: boolean;
-}) {
-  const { hovered, ref } = useHover();
-
-  if (!onRegenerate) {
-    return (
-      <Text fz={30} lh={1}>
-        {avatar}
-      </Text>
-    );
-  }
-
-  const active = hovered || loading;
-
-  return (
-    <Box
-      ref={ref}
-      pos="relative"
-      style={{ cursor: "pointer", lineHeight: 0 }}
-      onClick={(event) => {
-        event.stopPropagation();
-        if (!loading) onRegenerate();
-      }}
-    >
-      <Text
-        fz={30}
-        lh={1}
-        style={{ opacity: active ? 0.2 : 1, transition: "opacity 120ms" }}
-      >
-        {avatar}
-      </Text>
-      {active && (
-        <Box
-          pos="absolute"
-          inset={0}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {loading ? (
-            <Loader size="xs" />
-          ) : (
-            <Tooltip label="Regerar aparência" withArrow>
-              <ActionIcon component="div" variant="light" size="sm" radius="xl">
-                <IconRefresh size={16} />
-              </ActionIcon>
-            </Tooltip>
-          )}
-        </Box>
-      )}
-    </Box>
-  );
-}
-
-/** Presentational card for a band member / candidate. */
 export function MemberCard({
   member,
   catalog,
@@ -102,6 +44,8 @@ export function MemberCard({
   actions,
   onRegenerateAvatar,
   avatarRegenerating,
+  crop = "portrait",
+  tag,
 }: {
   member: MemberCardData;
   catalog: Map<string, Characteristic>;
@@ -110,61 +54,71 @@ export function MemberCard({
   actions?: ReactNode;
   onRegenerateAvatar?: () => void;
   avatarRegenerating?: boolean;
+  crop?: "portrait" | "wide";
+  tag?: ReactNode;
 }) {
+  const role = SKILL_LABELS[member.primarySkill as keyof Skills] ?? member.primarySkill;
+
   return (
-    <Card
-      withBorder
-      padding="md"
+    <article
+      className="rv-profile"
       onClick={onToggle}
       style={{
         cursor: onToggle ? "pointer" : undefined,
-        borderColor: selected ? "var(--mantine-color-blue-5)" : undefined,
-        borderWidth: selected ? 2 : undefined,
+        padding: selected !== undefined ? 8 : 0,
+        outline: selected ? "2px solid var(--rv-ink)" : undefined,
+        boxShadow: selected ? "6px 6px 0 var(--rv-red)" : undefined,
       }}
     >
-      <Stack gap="xs">
-        <Group
-          justify="space-between"
-          align="flex-start"
-          wrap="nowrap"
-          gap="xs"
-        >
-          <Group
-            gap="sm"
-            wrap="nowrap"
-            align="center"
-            style={{ flex: 1, minWidth: 0 }}
+      <div style={{ position: "relative" }}>
+        <MemberPortrait
+          subject={{ ...member, happiness: member.happiness ?? 0 }}
+          crop={crop}
+          tag={selected ? "Aprovado" : tag}
+        />
+        {onRegenerateAvatar && (
+          <button
+            type="button"
+            className="rv-link"
+            disabled={avatarRegenerating}
+            onClick={(event) => {
+              event.stopPropagation();
+              onRegenerateAvatar();
+            }}
+            style={{
+              position: "absolute",
+              top: 6,
+              right: 6,
+              background: "var(--rv-paper)",
+              padding: "3px 6px",
+              textDecoration: "none",
+              color: "var(--rv-ink)",
+              border: "1px solid var(--rv-ink)",
+            }}
           >
-            <MemberAvatar
-              avatar={member.avatar}
-              onRegenerate={onRegenerateAvatar}
-              loading={avatarRegenerating}
-            />
-            <div style={{ minWidth: 0 }}>
-              <Text fw={600} style={{ wordBreak: "break-word" }}>
-                {member.name}
-              </Text>
-              <Text size="xs" c="dimmed">
-                {member.age} anos · {genderLabel(member.gender)}
-              </Text>
-            </div>
-          </Group>
-          <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-            {member.happiness !== undefined && (
-              <HappinessBadge value={member.happiness} />
-            )}
-            {actions}
-          </Group>
-        </Group>
-
-        <CharacteristicChips ids={member.characteristics} catalog={catalog} />
-
-        <Text size="xs" c="dimmed">
-          {member.biography}
-        </Text>
-
-        <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
-      </Stack>
-    </Card>
+            {avatarRegenerating ? "Gerando…" : "Novo visual"}
+          </button>
+        )}
+      </div>
+      <div className="rv-nm">{member.name}</div>
+      <div className="rv-role">
+        {role} · {member.age} anos
+      </div>
+      {member.happiness !== undefined && (
+        <div style={{ marginTop: 4 }}>
+          <HappinessBadge value={member.happiness} />
+        </div>
+      )}
+      {actions && (
+        <div style={{ marginTop: 4 }} onClick={(event) => event.stopPropagation()}>
+          {actions}
+        </div>
+      )}
+      <CharacteristicChips ids={member.characteristics} catalog={catalog} />
+      <p className="rv-caption" style={{ margin: "4px 0 8px" }}>
+        {member.biography}
+      </p>
+      <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
+    </article>
   );
 }

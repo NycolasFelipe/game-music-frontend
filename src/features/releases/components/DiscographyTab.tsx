@@ -1,16 +1,12 @@
-import { Button, Card, Group, Modal, Stack, Text, Title } from "@mantine/core";
+import { Button, Modal, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconDisc, IconPlus } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 import { useCharacteristics } from "@/features/bands";
 import type { BandDetail, Characteristic } from "@/features/bands";
 import { ReleaseCard } from "@/features/releases/components/ReleaseCard";
 import { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
 import { useReleaseRevealUi } from "@/features/releases/store/release-reveal.store";
-import {
-  VINYL_KEYFRAMES,
-  VinylRecord,
-} from "@/features/releases/components/VinylRecord";
+import { VinylRecord } from "@/features/releases/components/VinylRecord";
 import type { Release } from "@/features/releases/types";
 import {
   useQualityTiers,
@@ -70,87 +66,77 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
   };
 
   return (
-    <Stack gap="lg">
-      <Group justify="space-between">
-        <Title order={4}>Discografia</Title>
-        {!draft && (
-          <Button leftSection={<IconPlus size={16} />} onClick={openFresh}>
+    <Stack gap="md">
+      <div>
+        <div className="rv-kicker">Resenhas</div>
+        <h2 className="rv-head rv-md">Tudo o que a banda lançou</h2>
+      </div>
+
+      {draft ? (
+        <button type="button" className="rv-listing" onClick={() => openResume(draft.id)}>
+          <span className="rv-v">
+            {draft.productionTurnsLeft > 0 ? "Em produção" : "Pronta para lançar"}: "
+            {draft.title || "Obra sem título"}"
+          </span>
+          <span className="rv-n">
+            <span className="rv-link">
+              {draft.productionTurnsLeft > 0 ? "Ver estúdio" : `Lançar ${formatLabel(draft.format)}`}
+            </span>
+          </span>
+          <span className="rv-d">
+            {formatLabel(draft.format)} ·{" "}
+            {draft.productionTurnsLeft > 0
+              ? `faltam ${draft.productionTurnsLeft} turno${draft.productionTurnsLeft === 1 ? "" : "s"} de estúdio`
+              : "a gravação terminou"}
+            {" · "}
+            <span
+              role="button"
+              tabIndex={0}
+              className="rv-link"
+              style={{ color: "var(--rv-soft)" }}
+              onClick={(event) => {
+                event.stopPropagation();
+                cancel.mutate(draft.id);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.stopPropagation();
+                  cancel.mutate(draft.id);
+                }
+              }}
+            >
+              descartar
+            </span>
+          </span>
+        </button>
+      ) : (
+        <div>
+          <Button color="press" onClick={openFresh}>
             Criar obra
           </Button>
-        )}
-      </Group>
-
-      {draft && (
-        <Card withBorder padding="md" bg="var(--mantine-color-blue-light)">
-          <Group justify="space-between" wrap="nowrap">
-            <div>
-              <Text fw={600}>
-                {draft.title || "Obra sem título"} ·{" "}
-                {draft.productionTurnsLeft > 0
-                  ? "🎚️ em produção"
-                  : "✅ pronta para lançar"}
-              </Text>
-              <Text size="xs" c="dimmed">
-                {draft.productionTurnsLeft > 0
-                  ? `Faltam ${draft.productionTurnsLeft} turno${draft.productionTurnsLeft === 1 ? "" : "s"} de estúdio — avance o tempo para a gravação render.`
-                  : "A gravação terminou. Lance quando quiser."}
-              </Text>
-            </div>
-            <Group gap="xs" wrap="nowrap">
-              <Button
-                variant="subtle"
-                color="red"
-                onClick={() => cancel.mutate(draft.id)}
-                loading={cancel.isPending}
-              >
-                Descartar
-              </Button>
-              <Button onClick={() => openResume(draft.id)}>
-                {draft.productionTurnsLeft > 0
-                  ? "Ver estúdio"
-                  : `Lançar ${formatLabel(draft.format)}`}
-              </Button>
-            </Group>
-          </Group>
-        </Card>
+        </div>
       )}
 
       {launched.length === 0 ? (
-        <Card withBorder padding="xl">
-          <Stack align="center" gap="xs">
-            <IconDisc size={32} opacity={0.5} />
-            <Text c="dimmed">Nenhuma obra lançada ainda.</Text>
-          </Stack>
-        </Card>
+        <div className="rv-empty">
+          <p className="rv-deck">Nenhuma obra lançada ainda.</p>
+        </div>
       ) : (
-        <div
-          style={{
-            padding: "28px 20px 18px",
-            borderRadius: 10,
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.10))",
-            borderBottom: "12px solid #6b4a2f",
-            boxShadow:
-              "inset 0 -3px 8px rgba(0,0,0,0.25), 0 8px 14px rgba(0,0,0,0.18)",
-          }}
-        >
-          <style>{VINYL_KEYFRAMES}</style>
-          <Group gap="xl" wrap="wrap" align="flex-start">
-            {launched.map((release) => (
-              <VinylRecord
-                key={release.id}
-                release={release}
-                formatLabel={formatLabel(release.format)}
-                qualityTier={tierById(release.qualityTier)}
-                criticTier={reviewTierById(release.criticTier)}
-                publicTier={reviewTierById(release.publicTier)}
-                onClick={() => {
-                  setDetailRelease(release);
-                  detail.open();
-                }}
-              />
-            ))}
-          </Group>
+        <div>
+          {launched.map((release) => (
+            <VinylRecord
+              key={release.id}
+              release={release}
+              formatLabel={formatLabel(release.format)}
+              qualityTier={tierById(release.qualityTier)}
+              criticTier={reviewTierById(release.criticTier)}
+              publicTier={reviewTierById(release.publicTier)}
+              onClick={() => {
+                setDetailRelease(release);
+                detail.open();
+              }}
+            />
+          ))}
         </div>
       )}
 

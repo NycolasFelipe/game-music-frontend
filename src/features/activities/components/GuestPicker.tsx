@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Group,
   Paper,
@@ -7,7 +6,7 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { firstName, levelHex, pairKey } from "@/features/bands";
+import { FaceThumb, firstName, levelHex, pairKey } from "@/features/bands";
 import type { BandMember, MemberRelationship } from "@/features/bands";
 import { usePeopleView } from "@/features/preferences";
 import type { PeopleViewMode } from "@/features/preferences";
@@ -53,19 +52,13 @@ function GuestCard({
       }}
       style={{
         cursor: "pointer",
-        borderColor: going ? "var(--mantine-color-blue-6)" : undefined,
-        borderWidth: going ? 2 : 1,
-        background: going ? "var(--mantine-color-blue-light)" : undefined,
+        borderColor: "var(--rv-ink)",
+        background: going ? "var(--rv-ink)" : undefined,
       }}
     >
-      <Group gap={6} wrap="nowrap">
-        <Avatar size={22} radius="xl">
-          {member.avatar ?? "🧑"}
-        </Avatar>
-        <Text size="sm" fw={going ? 700 : 400}>
-          {member.name}
-        </Text>
-      </Group>
+      <Text size="xs" ff="monospace" fw={600} c={going ? "var(--rv-paper)" : undefined}>
+        {member.name}
+      </Text>
     </Paper>
   );
 }
@@ -160,30 +153,22 @@ function GuestGraph({
                   }
                 }}
               >
+                <FaceThumb
+                  subject={member}
+                  x={pos[index].x}
+                  y={pos[index].y}
+                  r={18}
+                />
                 <circle
                   cx={pos[index].x}
                   cy={pos[index].y}
-                  r={going ? 23 : 20}
+                  r={18}
                   style={{
-                    fill: going
-                      ? "var(--mantine-color-blue-light)"
-                      : "var(--mantine-color-body)",
-                    stroke: going
-                      ? "var(--mantine-color-blue-6)"
-                      : "var(--mantine-color-default-border)",
-                    strokeWidth: going ? 2.5 : 1,
-                    transition: "r 120ms ease",
+                    fill: "none",
+                    stroke: going ? "var(--rv-red)" : "var(--rv-ink)",
+                    strokeWidth: going ? 4 : 1.5,
                   }}
                 />
-                <text
-                  x={pos[index].x}
-                  y={pos[index].y}
-                  fontSize={22}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                >
-                  {member.avatar}
-                </text>
                 <text
                   x={pos[index].x}
                   y={pos[index].y + 36}
@@ -191,9 +176,8 @@ function GuestGraph({
                   fontWeight={going ? 700 : 400}
                   textAnchor="middle"
                   style={{
-                    fill: going
-                      ? "var(--mantine-color-blue-text)"
-                      : "var(--mantine-color-dimmed)",
+                    fill: going ? "var(--rv-red)" : "var(--rv-ink)",
+                    fontFamily: "var(--rv-mono)",
                   }}
                 >
                   {firstName(member.name)}

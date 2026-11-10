@@ -1,4 +1,4 @@
-import { Box, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Box, Paper, Stack, Text, Title } from "@mantine/core";
 import {
   Bar,
   BarChart,
@@ -27,29 +27,14 @@ interface TurnPoint {
 const mean = (values: number[]) =>
   values.length ? values.reduce((sum, v) => sum + v, 0) / values.length : 0;
 
-function StatTile({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-}) {
+/** Uma casa da ficha de números (rótulo, valor e nota). */
+function StatTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <Paper withBorder p="md" radius="md">
-      <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-        {label}
-      </Text>
-      <Text fz={22} fw={700} lh={1.2} mt={4}>
-        {value}
-      </Text>
-      {sub && (
-        <Text size="xs" c="dimmed" truncate>
-          {sub}
-        </Text>
-      )}
-    </Paper>
+    <div>
+      <span>{label}</span>
+      <b>{value}</b>
+      {sub && <div className="rv-caption" style={{ marginTop: 0 }}>{sub}</div>}
+    </div>
   );
 }
 
@@ -86,8 +71,8 @@ function ChartTooltip({
   );
 }
 
-const axisTick = { fill: "var(--mantine-color-dimmed)", fontSize: 11 };
-const gridStroke = "var(--mantine-color-default-border)";
+const axisTick = { fill: "var(--rv-soft)", fontSize: 11, fontFamily: "var(--rv-mono)" };
+const gridStroke = "var(--rv-faint)";
 
 /** Statistics tab: headline tiles, time-series trends, and skill profile. */
 export function BandStatistics({
@@ -108,9 +93,13 @@ export function BandStatistics({
 
   return (
     <Stack gap="xl">
-      <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }}>
+      <div>
+        <div className="rv-kicker">Números</div>
+        <h2 className="rv-head rv-md">A banda em números</h2>
+      </div>
+      <div className="rv-facts" style={{ ["--rv-n" as string]: 7 }}>
         <StatTile label="Fãs" value={band.fanCount.toLocaleString("pt-BR")} />
-        <StatTile label="Caixa" value={band.balance.toLocaleString("pt-BR")} />
+        <StatTile label="Caixa" value={Math.round(band.balance).toLocaleString("pt-BR")} />
         <StatTile
           label="Fama"
           value={`Nível ${band.fame.level}`}
@@ -128,7 +117,7 @@ export function BandStatistics({
           value={relationLevels.length ? mean(relationLevels).toFixed(1) : "—"}
           sub="escala -5 a 5"
         />
-      </SimpleGrid>
+      </div>
 
       <div>
         <Title order={5} mb="sm">
@@ -160,7 +149,7 @@ export function BandStatistics({
               <Bar
                 dataKey="value"
                 name="Média"
-                fill="var(--mantine-color-grape-6)"
+                fill="var(--rv-ink)"
                 radius={[0, 4, 4, 0]}
               >
                 <LabelList

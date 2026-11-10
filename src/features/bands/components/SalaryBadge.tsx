@@ -1,17 +1,14 @@
-import { Badge } from "@mantine/core";
 import { SmartTooltip } from "@/components/SmartTooltip";
 
 /**
- * Shows a member's salary, colored by how it compares to their target: green at
- * or above target, yellow below target (mood erodes), red while at risk (unpaid
- * — about to leave). The exact turns-to-departure are never shown (gamified);
+ * Shows a member's salary next to their target, in red when below target (mood
+ * erodes) or in arrears (about to leave). The exact turns-to-departure are never shown (gamified);
  * the badge only warns that the member is at risk.
  */
 export function SalaryBadge({
   salary,
   target,
   atRisk,
-  size = "sm",
 }: {
   salary: number;
   target: number;
@@ -20,7 +17,6 @@ export function SalaryBadge({
   size?: "xs" | "sm" | "md" | "lg";
 }) {
   const belowTarget = salary < target;
-  const color = atRisk ? "red" : belowTarget ? "yellow" : "teal";
 
   const tooltip = atRisk
     ? "Salário atrasado — o integrante pode deixar a banda se não for pago"
@@ -30,14 +26,18 @@ export function SalaryBadge({
 
   return (
     <SmartTooltip label={tooltip} multiline w={240} withArrow>
-      <Badge
-        variant="light"
-        color={color}
-        size={size}
-        style={{ cursor: "help", flexShrink: 0 }}
+      <span
+        className="rv-mono"
+        tabIndex={0}
+        style={{ fontSize: 12, cursor: "help", whiteSpace: "nowrap" }}
       >
-        {atRisk ? "⚠️" : "💵"} {salary.toLocaleString("pt-BR")}
-      </Badge>
+        Salário{" "}
+        <span className={atRisk || belowTarget ? "rv-red" : undefined}>
+          {atRisk ? "atrasado " : ""}
+          {salary.toLocaleString("pt-BR")}
+        </span>
+        <span style={{ color: "var(--rv-soft)" }}> / alvo {target.toLocaleString("pt-BR")}</span>
+      </span>
     </SmartTooltip>
   );
 }

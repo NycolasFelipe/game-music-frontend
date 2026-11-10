@@ -8,11 +8,11 @@ describe("SalaryBadge", () => {
     renderWithProviders(
       <SalaryBadge salary={1500} target={1000} atRisk={false} />,
     );
-    expect(screen.getByText("💵 1.500")).toBeInTheDocument();
+    expect(screen.getByText("1.500")).toBeInTheDocument();
   });
 
   it("warns with a ⚠️ marker when at risk", () => {
     renderWithProviders(<SalaryBadge salary={200} target={400} atRisk />);
-    expect(screen.getByText("⚠️ 200")).toBeInTheDocument();
+    expect(screen.getByText(/atrasado/)).toBeInTheDocument();
   });
 });

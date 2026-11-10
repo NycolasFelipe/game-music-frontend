@@ -1,15 +1,5 @@
-import {
-  Badge,
-  Button,
-  Card,
-  Group,
-  Paper,
-  SimpleGrid,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Button, Stack, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconConfetti } from "@tabler/icons-react";
 import { useState } from "react";
 import { GuestPicker } from "@/features/activities/components/GuestPicker";
 import {
@@ -22,10 +12,10 @@ import type { BandDetail } from "@/features/bands";
 import { formatPeriod } from "@/utils/period";
 
 /** How a composed risk reads to the player — no percentages on the table. */
-function riskBadge(chance: number): { label: string; color: string } {
-  if (chance >= 0.4) return { label: "🔴 risco alto", color: "red" };
-  if (chance >= 0.15) return { label: "🟡 risco médio", color: "yellow" };
-  return { label: "🟢 risco baixo", color: "teal" };
+function riskBadge(chance: number): { label: string; high: boolean } {
+  if (chance >= 0.4) return { label: "risco alto", high: true };
+  if (chance >= 0.15) return { label: "risco médio", high: false };
+  return { label: "risco baixo", high: false };
 }
 
 /**
@@ -33,7 +23,14 @@ function riskBadge(chance: number): { label: string; color: string } {
  * effect only reaches who went, so taking the two who cannot stand each other
  * is both the only way to mend that bond and the likeliest way to blow it up.
  */
-export function ActivitiesPanel({ band }: { band: BandDetail }) {
+export function ActivitiesPanel({
+  band,
+  heldThisTurn = false,
+}: {
+  band: BandDetail;
+  /** Whether the band already went out this turn (from the turn panel). */
+  heldThisTurn?: boolean;
+}) {
   const { data: options } = useActivityOptions(band.id);
   const { data: history } = useBandActivities(band.id);
   const hold = useHoldActivity(band.id);
@@ -92,8 +89,8 @@ export function ActivitiesPanel({ band }: { band: BandDetail }) {
             .join(", ");
           notifications.show({
             title: result.trouble
-              ? `${activity.emoji} ${activity.label} — e a noite virou`
-              : `${activity.emoji} ${activity.label}`,
+              ? `${activity.label}, e a noite virou`
+              : activity.label,
             message:
               `Custou ${result.activity.cost.toLocaleString("pt-BR")} · humor ${result.activity.happinessDelta > 0 ? "+" : ""}${result.activity.happinessDelta.toString().replace(".", ",")}` +
               (mended ? ` · ${mended}` : "") +
@@ -112,14 +109,12 @@ export function ActivitiesPanel({ band }: { band: BandDetail }) {
   }
 
   return (
-    <Stack gap="md">
-      <div>
-        <Text size="sm" c="dimmed">
-          O efeito alcança <Text span fw={700}>só quem vai</Text> — leve os dois
-          que não se falam e é a relação deles que melhora. Ou que explode.
+    <Stack gap="sm">
+      {heldThisTurn && (
+        <Text size="xs" ff="monospace" c="dimmed">
+          Já houve convívio neste turno.
         </Text>
-      </div>
-
+      )}
       <div>
         <GuestPicker
           members={band.members}
@@ -128,14 +123,13 @@ export function ActivitiesPanel({ band }: { band: BandDetail }) {
           onToggle={toggleGuest}
         />
         {worstLevel !== null && worstLevel < 0 && (
-          <Text size="xs" c="orange" mt={6}>
-            Tem gente na lista que não se suporta — o que mais compensa e o que
-            mais arrisca.
-          </Text>
+          <p className="rv-note">
+            Tem gente na lista que não se suporta: é o que mais compensa e o que mais arrisca.
+          </p>
         )}
       </div>
 
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+      <div>
         {(options?.activities ?? []).map((activity) => {
           const cost = costOf(activity);
           const fits =
@@ -145,84 +139,49 @@ export function ActivitiesPanel({ band }: { band: BandDetail }) {
           const risk = riskBadge(riskOf(activity));
 
           return (
-            <Paper key={activity.id} withBorder radius="md" p="md">
-              <Stack gap={6} h="100%">
-                <Group gap={8} wrap="nowrap" justify="space-between">
-                  <Group gap={8} wrap="nowrap">
-                    <Text fz={24} lh={1}>
-                      {activity.emoji}
-                    </Text>
-                    <Text fw={700}>{activity.label}</Text>
-                  </Group>
-                  <Badge color={risk.color} variant="light" size="sm">
-                    {risk.label}
-                  </Badge>
-                </Group>
-
-                <Text size="xs" c="dimmed" lh={1.35} style={{ flex: 1 }}>
-                  {activity.description}
-                </Text>
-
-                <Group gap="md" wrap="wrap">
-                  <Text size="xs" c="teal">
-                    +{activity.happinessGain.toString().replace(".", ",")} humor
-                  </Text>
-                  <Text size="xs" c="grape">
-                    +{activity.relationshipGain} relação
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {activity.minParticipants}–{activity.maxParticipants} pessoas
-                  </Text>
-                </Group>
-
-                <Button
-                  mt="xs"
-                  size="xs"
-                  leftSection={<IconConfetti size={14} />}
-                  disabled={!fits || !affordable}
-                  loading={hold.isPending}
-                  onClick={() => handleHold(activity)}
-                >
-                  {!fits
-                    ? `Leve ${activity.minParticipants}–${activity.maxParticipants}`
-                    : !affordable
-                      ? "Caixa insuficiente"
-                      : `Marcar · ${cost?.toLocaleString("pt-BR")}`}
-                </Button>
-              </Stack>
-            </Paper>
+            <div key={activity.id} className="rv-classified" style={{ cursor: "default" }}>
+              <b>
+                {activity.label}
+                {fits && cost !== null ? ` — ${cost.toLocaleString("pt-BR")}` : ""}
+              </b>
+              <p>
+                Humor +{activity.happinessGain.toString().replace(".", ",")}, relação +
+                {activity.relationshipGain}, {activity.minParticipants}–{activity.maxParticipants} pessoas,{" "}
+                <span className={risk.high ? "rv-red" : undefined}>{risk.label}</span>.
+              </p>
+              <Button
+                mt={8}
+                size="compact-xs"
+                variant={fits && affordable ? "filled" : "default"}
+                disabled={!fits || !affordable}
+                loading={hold.isPending}
+                onClick={() => handleHold(activity)}
+              >
+                {!fits
+                  ? `Leve ${activity.minParticipants}–${activity.maxParticipants}`
+                  : !affordable
+                    ? "Caixa insuficiente"
+                    : `Marcar · ${cost?.toLocaleString("pt-BR")}`}
+              </Button>
+            </div>
           );
         })}
-      </SimpleGrid>
+      </div>
 
       {(history ?? []).length > 0 && (
-        <Card withBorder padding="md">
-          <Stack gap="xs">
-            {(history ?? []).slice(0, 6).map((held) => (
-              <Group key={held.id} justify="space-between" wrap="nowrap">
-                <Text size="sm">
-                  {(options?.activities ?? []).find(
-                    (activity) => activity.id === held.activityId,
-                  )?.label ?? held.activityId}{" "}
-                  <Text span size="xs" c="dimmed">
-                    {formatPeriod(held.heldAtYear)} ·{" "}
-                    {held.participantIds.map(memberName).join(", ")}
-                  </Text>
-                </Text>
-                <Group gap="sm" wrap="nowrap">
-                  {held.trouble && (
-                    <Badge size="xs" color="orange" variant="light">
-                      deu treta
-                    </Badge>
-                  )}
-                  <Text size="sm" c="red">
-                    −{held.cost.toLocaleString("pt-BR")}
-                  </Text>
-                </Group>
-              </Group>
-            ))}
-          </Stack>
-        </Card>
+        <div className="rv-ledger">
+          {(history ?? []).slice(0, 3).map((held) => (
+            <div key={held.id}>
+              <span>
+                {(options?.activities ?? []).find((activity) => activity.id === held.activityId)?.label ??
+                  held.activityId}{" "}
+                · {formatPeriod(held.heldAtYear)}
+                {held.trouble ? " · deu treta" : ""}
+              </span>
+              <span className="rv-neg">−{held.cost.toLocaleString("pt-BR")}</span>
+            </div>
+          ))}
+        </div>
       )}
     </Stack>
   );

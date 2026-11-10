@@ -1,5 +1,6 @@
 import { Badge, Card, Group, Stack, Text } from "@mantine/core";
 import { CharacteristicChips } from "@/features/bands/components/CharacteristicChips";
+import { MemberFace } from "@/features/bands/portrait/MemberPortrait";
 import { HappinessBadge } from "@/features/bands/components/HappinessBadge";
 import { SkillBars } from "@/features/bands/components/SkillBars";
 import type { Characteristic } from "@/features/bands/types";
@@ -31,9 +32,7 @@ export function FormerMemberCard({
       <Stack gap="xs">
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
           <Group gap="sm" wrap="nowrap" align="center" style={{ flex: 1, minWidth: 0 }}>
-            <Text fz={30} lh={1}>
-              {member.avatar}
-            </Text>
+            <MemberFace subject={member} size={44} />
             <div style={{ minWidth: 0 }}>
               <Text fw={600} style={{ wordBreak: "break-word" }}>
                 {member.name}

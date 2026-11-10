@@ -8,7 +8,12 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useState } from "react";
-import { formatSkillLevel, SKILL_LABELS, SKILL_ORDER } from "@/features/bands";
+import {
+  formatSkillLevel,
+  MemberFace,
+  SKILL_LABELS,
+  SKILL_ORDER,
+} from "@/features/bands";
 import type { BandMember, MemberRelationship, Skills } from "@/features/bands";
 import {
   bestMemberFor,
@@ -18,16 +23,6 @@ import {
   importanceStars,
 } from "@/features/releases/creation-forecast";
 import type { ReleaseCredits } from "@/features/releases/types";
-
-/** Instrument art per aspect — the stage reads by shape, not by label. */
-const ASPECT_EMOJI: Record<keyof Skills, string> = {
-  vocal: "🎤",
-  guitar: "🎸",
-  bass: "🎻",
-  drums: "🥁",
-  piano: "🎹",
-  lyrics: "✍️",
-};
 
 /** Color for a skill level, so a weak pick reads as weak at a glance. */
 function skillColor(level: number): string {
@@ -93,9 +88,7 @@ function MemberToken({
       }}
     >
       <Group gap={8} wrap="nowrap">
-        <Text fz={22} lh={1}>
-          {member.avatar}
-        </Text>
+        <MemberFace subject={member} size={26} />
         <div>
           <Text size="sm" fw={600} lh={1.1}>
             {member.name}
@@ -161,7 +154,7 @@ function SlotPicker({
             >
               <Group gap={8} justify="space-between" wrap="nowrap" w={190}>
                 <Group gap={6} wrap="nowrap">
-                  <Text fz={16}>{member.avatar}</Text>
+                  <MemberFace subject={member} size={20} />
                   <Text size="sm">{member.name}</Text>
                 </Group>
                 <Badge
@@ -293,7 +286,6 @@ export function CreditsEditor({
             <Group justify="space-between" wrap="nowrap" mb={8}>
               <Group gap={8} wrap="nowrap">
                 <Text fz={24} lh={1}>
-                  {ASPECT_EMOJI[aspect]}
                 </Text>
                 <div>
                   <Text size="sm" fw={700} lh={1.1}>
@@ -316,7 +308,7 @@ export function CreditsEditor({
                   variant="light"
                   color={chemistryPercent > 0 ? "teal" : "red"}
                 >
-                  {chemistryPercent > 0 ? "🤝" : "💢"} química{" "}
+                  química{" "}
                   {chemistryPercent > 0 ? "+" : ""}
                   {chemistryPercent}%
                 </Badge>
@@ -354,9 +346,7 @@ export function CreditsEditor({
                   }}
                 >
                   <Group gap={6} wrap="nowrap">
-                    <Text fz={18} lh={1}>
-                      {held.avatar}
-                    </Text>
+                    <MemberFace subject={held} size={22} />
                     <Text size="xs" fw={700} c={skillColor(held.skills[aspect])}>
                       entra com {formatSkillLevel(held.skills[aspect])}
                       {held.id === best ? " ⭐" : ""}
@@ -377,7 +367,7 @@ export function CreditsEditor({
 
             {crucialAndEmpty && (
               <Text size="xs" c="red" mt={6}>
-                ⚠️ Instrumento decisivo neste estilo e ninguém assumiu.
+                Instrumento decisivo neste estilo e ninguém assumiu.
               </Text>
             )}
           </Paper>

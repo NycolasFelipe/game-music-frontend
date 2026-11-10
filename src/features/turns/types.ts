@@ -59,3 +59,86 @@ export interface AdvanceTurnResult {
   /** Ids of members in arrears who risk leaving (no deadline — kept gamified). */
   atRiskMemberIds: string[];
 }
+
+/** What still needs the player this turn (ADR-0022 do backend). */
+export interface TurnPendingItem {
+  kind: "active-event" | "studio-session" | "release-ready";
+  id: string;
+  /** The work involved (studio decisions and ready works). */
+  releaseId: string | null;
+  title: string;
+  /** Whether it keeps the turn from advancing. */
+  blocking: boolean;
+}
+
+/** Expected outcome of playing a circuit now, with the band as it is. */
+export interface TurnGigPreview {
+  gigTypeId: string;
+  label: string;
+  minFameLevel: number;
+  /** Whether the band's fame already books this circuit. */
+  available: boolean;
+  /** Performance the venue expects (the mood is judged against it). */
+  expectedPerformance: number;
+  fee: number;
+  cost: number;
+  net: number;
+  fansGained: number;
+  happinessDelta: number;
+}
+
+/** One release's royalty in the next advance. */
+export interface TurnRoyaltyPayout {
+  releaseId: string;
+  title: string;
+  amount: number;
+}
+
+/** The work in the studio, if any. */
+export interface TurnStudioRelease {
+  id: string;
+  title: string;
+  format: string;
+  turnsLeft: number;
+  ready: boolean;
+}
+
+/** Everything the Turno screen needs in one call (`GET /bands/:id/turns/panel`). */
+export interface TurnPanel {
+  year: number;
+  period: string;
+  /** The band's stage performance now (0..1). */
+  performance: number;
+  pending: TurnPendingItem[];
+  gig: {
+    /** The season already played this turn, if any. */
+    playedThisTurn: {
+      id: string;
+      gigTypeId: string;
+      net: number;
+      fansGained: number;
+      performance: number;
+      happinessDelta: number;
+    } | null;
+    previews: TurnGigPreview[];
+  };
+  activity: { heldThisTurn: boolean };
+  studio: {
+    release: TurnStudioRelease | null;
+    launchesThisYear: number;
+    /** Market multiplier the next launch would get (null when the rule is off). */
+    nextMarketMultiplier: number | null;
+  };
+  forecast: {
+    balance: number;
+    royalties: number;
+    royaltyPayouts: TurnRoyaltyPayout[];
+    salaryRaises: number;
+    payroll: number;
+    balanceAfter: number;
+    /** Members who would fall into arrears and stay (risk of leaving later). */
+    atRiskMemberIds: string[];
+    /** Members who would leave the band in this advance over unpaid salary. */
+    departingMemberIds?: string[];
+  };
+}

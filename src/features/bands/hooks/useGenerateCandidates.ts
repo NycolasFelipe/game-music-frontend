@@ -13,10 +13,11 @@ export function useGenerateCandidates() {
   });
 }
 
-/** Mutation that regenerates a single avatar emoji for a gender. */
+/** Mutation that regenerates a candidate's look (avatar and appearance). */
 export function useRegenerateAvatar() {
   return useMutation({
-    mutationFn: (gender: string) => regenerateAvatar(gender),
+    mutationFn: (input: { gender: string; age?: number }) =>
+      regenerateAvatar(input.gender, input.age),
   });
 }
 

@@ -1,4 +1,10 @@
 /** Public API of the gigs feature. */
-export { GigsTab } from "@/features/gigs/components/GigsTab";
+export { GigsColumn } from "@/features/gigs/components/GigsColumn";
 export { gigKeys, useGigTypes, useGigs, usePlayGig } from "@/features/gigs/hooks/useGigs";
-export type { Gig, GigResult, GigType, GigTypeId } from "@/features/gigs/types";
+export type {
+  Gig,
+  GigPreview,
+  GigResult,
+  GigType,
+  GigTypeId,
+} from "@/features/gigs/types";

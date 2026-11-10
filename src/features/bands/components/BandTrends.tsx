@@ -28,14 +28,14 @@ type MetricId = "fans" | "money" | "climate";
 const compactYear = (year: number) =>
   `${Math.floor(year)}${year % 1 ? "½" : ""}`;
 const round1 = (v: number) => Math.round(v * 10) / 10;
-const axisTick = { fill: "var(--mantine-color-dimmed)", fontSize: 11 };
-const gridStroke = "var(--mantine-color-default-border)";
+const axisTick = { fill: "var(--rv-soft)", fontSize: 11, fontFamily: "var(--rv-mono)" };
+const gridStroke = "var(--rv-faint)";
 
 const COLORS = {
-  fans: "var(--mantine-color-teal-6)",
-  money: "var(--mantine-color-lime-6)",
-  humor: "var(--mantine-color-pink-6)",
-  relacao: "var(--mantine-color-violet-6)",
+  fans: "var(--rv-ink)",
+  money: "var(--rv-green)",
+  humor: "var(--rv-red)",
+  relacao: "var(--rv-soft)",
 };
 
 interface TooltipEntry {
@@ -148,13 +148,13 @@ export function BandTrends({ turns }: { turns: TurnPoint[] }) {
         onChange={(v) => setMetrics(v as MetricId[])}
       >
         <Group gap="xs">
-          <Chip value="fans" size="xs" color="teal">
+          <Chip value="fans" size="xs" color="ink">
             Fãs
           </Chip>
-          <Chip value="money" size="xs" color="lime">
+          <Chip value="money" size="xs" color="ink">
             Caixa
           </Chip>
-          <Chip value="climate" size="xs" color="grape">
+          <Chip value="climate" size="xs" color="ink">
             Clima
           </Chip>
         </Group>

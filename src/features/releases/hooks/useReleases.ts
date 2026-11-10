@@ -34,24 +34,37 @@ export function useRelease(bandId: string, releaseId: string | null) {
   });
 }
 
-/** Starts a release draft. Refreshes the discography. */
+/**
+ * Starts a release draft. Invalidates everything under the band: besides the
+ * discography, the turn panel (ADR-0022) shows the studio as busy.
+ */
 export function useStartRelease(bandId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: StartReleaseInput) => startRelease(bandId, input),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: releaseKeys.list(bandId) }),
+      queryClient.invalidateQueries({ queryKey: ["bands", bandId] }),
   });
 }
 
-/** Resolves a creation event. Refreshes the release detail. */
+/**
+ * Resolves a creation event. Updates the release detail in place and refreshes
+ * the rest of the band (the turn panel lists the session as pending).
+ */
 export function useResolveCreationEvent(bandId: string, releaseId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: { eventId: string; optionId: string }) =>
       resolveCreationEvent(bandId, releaseId, input.eventId, input.optionId),
-    onSuccess: (data) =>
-      queryClient.setQueryData(releaseKeys.detail(bandId, releaseId), data),
+    onSuccess: (data) => {
+      queryClient.setQueryData(releaseKeys.detail(bandId, releaseId), data);
+      return queryClient.invalidateQueries({
+        queryKey: ["bands", bandId],
+        predicate: (query) =>
+          query.queryKey.join("/") !==
+          releaseKeys.detail(bandId, releaseId).join("/"),
+      });
+    },
   });
 }
 
@@ -68,12 +81,12 @@ export function useFinalizeRelease(bandId: string) {
   });
 }
 
-/** Discards a draft. Refreshes the discography. */
+/** Discards a draft. Invalidates the band (discography and turn panel). */
 export function useCancelRelease(bandId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (releaseId: string) => cancelRelease(bandId, releaseId),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: releaseKeys.list(bandId) }),
+      queryClient.invalidateQueries({ queryKey: ["bands", bandId] }),
   });
 }

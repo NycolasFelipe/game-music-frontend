@@ -1,14 +1,3 @@
-import { Group, Progress, Stack, Text } from "@mantine/core";
-import {
-  IconGuitarPick,
-  IconMicrophone,
-  IconMusic,
-  IconPencil,
-  IconPiano,
-  IconStarFilled,
-  type IconProps,
-} from "@tabler/icons-react";
-import type { ComponentType } from "react";
 import { SmartTooltip } from "@/components/SmartTooltip";
 import { useSkillDescriptions } from "@/features/bands/hooks/useBandOptions";
 import {
@@ -19,25 +8,10 @@ import {
 } from "@/features/bands/labels";
 import type { Skills } from "@/features/bands/types";
 
-/** Instrument icon component per skill (mirrors the original game). */
-const SKILL_ICONS: Record<keyof Skills, ComponentType<IconProps>> = {
-  vocal: IconMicrophone,
-  guitar: IconMusic,
-  bass: IconGuitarPick,
-  drums: IconMusic,
-  piano: IconPiano,
-  lyrics: IconPencil,
-};
-
-// `display:block` drops the inline-SVG baseline gap; the tiny upward nudge sits
-// the icon on the text's optical center (its geometric center reads slightly
-// low next to lowercase text).
-const ALIGN_ICON = { display: "block", transform: "translateY(-1px)" } as const;
-
 /**
- * Renders the six skills as labelled bars (skill scale is 0..10). The primary
- * skill is marked with a star; each row has a tooltip with the flavor
- * description for that skill's level.
+ * As seis habilidades como réguas tipográficas de 0 a 10 (ADR-0002). A
+ * principal leva estrela e régua vermelha; cada linha mostra, ao passar o
+ * mouse, a descrição do nível.
  */
 export function SkillBars({
   skills,
@@ -49,9 +23,9 @@ export function SkillBars({
   const { data: descriptions } = useSkillDescriptions();
 
   return (
-    <Stack gap={4}>
+    <div>
       {SKILL_ORDER.map((key) => {
-        const Icon = SKILL_ICONS[key];
+        const primary = key === primarySkill;
         return (
           <SmartTooltip
             key={key}
@@ -62,42 +36,48 @@ export function SkillBars({
             withArrow
             events={{ hover: true, focus: true, touch: true }}
           >
-            <Group gap="xs" wrap="nowrap">
-              <Group
-                gap={4}
-                wrap="nowrap"
-                align="center"
-                w={92}
-                c="dimmed"
-                style={{ flexShrink: 0 }}
+            <div
+              className="rv-mono"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "92px 1fr 34px",
+                gap: 8,
+                alignItems: "center",
+                fontSize: 12,
+                padding: "2px 0",
+              }}
+            >
+              <span>
+                {SKILL_LABELS[key].toLowerCase()}
+                {primary && <span aria-label="Habilidade principal"> ★</span>}
+              </span>
+              <span
+                style={{
+                  height: 9,
+                  border: "1px solid var(--rv-ink)",
+                  position: "relative",
+                  background:
+                    "repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0,0,0,.25) calc(10% - 1px) 10%)",
+                }}
               >
-                <Icon size={14} style={ALIGN_ICON} />
-                <Text size="xs" lh={1}>
-                  {SKILL_LABELS[key]}
-                </Text>
-                {key === primarySkill && (
-                  <IconStarFilled
-                    size={11}
-                    color="var(--mantine-color-yellow-6)"
-                    style={ALIGN_ICON}
-                    aria-label="Habilidade principal"
-                  />
-                )}
-              </Group>
-              <Progress value={(skills[key] / 10) * 100} size="sm" flex={1} />
-              <Text
-                size="xs"
-                w={26}
-                ta="right"
-                lh={1}
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
+                <i
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: `${(skills[key] / 10) * 100}%`,
+                    background: primary ? "var(--rv-red)" : "var(--rv-ink)",
+                  }}
+                />
+              </span>
+              <span style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
                 {formatSkillLevel(skills[key])}
-              </Text>
-            </Group>
+              </span>
+            </div>
           </SmartTooltip>
         );
       })}
-    </Stack>
+    </div>
   );
 }

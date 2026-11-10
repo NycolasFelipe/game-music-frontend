@@ -157,9 +157,6 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
 
       {current?.kind === "launch" && (
         <Stack align="center" gap="xs" py="sm">
-          <Text fz={44} lh={1}>
-            💿
-          </Text>
           <Text fw={700} fz="lg" ta="center">
             &ldquo;{current.releaseTitle}&rdquo; está pronta
           </Text>
