@@ -4,6 +4,8 @@ export { StudioColumn } from "@/features/releases/components/StudioColumn";
 export { VinylPreview } from "@/features/releases/components/VinylPreview";
 export { ReleaseCard } from "@/features/releases/components/ReleaseCard";
 export { ReleaseCreationModal } from "@/features/releases/components/ReleaseCreationModal";
+export { StyleProfile } from "@/features/releases/components/StyleProfile";
+export { aspectList, keyAspects } from "@/features/releases/style-aspects";
 export { CreationEventStage } from "@/features/releases/components/CreationEventStage";
 export { LaunchSummary } from "@/features/releases/components/LaunchSummary";
 export { marketNote } from "@/features/releases/market";

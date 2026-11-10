@@ -197,7 +197,6 @@ export interface ReviewTier {
 export interface StartReleaseInput {
   title: string;
   concept?: string;
-  style: string;
   format: ReleaseFormatId;
   budgetTier: BudgetTierId;
   credits: ReleaseCredits;

@@ -215,6 +215,11 @@ body {
   color: var(--rv-red);
   margin: 8px 0;
 }
+/* Perfil do estilo: o que ele cobra e como soa */
+.rv-style-pitch {
+  font: italic 14px/1.45 var(--rv-serif);
+  margin: 8px 0 4px;
+}
 .rv-label {
   font: 600 11px var(--rv-mono);
   text-transform: uppercase;

@@ -19,6 +19,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useBlocker, useNavigate } from "react-router-dom";
 import { Masthead } from "@/components/revista";
 import {
+  StyleProfile,
+  aspectList,
+  keyAspects,
+  useGenreProfiles,
+} from "@/features/releases";
+import {
   BandNameConfigModal,
   BandPhoto,
   MemberCard,
@@ -52,6 +58,7 @@ function randomItem<T>(items: T[]): T {
 export function NewSavePage() {
   const navigate = useNavigate();
   const { data: options } = useBandOptions();
+  const { data: genreProfiles } = useGenreProfiles();
   const { data: characteristics } = useCharacteristics();
 
   const generateName = useGenerateBandNames();
@@ -329,7 +336,26 @@ export function NewSavePage() {
                 value={theme}
                 onChange={setTheme}
                 searchable
+                renderOption={({ option }) => {
+                  const weights = genreProfiles?.find((p) => p.style === option.value)?.weights;
+                  return (
+                    <div>
+                      <div>{option.label}</div>
+                      {weights && (
+                        <div className="rv-caption" style={{ marginTop: 2 }}>
+                          {aspectList(keyAspects(weights))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }}
               />
+              {theme && (
+                <StyleProfile
+                  style={theme}
+                  description={options?.themes.find((t) => t.id === theme)?.description}
+                />
+              )}
             </div>
             <div className="rv-field">
               <Select
@@ -364,10 +390,11 @@ export function NewSavePage() {
           </div>
           <div>
             {formationPhoto("Edição nº 1")}
-            <p className="rv-caption">
-              {name ? `${[name, themeName, originName].filter(Boolean).join(" · ")}. ` : ""}
-              A capa da edição nº 1 sai com a foto da formação escolhida nas audições.
-            </p>
+            {name && (
+              <p className="rv-caption">
+                {[name, themeName, originName].filter(Boolean).join(" · ")}.
+              </p>
+            )}
           </div>
         </div>
       )}

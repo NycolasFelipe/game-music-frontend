@@ -3,7 +3,6 @@ import {
   Button,
   Group,
   Loader,
-  Select,
   Textarea,
   TextInput,
   Tooltip,
@@ -17,6 +16,7 @@ import type { BandDetail } from "@/features/bands";
 import { useDecisionsUi } from "@/features/decisions";
 import { CreditsEditor } from "@/features/releases/components/CreditsEditor";
 import { LaunchSummary } from "@/features/releases/components/LaunchSummary";
+import { StyleProfile } from "@/features/releases/components/StyleProfile";
 import {
   BudgetPicker,
   FormatPicker,
@@ -89,7 +89,8 @@ export function ReleaseCreationModal({
   const [configStep, setConfigStep] = useState(0);
   const [title, setTitle] = useState("");
   const [concept, setConcept] = useState("");
-  const [style, setStyle] = useState(band.theme);
+  // Every work takes the band's style, chosen once at creation (ADR-0030).
+  const style = band.theme;
   const [format, setFormat] = useState<ReleaseFormatId>("single");
   const [budgetTier, setBudgetTier] = useState<BudgetTierId>("estudio");
   const [credits, setCredits] = useState<ReleaseCredits>({});
@@ -121,13 +122,7 @@ export function ReleaseCreationModal({
   const weights = genreProfiles?.find((p) => p.style === style)?.weights;
   const uncovered = weights ? uncoveredCrucialAspects(credits, weights) : [];
 
-  /** The style's three defining aspects, shown as its "profile". */
-  const styleHighlights = weights
-    ? [...SKILL_ORDER]
-        .sort((a, b) => weights[b] - weights[a])
-        .slice(0, 3)
-        .map((aspect) => ({ aspect, weight: weights[aspect] }))
-    : [];
+  const styleOption = options?.themes.find((t) => t.id === style);
 
   const pending = (detail?.creationEvents ?? []).filter((e) => !e.resolved);
   const inProduction = (detail?.productionTurnsLeft ?? 0) > 0;
@@ -186,7 +181,6 @@ export function ReleaseCreationModal({
       {
         title,
         concept: concept || undefined,
-        style,
         format,
         budgetTier,
         credits,
@@ -304,24 +298,9 @@ export function ReleaseCreationModal({
           </div>
 
           <div className="rv-field">
-            <Select
-              label="Estilo musical"
-              data={(options?.themes ?? []).map((t) => ({
-                value: t.id,
-                label: t.label,
-              }))}
-              value={style}
-              onChange={(v) => v && setStyle(v)}
-              searchable
-            />
-            {styleHighlights.length > 0 && (
-              <p className="rv-note">
-                O que este estilo cobra:{" "}
-                {styleHighlights
-                  .map(({ aspect, weight }) => `${SKILL_LABELS[aspect]} ${Math.round(weight * 100)}%`)
-                  .join(" · ")}
-              </p>
-            )}
+            <span className="rv-field-label">Estilo musical</span>
+            <p className="rv-body" style={{ margin: 0 }}>{styleOption?.label ?? style}</p>
+            <StyleProfile style={style} description={styleOption?.description} />
           </div>
 
           <div className="rv-field">

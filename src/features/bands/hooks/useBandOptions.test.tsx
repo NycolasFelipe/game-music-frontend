@@ -14,10 +14,10 @@ describe("useBandOptions", () => {
   it("lists the styles in alphabetical order", async () => {
     vi.mocked(api.getBandOptions).mockResolvedValue({
       themes: [
-        { id: "rock-indie", label: "Rock Indie/Psicodélico" },
-        { id: "axe", label: "Axé" },
-        { id: "jazz", label: "Jazz Tradicional/New Orleans" },
-        { id: "indie-folk", label: "Indie Folk/Lo-fi" },
+        { id: "rock-indie", label: "Rock Indie/Psicodélico", description: "" },
+        { id: "axe", label: "Axé", description: "" },
+        { id: "jazz", label: "Jazz Tradicional/New Orleans", description: "" },
+        { id: "indie-folk", label: "Indie Folk/Lo-fi", description: "" },
       ],
       origins: [],
       foundationYears: [],

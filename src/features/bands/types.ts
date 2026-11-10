@@ -163,9 +163,14 @@ export interface LabeledOption {
   label: string;
 }
 
+/** A band theme with its one-line pitch (ADR-0030 of the backend). */
+export interface ThemeOption extends LabeledOption {
+  description: string;
+}
+
 /** Band creation options served by the backend. */
 export interface BandOptions {
-  themes: LabeledOption[];
+  themes: ThemeOption[];
   origins: LabeledOption[];
   foundationYears: number[];
 }

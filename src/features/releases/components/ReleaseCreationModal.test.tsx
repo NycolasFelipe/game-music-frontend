@@ -59,7 +59,7 @@ const band = {
 describe("ReleaseCreationModal", () => {
   beforeEach(() => {
     vi.mocked(bandsApi.getBandOptions).mockResolvedValue({
-      themes: [{ id: "grunge", label: "Grunge" }],
+      themes: [{ id: "grunge", label: "Grunge", description: "Guitarra suja." }],
       origins: [],
       foundationYears: [],
     });
@@ -126,8 +126,14 @@ describe("ReleaseCreationModal", () => {
     const user = userEvent.setup();
     renderWithProviders(<ReleaseCreationModal band={band} onClose={vi.fn()} />);
 
-    // Step 1: the style profile tells the player what the genre demands.
-    expect(await screen.findByText(/O que este estilo cobra: Guitarra 28%/)).toBeVisible();
+    // Step 1: the work takes the band's style, and the profile says in words
+    // what it demands (ADR-0030).
+    expect(
+      await screen.findByText("Pesa mais: guitarra, vocal e bateria."),
+    ).toBeVisible();
+    expect(screen.getByText("Grunge")).toBeVisible();
+    expect(screen.getByText("Guitarra suja.")).toBeVisible();
+    expect(screen.queryByLabelText("Estilo musical")).toBeNull();
     const next = screen.getByRole("button", { name: "Produção →" });
     expect(next).toBeDisabled();
 
