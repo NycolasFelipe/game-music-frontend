@@ -16,6 +16,7 @@ import type { BandDetail } from "@/features/bands";
 import { useDecisionsUi } from "@/features/decisions";
 import { CreditsEditor } from "@/features/releases/components/CreditsEditor";
 import { LaunchSummary } from "@/features/releases/components/LaunchSummary";
+import { useLaunchCost } from "@/features/releases/hooks/useLaunchCost";
 import { StyleProfile } from "@/features/releases/components/StyleProfile";
 import {
   BudgetPicker,
@@ -103,6 +104,9 @@ export function ReleaseCreationModal({
   const genConcept = useGenerateReleaseConcept();
   const start = useStartRelease(bandId);
   const finalize = useFinalizeRelease(bandId);
+  const launchCost = useLaunchCost(bandId, releaseId);
+  // The summary says why; the button just refuses what the server would.
+  const canLaunch = launchCost !== null && band.balance >= launchCost;
   const cancel = useCancelRelease(bandId);
   const openDecisions = useDecisionsUi((state) => state.openDecisions);
   const { data: detail, isLoading: detailLoading } = useRelease(
@@ -511,6 +515,7 @@ export function ReleaseCreationModal({
                 color="press"
                 onClick={handleFinalize}
                 loading={finalize.isPending}
+                disabled={!canLaunch}
               >
                 Lançar {currentFormat?.label ?? "obra"}
               </Button>

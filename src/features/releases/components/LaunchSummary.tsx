@@ -7,6 +7,7 @@ import {
   useBudgetTiers,
   useReleaseFormats,
 } from "@/features/releases/hooks/useReleaseCatalogs";
+import { useLaunchCost } from "@/features/releases/hooks/useLaunchCost";
 import { useRelease } from "@/features/releases/hooks/useReleases";
 import { formatMoney } from "@/utils/money";
 
@@ -35,6 +36,7 @@ export function LaunchSummary({
   const { data: formats } = useReleaseFormats();
   const { data: tiers } = useBudgetTiers();
   const { data: options } = useBandOptions();
+  const cost = useLaunchCost(bandId, releaseId);
 
   if (isLoading || !detail) {
     return <Loader size="sm" />;
@@ -43,8 +45,6 @@ export function LaunchSummary({
   const format = formats?.find((f) => f.id === detail.format);
   const tier = tiers?.find((t) => t.id === detail.budgetTier);
   const style = options?.themes.find((t) => t.id === detail.style)?.label ?? detail.style;
-  const cost =
-    format && tier ? Math.round(format.baseCost * tier.costMultiplier * 100) / 100 : null;
   const short = cost !== null && balance < cost;
   // O registro (`creationLog`) só é gravado no lançamento; no rascunho, o que
   // se decidiu vem das sessões já resolvidas.

@@ -9,6 +9,7 @@ export { aspectList, keyAspects } from "@/features/releases/style-aspects";
 export { CreationEventStage } from "@/features/releases/components/CreationEventStage";
 export { LaunchSummary } from "@/features/releases/components/LaunchSummary";
 export { marketNote } from "@/features/releases/market";
+export { useLaunchCost } from "@/features/releases/hooks/useLaunchCost";
 export { ReleaseRevealHost } from "@/features/releases/components/ReleaseRevealHost";
 export { useReleaseRevealUi } from "@/features/releases/store/release-reveal.store";
 export {

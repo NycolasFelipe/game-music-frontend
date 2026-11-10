@@ -2,6 +2,7 @@ import { Button, Group } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { InsertModal } from "@/components/revista";
+import { ApiError } from "@/services/http";
 import { useCharacteristics } from "@/features/bands";
 import type { BandDetail, Characteristic } from "@/features/bands";
 import { usePendingDecisions } from "@/features/decisions/hooks/usePendingDecisions";
@@ -17,6 +18,7 @@ import {
   CreationEventStage,
   LaunchSummary,
   useFinalizeRelease,
+  useLaunchCost,
   useReleaseRevealUi,
   useResolveCreationEvent,
 } from "@/features/releases";
@@ -57,6 +59,12 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
 
   // Whatever is waiting is answered in order; the modal follows the queue.
   const current = decisions[0] ?? null;
+  const launchCost = useLaunchCost(
+    bandId,
+    current?.kind === "launch" ? current.releaseId : null,
+  );
+  // The summary says why; the button just refuses what the server would.
+  const canLaunch = launchCost !== null && band.balance >= launchCost;
   const signature = decisions.map((decision) => decision.key).join("|");
   const lastSignature = useRef<string | null>(null);
 
@@ -107,10 +115,11 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
     closeDecisions();
     finalize.mutate(current.releaseId, {
       onSuccess: (release) => revealRelease(release),
-      onError: () =>
+      onError: (error) =>
         notifications.show({
           color: "red",
-          message: "Falha ao lançar a obra.",
+          message:
+            error instanceof ApiError ? error.message : "Falha ao lançar a obra.",
         }),
     });
   }
@@ -202,7 +211,12 @@ export function DecisionsModal({ band }: { band: BandDetail }) {
             <Button variant="default" onClick={closeDecisions}>
               Ainda não
             </Button>
-            <Button color="press" onClick={handleLaunch} loading={finalize.isPending}>
+            <Button
+              color="press"
+              onClick={handleLaunch}
+              loading={finalize.isPending}
+              disabled={!canLaunch}
+            >
               Lançar {current.formatLabel}
             </Button>
           </Group>

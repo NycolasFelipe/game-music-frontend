@@ -35,6 +35,7 @@ const band = {
   id: "b-1",
   name: "Os Rebeldes",
   fanCount: 100,
+  balance: 5000,
   members: [{ id: "m1", name: "Ana", avatar: "🧑", happiness: 1 }],
   relationships: [],
 } as unknown as BandDetail;
@@ -76,6 +77,7 @@ const draft = {
   bandId: "b-1",
   title: "Ruído Branco",
   format: "ep",
+  budgetTier: "estudio",
   status: "em_criacao",
   productionTurnsLeft: 2,
   creationLog: [],
@@ -87,7 +89,15 @@ describe("DecisionsModal", () => {
     useDecisionsUi.setState({ open: false });
     vi.mocked(bandsApi.listCharacteristics).mockResolvedValue([]);
     vi.mocked(bandsApi.getBandOptions).mockResolvedValue({ themes: [], origins: [], foundationYears: [] } as unknown as Awaited<ReturnType<typeof bandsApi.getBandOptions>>);
-    vi.mocked(releasesApi.getBudgetTiers).mockResolvedValue([]);
+    vi.mocked(releasesApi.getBudgetTiers).mockResolvedValue([
+      {
+        id: "estudio",
+        label: "Estúdio",
+        description: "",
+        costMultiplier: 1,
+        qualityMultiplier: 1,
+      },
+    ]);
     vi.mocked(eventsApi.listActiveEvents).mockResolvedValue([]);
     vi.mocked(releasesApi.listReleases).mockResolvedValue([]);
     vi.mocked(releasesApi.getReleaseFormats).mockResolvedValue([
@@ -230,6 +240,22 @@ describe("DecisionsModal", () => {
     await waitFor(() =>
       expect(releasesApi.finalizeRelease).toHaveBeenCalledWith("b-1", "r-1"),
     );
+  });
+
+  it("keeps the launch closed while the cash does not cover it", async () => {
+    const ready = {
+      ...draft,
+      productionTurnsLeft: 0,
+      creationEvents: [{ ...session, resolved: true, chosenOptionId: "ceder" }],
+    };
+    vi.mocked(releasesApi.listReleases).mockResolvedValue([ready]);
+    vi.mocked(releasesApi.getRelease).mockResolvedValue(ready);
+
+    // The EP costs 2000 in the studio tier; the band has 1500.
+    renderWithProviders(<DecisionsModal band={{ ...band, balance: 1500 }} />);
+
+    expect(await screen.findByText(/O caixa não cobre o lançamento/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Lançar EP/ })).toBeDisabled();
   });
 
   it("stays out of the way when nothing is pending", async () => {
