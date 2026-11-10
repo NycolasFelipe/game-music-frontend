@@ -19,7 +19,17 @@ export type BeardStyle = "none" | "stubble" | "full" | "goatee";
 
 export type GlassesStyle = "none" | "round" | "sun";
 
-export type ShirtStyle = "crew" | "v" | "jacket";
+export type ShirtStyle =
+  | "crew"
+  | "v"
+  | "jacket"
+  | "hoodie"
+  | "stripes"
+  | "turtleneck"
+  | "collar"
+  | "tank"
+  | "leather"
+  | "print";
 
 /** Escuridão da camisa na retícula (4 claro … 10 chapado). */
 export type ShirtTone = 4 | 6 | 8 | 10;

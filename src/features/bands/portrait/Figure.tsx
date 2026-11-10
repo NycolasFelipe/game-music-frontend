@@ -20,6 +20,9 @@ const FACE_MASCULINE =
 const DARK_SKIN = 5;
 /** Largura extra do halo de papel sob os traços do rosto. */
 const HALO = 1.8;
+/** Tronco com ombros e decote redondo; base de todo corte de roupa. */
+const TORSO =
+  "M6,250 L9,140 C11,122 26,114 47,107 C53,114 67,114 73,107 C94,114 109,122 111,140 L114,250 Z";
 const BEARD =
   "M41,74 C42,92 50,104 60,104 C70,104 78,92 79,74 C77,86 72,92 66,93 C62,91 58,91 54,93 C48,92 43,86 41,74 Z";
 
@@ -46,6 +49,9 @@ export function Figure({
   const hs = L.hairOutline ? { stroke: INK, strokeWidth: 1.1 } : {};
   const fem = L.feminine;
   const face = fem ? FACE_FEMININE : FACE_MASCULINE;
+  const shirtFill = tone(L.shirtTone);
+  /** Estampa e listras: papel sobre roupa escura, tinta sobre roupa clara. */
+  const contrast = L.shirtTone >= 8 ? PAPER : INK;
 
   const curls = (
     key: string,
@@ -206,9 +212,12 @@ export function Figure({
       {/* Pescoço, tronco e gola */}
       <path d="M51,84 L51,108 C55,114 65,114 69,108 L69,84 Z" fill={sk} stroke={INK} strokeWidth="1" />
       <path d="M51,90 C56,99 64,99 69,90 L69,99 C64,104 56,104 51,99 Z" fill={skD} />
+      <clipPath id={`${uid}t`}>
+        <path d={TORSO} />
+      </clipPath>
       <path
-        d="M6,250 L9,140 C11,122 26,114 47,107 C53,114 67,114 73,107 C94,114 109,122 111,140 L114,250 Z"
-        fill={tone(L.shirtTone)}
+        d={TORSO}
+        fill={L.shirt === "tank" ? sk : L.shirt === "leather" ? INK : shirtFill}
         stroke={INK}
         strokeWidth="1.2"
       />
@@ -223,6 +232,86 @@ export function Figure({
           <path d="M47,107 L58,150 L46,250 L6,250 L9,140 C11,122 26,114 47,107 Z" fill={INK} />
           <path d="M73,107 L62,150 L74,250 L114,250 L111,140 C109,122 94,114 73,107 Z" fill={INK} />
           <path d="M47,107 L54,132 L47,128 M73,107 L66,132 L73,128" fill="none" stroke={PAPER} strokeWidth="1.2" />
+        </>
+      )}
+      {L.shirt === "stripes" && (
+        <>
+          <g clipPath={`url(#${uid}t)`}>
+            {Array.from({ length: 11 }, (_, i) => (
+              <rect key={`st${i}`} x="0" y={124 + i * 12} width="120" height="5" fill={contrast} />
+            ))}
+          </g>
+          <path d={TORSO} fill="none" stroke={INK} strokeWidth="1.2" />
+          <path d="M47,107 C52,117 68,117 73,107" fill="none" stroke={INK} strokeWidth="2.2" />
+        </>
+      )}
+      {L.shirt === "print" && (
+        <>
+          <path d="M47,107 C52,117 68,117 73,107" fill="none" stroke={INK} strokeWidth="2.2" />
+          <circle cx="60" cy="143" r="15" fill="none" stroke={contrast} strokeWidth="2.2" />
+          <path d="M62.5,130 L54,145 L60,145 L57,157 L67,140 L61,140 Z" fill={contrast} />
+        </>
+      )}
+      {L.shirt === "turtleneck" && (
+        <>
+          <path
+            d="M49,86 L49,110 C54,117 66,117 71,110 L71,86 C66,91 54,91 49,86 Z"
+            fill={shirtFill}
+            stroke={INK}
+            strokeWidth="1.6"
+          />
+          <path
+            d="M50,93 C55,98 65,98 70,93 M50,99 C55,104 65,104 70,99 M50,105 C55,110 65,110 70,105"
+            fill="none"
+            stroke={contrast}
+            strokeWidth="1.1"
+          />
+        </>
+      )}
+      {L.shirt === "collar" && (
+        <>
+          <path d="M60,114 L60,250" fill="none" stroke={contrast} strokeWidth="1.2" />
+          {[140, 166, 192, 218].map((y) => (
+            <circle key={`bt${y}`} cx="63" cy={y} r="1.8" fill={PAPER} stroke={INK} strokeWidth="1" />
+          ))}
+          <path d="M45,105 L60,114 L52,128 Z" fill={PAPER} stroke={INK} strokeWidth="1.3" />
+          <path d="M75,105 L60,114 L68,128 Z" fill={PAPER} stroke={INK} strokeWidth="1.3" />
+        </>
+      )}
+      {L.shirt === "tank" && (
+        <path
+          d="M26,250 L29,152 C31,134 37,120 42,108 L48,108 C52,124 68,124 72,108 L78,108 C83,120 89,134 91,152 L94,250 Z"
+          fill={tone(Math.max(8, L.shirtTone))}
+          stroke={INK}
+          strokeWidth="1.3"
+        />
+      )}
+      {L.shirt === "hoodie" && (
+        <>
+          <path
+            d="M38,110 C40,96 50,90 60,90 C70,90 80,96 82,110 C76,121 68,124 60,124 C52,124 44,121 38,110 Z"
+            fill={shirtFill}
+            stroke={contrast}
+            strokeWidth="1.3"
+          />
+          <path d="M47,107 C52,116 68,116 73,107" fill="none" stroke={contrast} strokeWidth="1.6" />
+          <path d="M54,119 L52,152 M66,119 L68,152" fill="none" stroke={contrast} strokeWidth="1.6" />
+          <circle cx="52" cy="154" r="2" fill={contrast} />
+          <circle cx="68" cy="154" r="2" fill={contrast} />
+          <path d="M30,250 L36,206 L84,206 L90,250" fill="none" stroke={contrast} strokeWidth="1.4" />
+        </>
+      )}
+      {L.shirt === "leather" && (
+        <>
+          <path d="M47,107 C53,114 67,114 73,107 L66,138 L54,138 Z" fill={shirtFill} />
+          <path
+            d="M47,107 L38,134 L56,142 M73,107 L84,128 L66,140"
+            fill="none"
+            stroke={PAPER}
+            strokeWidth="1.3"
+          />
+          <path d="M66,140 L58,250" fill="none" stroke={PAPER} strokeWidth="1.6" strokeDasharray="2 2" />
+          <path d="M22,196 L42,190 M98,184 L80,190" fill="none" stroke={PAPER} strokeWidth="1.2" />
         </>
       )}
 

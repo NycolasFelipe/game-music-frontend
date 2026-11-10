@@ -73,7 +73,19 @@ function fallbackAppearance(subject: PortraitSubject, curly: boolean, bald: bool
   const g = r();
   const glasses: GlassesStyle = g < 0.12 ? "sun" : g < 0.27 ? "round" : "none";
   const earring = r() < (feminine ? 0.55 : neutral ? 0.35 : 0.15);
-  const shirt = pick(["crew", "v", "jacket", "crew"] as const);
+  const shirt = pick([
+    "crew",
+    "crew",
+    "v",
+    "jacket",
+    "hoodie",
+    "stripes",
+    "turtleneck",
+    "collar",
+    "tank",
+    "leather",
+    "print",
+  ] as const);
   const shirtTone = pick([10, 8, 6, 4] as const);
   return { hairStyle, beard, glasses, earring, shirt, shirtTone };
 }
