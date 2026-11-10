@@ -22,6 +22,13 @@ export function useBandOptions() {
     queryKey: catalogKeys.options,
     queryFn: getBandOptions,
     staleTime: Infinity,
+    // Estilos em ordem alfabética em todo lugar que os lista.
+    select: (options) => ({
+      ...options,
+      themes: [...options.themes].sort((a, b) =>
+        a.label.localeCompare(b.label, "pt-BR", { sensitivity: "base" }),
+      ),
+    }),
   });
 }
 

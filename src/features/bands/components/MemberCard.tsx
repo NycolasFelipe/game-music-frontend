@@ -79,7 +79,7 @@ export function MemberCard({
         {onRegenerateAvatar && (
           <button
             type="button"
-            className="rv-link"
+            className="rv-link rv-regen"
             disabled={avatarRegenerating}
             onClick={(event) => {
               event.stopPropagation();

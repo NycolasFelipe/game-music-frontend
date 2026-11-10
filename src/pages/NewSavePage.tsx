@@ -2,14 +2,10 @@ import {
   ActionIcon,
   Alert,
   Button,
-  Container,
   Group,
   Loader,
   Modal,
   Select,
-  SimpleGrid,
-  Stack,
-  Stepper,
   Text,
   TextInput,
   Tooltip,
@@ -17,9 +13,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import {
   IconDice,
-  IconPencil,
   IconSettings,
-  IconWand,
 } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useBlocker, useNavigate } from "react-router-dom";
@@ -226,8 +220,20 @@ export function NewSavePage() {
     );
   }
 
+  const chosen = candidates.filter((c) => selected.has(c.id));
+  const themeName = options?.themes.find((t) => t.id === theme)?.label;
+  const originName = options?.origins.find((o) => o.id === origin)?.label;
+  const STEPS = ["A banda", "Audições", "Revisão"];
+  const formationPhoto = (tag: string) =>
+    <BandPhoto
+      members={chosen.map((c) => ({ ...c, happiness: c.happiness ?? 0 }))}
+      scene={resolveScene(name || "nova")}
+      label={chosen.length > 0 ? "Formação escolhida" : "Cenário da foto, ainda sem a banda"}
+      tag={tag}
+    />;
+
   return (
-    <Container py={0} px={0} size="lg">
+    <>
       <div className="rv-topline">
         <Link to="/">← Banca</Link>
         <span>Nova banda · passo {step + 1} de 3</span>
@@ -235,7 +241,22 @@ export function NewSavePage() {
           Cancelar
         </button>
       </div>
-      <Masthead title={["A banda", "Audições", "Revisão"][step] ?? "Nova banda"} />
+      <Masthead title={STEPS[step] ?? "Nova banda"} small />
+      <nav className="rv-index" aria-label="Passos">
+        {STEPS.map((label, i) => (
+          <button
+            key={label}
+            type="button"
+            className={i === step ? "rv-on" : undefined}
+            disabled={i > step}
+            aria-current={i === step ? "step" : undefined}
+            onClick={() => setStep(i)}
+          >
+            <span className="rv-pg">{i + 1}</span>
+            {label}
+          </button>
+        ))}
+      </nav>
 
       <Modal
         opened={blocker.state === "blocked"}
@@ -257,95 +278,98 @@ export function NewSavePage() {
         </Group>
       </Modal>
 
-      <Stepper
-        active={step}
-        onStepClick={setStep}
-        allowNextStepsSelect={false}
-        mb="xl"
-      >
-        <Stepper.Step label="Banda" description="Dados da banda" />
-        <Stepper.Step label="Integrantes" description="Escolha 3 a 6" />
-        <Stepper.Step label="Revisão" description="Criar save" />
-      </Stepper>
-
       {step === 0 && (
-        <Stack maw={420}>
-          <Button
-            variant="light"
-            leftSection={<IconWand size={16} />}
-            onClick={randomizeBand}
-            disabled={!options}
-          >
-            Gerar aleatoriamente
-          </Button>
+        <div className="rv-cols2" style={{ marginTop: 20 }}>
+          <div className="rv-form">
+            <div className="rv-kicker">Ficha da banda</div>
+            <p className="rv-deck" style={{ marginTop: 6 }}>
+              Nome, estilo, cidade e década. Quem toca sai das audições, no próximo passo.
+            </p>
+            <button type="button" className="rv-link" onClick={randomizeBand} disabled={!options}>
+              Sortear tudo
+            </button>
 
-          <Group align="flex-end" gap="xs">
-            <TextInput
-              label="Nome da banda"
-              value={name}
-              onChange={(e) => setName(e.currentTarget.value)}
-              flex={1}
-            />
-            <Tooltip label="Gerar nome">
-              <ActionIcon
-                variant="default"
-                size="lg"
-                onClick={() => generateWith(nameOptions)}
-                loading={generateName.isPending}
-                aria-label="Gerar nome"
-              >
-                <IconDice size={18} />
-              </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Configurar geração">
-              <ActionIcon
-                variant="default"
-                size="lg"
-                onClick={nameModal.open}
-                aria-label="Configurar geração de nomes"
-              >
-                <IconSettings size={18} />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-          <Select
-            label="Estilo"
-            placeholder="Selecione"
-            data={(options?.themes ?? []).map((t) => ({
-              value: t.id,
-              label: t.label,
-            }))}
-            value={theme}
-            onChange={setTheme}
-            searchable
-          />
-          <Select
-            label="Origem"
-            placeholder="Selecione"
-            data={(options?.origins ?? []).map((o) => ({
-              value: o.id,
-              label: o.label,
-            }))}
-            value={origin}
-            onChange={setOrigin}
-            searchable
-          />
-          <Select
-            label="Década de fundação"
-            placeholder="Selecione"
-            data={(options?.foundationYears ?? []).map((y) => ({
-              value: String(y),
-              label: String(y),
-            }))}
-            value={year}
-            onChange={setYear}
-          />
-          <Group justify="flex-end" mt="md">
-            <Button disabled={!bandStepValid} onClick={goToMembers}>
-              Próximo
+            <div className="rv-field">
+              <Group align="flex-end" gap="xs" wrap="nowrap">
+                <TextInput
+                  label="Nome da banda"
+                  placeholder="Como a banda vai se chamar"
+                  value={name}
+                  onChange={(e) => setName(e.currentTarget.value)}
+                  flex={1}
+                />
+                <Tooltip label="Gerar nome">
+                  <ActionIcon
+                    variant="default"
+                    size="lg"
+                    onClick={() => generateWith(nameOptions)}
+                    loading={generateName.isPending}
+                    aria-label="Gerar nome"
+                  >
+                    <IconDice size={18} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Configurar geração">
+                  <ActionIcon
+                    variant="default"
+                    size="lg"
+                    onClick={nameModal.open}
+                    aria-label="Configurar geração de nomes"
+                  >
+                    <IconSettings size={18} />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+            </div>
+            <div className="rv-field">
+              <Select
+                label="Estilo"
+                placeholder="Escolha o estilo"
+                data={(options?.themes ?? []).map((t) => ({ value: t.id, label: t.label }))}
+                value={theme}
+                onChange={setTheme}
+                searchable
+              />
+            </div>
+            <div className="rv-field">
+              <Select
+                label="Origem"
+                placeholder="Escolha a cidade"
+                data={(options?.origins ?? []).map((o) => ({ value: o.id, label: o.label }))}
+                value={origin}
+                onChange={setOrigin}
+                searchable
+              />
+            </div>
+            <div className="rv-field">
+              <span className="rv-field-label">Década de fundação</span>
+              <div className="rv-seg" role="radiogroup" aria-label="Década de fundação">
+                {(options?.foundationYears ?? []).map((y) => (
+                  <button
+                    key={y}
+                    type="button"
+                    role="radio"
+                    aria-checked={year === String(y)}
+                    className={year === String(y) ? "rv-on" : undefined}
+                    onClick={() => setYear(String(y))}
+                  >
+                    {y}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Button mt="md" disabled={!bandStepValid} onClick={goToMembers}>
+              Próximo: audições →
             </Button>
-          </Group>
-        </Stack>
+          </div>
+          <div>
+            {formationPhoto("Edição nº 1")}
+            <p className="rv-caption">
+              {name ? `${[name, themeName, originName].filter(Boolean).join(" · ")}. ` : ""}
+              A capa da edição nº 1 sai com a foto da formação escolhida nas audições.
+            </p>
+          </div>
+        </div>
       )}
 
       {nameModalOpened && (
@@ -365,45 +389,40 @@ export function NewSavePage() {
           characteristics={characteristics ?? []}
           onClose={() => setEditing(null)}
           onSave={(updated) => {
-            setCandidates((cs) =>
-              cs.map((c) => (c.id === updated.id ? updated : c)),
-            );
+            setCandidates((cs) => cs.map((c) => (c.id === updated.id ? updated : c)));
             setEditing(null);
           }}
         />
       )}
 
       {step === 1 && (
-        <Stack>
-          <Group justify="space-between">
-            <Text>
-              Selecionados: {selected.size}/{MAX_MEMBERS} (mínimo {MIN_MEMBERS})
-            </Text>
-            <Group gap="xs">
-              <Button
-                variant="light"
-                leftSection={<IconWand size={16} />}
-                onClick={selectRandomMembers}
-                disabled={candidates.length === 0}
-              >
-                Selecionar aleatoriamente
-              </Button>
-              <Button
-                variant="default"
-                onClick={rollCandidates}
-                loading={generateCandidates.isPending}
-              >
-                Gerar novos candidatos
-              </Button>
-            </Group>
-          </Group>
+        <>
+          <div className="rv-issue" style={{ borderTopWidth: 1, marginTop: 16 }}>
+            <span>
+              Selecionados <b>{selected.size}</b> de {MAX_MEMBERS} · mínimo {MIN_MEMBERS}
+            </span>
+            <button
+              type="button"
+              className="rv-link"
+              onClick={selectRandomMembers}
+              disabled={candidates.length === 0}
+            >
+              Escolher ao acaso
+            </button>
+            <button
+              type="button"
+              className="rv-link"
+              onClick={rollCandidates}
+              disabled={generateCandidates.isPending}
+            >
+              {generateCandidates.isPending ? "Chamando…" : "Novos candidatos"}
+            </button>
+          </div>
 
-          {generateCandidates.isPending && <Loader />}
-          {generateCandidates.isError && (
-            <Alert color="red">Falha ao gerar candidatos.</Alert>
-          )}
+          {generateCandidates.isPending && <Loader mt="md" color="ink" />}
+          {generateCandidates.isError && <Alert color="red" mt="md">Falha ao gerar candidatos.</Alert>}
 
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+          <div className="rv-roster">
             {candidates.map((candidate) => (
               <MemberCard
                 key={candidate.id}
@@ -415,68 +434,83 @@ export function NewSavePage() {
                 onRegenerateAvatar={() => regenerateAvatarFor(candidate)}
                 avatarRegenerating={regeneratingAvatarId === candidate.id}
                 actions={
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
+                  <button
+                    type="button"
+                    className="rv-link"
                     aria-label="Editar integrante"
                     onClick={(event) => {
                       event.stopPropagation();
                       setEditing(candidate);
                     }}
                   >
-                    <IconPencil size={16} />
-                  </ActionIcon>
+                    Editar ficha
+                  </button>
                 }
               />
             ))}
-          </SimpleGrid>
+          </div>
 
-          <Group justify="space-between" mt="md">
-            <Button variant="default" onClick={() => setStep(0)}>
-              Voltar
-            </Button>
+          <div className="rv-closing">
+            <div>
+              <Button variant="default" onClick={() => setStep(0)}>
+                ← Voltar
+              </Button>
+            </div>
             <Button disabled={!membersStepValid} onClick={() => setStep(2)}>
-              Próximo
+              Próximo: revisão →
             </Button>
-          </Group>
-        </Stack>
+          </div>
+        </>
       )}
 
       {step === 2 && (
-        <Stack maw={720}>
-          <BandPhoto
-            members={candidates.filter((c) => selected.has(c.id)).map((c) => ({ ...c, happiness: c.happiness ?? 0 }))}
-            scene={resolveScene(name || "nova")}
-            label="Formação escolhida"
-            tag="Edição nº 1"
-          />
-          <Text fw={600}>Confira antes de criar:</Text>
-          <Text>
-            <strong>{name}</strong> —{" "}
-            {options?.themes.find((t) => t.id === theme)?.label} ·{" "}
-            {options?.origins.find((o) => o.id === origin)?.label} · {year}
-          </Text>
-          <Text c="dimmed">
-            {selected.size} integrantes selecionados. Fama inicial: Anônimos (0
-            fãs).
-          </Text>
-          {createBand.isError && (
-            <Alert color="red" title="Falha ao criar o save">
-              {createBand.error instanceof ApiError
-                ? createBand.error.message
-                : "Erro inesperado."}
-            </Alert>
-          )}
-          <Group justify="space-between" mt="md">
-            <Button variant="default" onClick={() => setStep(1)}>
-              Voltar
+        <>
+          <div className="rv-cover">
+            <div>
+              {formationPhoto("Edição nº 1")}
+              <p className="rv-caption">
+                Da esquerda: {chosen.map((c) => c.name.split(" ")[0]).join(", ") || "ninguém ainda"}.
+              </p>
+            </div>
+            <div>
+              <div className="rv-kicker">Estreia</div>
+              <h2 className="rv-head">{name || "Banda sem nome"}</h2>
+              <p className="rv-deck">
+                {themeName ?? "Estilo a definir"} · {originName ?? "origem a definir"} · fundada em {year ?? "—"}.
+              </p>
+              <div className="rv-facts">
+                <div>
+                  <span>Integrantes</span>
+                  <b>{selected.size}</b>
+                </div>
+                <div>
+                  <span>Fãs</span>
+                  <b>0</b>
+                </div>
+                <div>
+                  <span>Fama</span>
+                  <b>Anônimos</b>
+                </div>
+              </div>
+              {createBand.isError && (
+                <Alert color="red" title="Falha ao criar o save">
+                  {createBand.error instanceof ApiError ? createBand.error.message : "Erro inesperado."}
+                </Alert>
+              )}
+            </div>
+          </div>
+          <div className="rv-closing">
+            <div>
+              <Button variant="default" onClick={() => setStep(1)}>
+                ← Voltar
+              </Button>
+            </div>
+            <Button size="lg" color="press" onClick={create} loading={createBand.isPending}>
+              Lançar a edição nº 1 →
             </Button>
-            <Button onClick={create} loading={createBand.isPending}>
-              Criar save
-            </Button>
-          </Group>
-        </Stack>
+          </div>
+        </>
       )}
-    </Container>
+    </>
   );
 }

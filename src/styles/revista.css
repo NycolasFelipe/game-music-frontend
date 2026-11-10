@@ -679,3 +679,108 @@ body {
 .mantine-Card-root[data-with-border] {
   border-color: var(--rv-ink);
 }
+
+/* Duas colunas editoriais */
+.rv-cols2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+@media (max-width: 880px) {
+  .rv-cols2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Formulário de revista: rótulo em versalete, campo só com fio inferior e valor em serifa. */
+.rv-form .mantine-InputWrapper-label {
+  font: 800 11px var(--rv-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 2px;
+}
+.rv-form .mantine-Input-input {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--rv-ink);
+  padding-left: 0;
+  font: 700 20px var(--rv-serif);
+  height: auto;
+  min-height: 40px;
+}
+.rv-form .mantine-Input-input:focus {
+  border-bottom-color: var(--rv-red);
+}
+.rv-form .mantine-Input-input::placeholder {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--rv-faint);
+}
+.rv-field {
+  margin: 14px 0;
+}
+.rv-field > label,
+.rv-field-label {
+  display: block;
+  font: 800 11px var(--rv-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+}
+
+/* Botões tipográficos de escolha única */
+.rv-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rv-seg button {
+  background: transparent;
+  border: 1px solid var(--rv-ink);
+  padding: 6px 10px;
+  font: 600 12px var(--rv-mono);
+  color: var(--rv-ink);
+  cursor: pointer;
+}
+.rv-seg button.rv-on {
+  background: var(--rv-ink);
+  color: var(--rv-paper);
+}
+
+/* Índice de passos (criação de banda) */
+.rv-index button {
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  padding: 8px 14px 7px 0;
+  margin-right: 14px;
+  font: 800 12px var(--rv-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--rv-soft);
+  cursor: pointer;
+}
+.rv-index button:disabled {
+  cursor: default;
+  color: var(--rv-faint);
+}
+.rv-index button.rv-on {
+  color: var(--rv-ink);
+  border-bottom-color: var(--rv-red);
+}
+.rv-index button .rv-pg {
+  font: 400 10px var(--rv-mono);
+  margin-right: 5px;
+  color: var(--rv-faint);
+}
+
+/* "Novo visual" só aparece ao passar o mouse ou com foco, para não poluir as fichas. */
+.rv-profile .rv-regen {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.rv-profile:hover .rv-regen,
+.rv-profile .rv-regen:focus-visible,
+.rv-profile .rv-regen:disabled {
+  opacity: 1;
+}

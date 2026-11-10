@@ -32,7 +32,8 @@ export function BandPhoto({
   const h = 300;
   const n = Math.max(1, members.length);
   const slot = w / n;
-  const base = Math.min(1.45, (slot / 120) * 1.45);
+  // Teto de escala: com poucos integrantes a foto não vira close (rosto cortado, retícula grossa).
+  const base = Math.min(1.2, (slot / 120) * 1.45);
   const placed = members.map((member, i) => {
     const back = n > 2 && i % 2 === 1;
     const s = base * (back ? 0.9 : 1);
