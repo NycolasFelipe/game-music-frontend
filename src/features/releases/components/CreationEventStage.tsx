@@ -2,15 +2,8 @@ import { InsertOption, optionLetter } from "@/components/revista";
 import { MemberMentions } from "@/features/bands";
 import type { BandMember, Characteristic } from "@/features/bands";
 import { VINYL_KEYFRAMES } from "@/features/releases/components/VinylRecord";
-import type { CreationEvent, CreationEventKind } from "@/features/releases/types";
-
-/** Nome de cada tipo de sessão de estúdio, como chapéu da matéria. */
-const KIND_LABELS: Record<CreationEventKind, string> = {
-  conflito_visao: "Conflito de visão",
-  ideia_maluca: "Ideia maluca",
-  perfeccionismo: "Perfeccionismo",
-  preguica: "Preguiça",
-};
+import { CREATION_KIND_LABELS as KIND_LABELS } from "@/features/releases/creationKinds";
+import type { CreationEvent } from "@/features/releases/types";
 
 /** Um vinil pequeno girando enquanto a sessão acontece. */
 function SpinningDisc() {

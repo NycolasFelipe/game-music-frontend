@@ -1,6 +1,7 @@
 import { Loader } from "@mantine/core";
 import { useBandOptions } from "@/features/bands";
 import { VinylDisc } from "@/features/releases/components/VinylRecord";
+import { CREATION_KIND_LABELS } from "@/features/releases/creationKinds";
 import {
   useBudgetTiers,
   useReleaseFormats,
@@ -48,8 +49,11 @@ export function LaunchSummary({
   // se decidiu vem das sessões já resolvidas.
   const decided = (detail.creationEvents ?? [])
     .filter((event) => event.resolved)
-    .map((event) => ({
+    .sort((a, b) => a.sequence - b.sequence)
+    .map((event, index) => ({
       id: event.id,
+      session: index + 1,
+      kind: CREATION_KIND_LABELS[event.kind] ?? "Sessão",
       prompt: event.prompt,
       choice: event.options.find((option) => option.id === event.chosenOptionId)?.label ?? "",
     }));
@@ -70,23 +74,25 @@ export function LaunchSummary({
         </div>
       </div>
 
-      <div className="rv-ledger" style={{ marginTop: 14 }}>
-        <div>
-          <b>No estúdio você decidiu</b>
-          <span />
-        </div>
+      <div className="rv-session-log">
+        <div className="rv-kicker">No estúdio</div>
         {decided.length > 0 ? (
-          decided.map((entry) => (
-            <div key={entry.id}>
-              <span>{entry.prompt}</span>
-              <span style={{ textAlign: "right", flexShrink: 0 }}>{entry.choice}</span>
-            </div>
-          ))
+          <ol>
+            {decided.map((entry) => (
+              <li key={entry.id}>
+                <div className="rv-label">
+                  Sessão {entry.session} · {entry.kind}
+                </div>
+                <p className="rv-session-prompt">“{entry.prompt}”</p>
+                <p className="rv-session-choice">
+                  <span>Você escolheu</span>
+                  {entry.choice}
+                </p>
+              </li>
+            ))}
+          </ol>
         ) : (
-          <div>
-            <span>Nenhuma sessão difícil</span>
-            <span />
-          </div>
+          <p className="rv-caption">Nenhuma sessão difícil. A gravação correu sem drama, o que é quase suspeito.</p>
         )}
       </div>
 

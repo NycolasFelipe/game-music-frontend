@@ -220,6 +220,11 @@ describe("DecisionsModal", () => {
 
     expect(await screen.findByText(/está pronta/)).toBeInTheDocument();
 
+    // What happened in the studio and what was decided read as separate blocks.
+    expect(await screen.findByText("Sessão 1 · Conflito de visão")).toBeInTheDocument();
+    expect(screen.getByText("“O baterista quer refazer tudo mais rápido.”")).toBeInTheDocument();
+    expect(screen.getByText("Você escolheu").parentElement).toHaveTextContent("Você escolheuCeder");
+
     await user.click(screen.getByRole("button", { name: /Lançar EP/ }));
 
     await waitFor(() =>

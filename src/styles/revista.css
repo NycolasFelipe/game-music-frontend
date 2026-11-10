@@ -1173,3 +1173,39 @@ body {
   font-variant-numeric: tabular-nums;
   color: var(--rv-ink);
 }
+
+/* O que se decidiu no estúdio: a situação e a escolha em blocos separados. */
+.rv-session-log {
+  margin-top: 16px;
+  border-top: 1px solid var(--rv-ink);
+  padding-top: 8px;
+}
+.rv-session-log ol {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.rv-session-log li {
+  padding: 10px 0 12px;
+  border-bottom: 1px dotted var(--rv-soft);
+}
+.rv-session-prompt {
+  font: italic 600 15px/1.4 var(--rv-serif);
+  color: var(--rv-soft);
+  margin: 4px 0 8px;
+}
+.rv-session-choice {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--rv-red);
+  font: 700 15px/1.35 var(--rv-sans);
+  color: var(--rv-ink);
+}
+.rv-session-choice > span {
+  display: block;
+  font: 600 10px var(--rv-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--rv-red);
+  margin-bottom: 2px;
+}
