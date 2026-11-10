@@ -1,4 +1,6 @@
 import { InsertOption, optionLetter } from "@/components/revista";
+import { MemberMentions } from "@/features/bands";
+import type { BandMember, Characteristic } from "@/features/bands";
 import { VINYL_KEYFRAMES } from "@/features/releases/components/VinylRecord";
 import type { CreationEvent, CreationEventKind } from "@/features/releases/types";
 
@@ -47,6 +49,9 @@ function SpinningDisc() {
  * @param props.event - A sessão pendente.
  * @param props.index - Número da sessão (a partir de 1).
  * @param props.total - Total de sessões da obra.
+ * @param props.members - Integrantes da banda, para a ficha ao passar o mouse
+ *   sobre um nome na fala.
+ * @param props.catalog - Catálogo de traços (ficha ao passar o mouse).
  * @param props.pending - Verdadeiro enquanto a escolha é aplicada.
  * @param props.onChoose - Chamado com a alternativa escolhida.
  */
@@ -54,12 +59,16 @@ export function CreationEventStage({
   event,
   index,
   total,
+  members,
+  catalog,
   pending,
   onChoose,
 }: {
   event: CreationEvent;
   index: number;
   total: number;
+  members: BandMember[];
+  catalog: Map<string, Characteristic>;
   pending: boolean;
   onChoose: (optionId: string) => void;
 }) {
@@ -82,7 +91,9 @@ export function CreationEventStage({
         </div>
       </div>
 
-      <p className="rv-pull">“{event.prompt}”</p>
+      <p className="rv-pull">
+        “<MemberMentions text={event.prompt} members={members} catalog={catalog} />”
+      </p>
 
       <div>
         {event.options.map((option, i) => (

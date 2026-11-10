@@ -1,5 +1,5 @@
 import { InsertOption, optionLetter } from "@/components/revista";
-import { MemberHoverName } from "@/features/bands";
+import { MemberHoverName, MemberMentions } from "@/features/bands";
 import type { BandMember, Characteristic } from "@/features/bands";
 import type { ActiveEvent } from "@/features/events/types";
 
@@ -35,7 +35,9 @@ export function ActiveEventDecision({
 
   return (
     <div>
-      <p className="rv-body rv-lede">{event.description}</p>
+      <p className="rv-body rv-lede">
+        <MemberMentions text={event.description} members={members} catalog={catalog} />
+      </p>
 
       {involved.length > 0 && (
         <p className="rv-caption" style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", alignItems: "center" }}>

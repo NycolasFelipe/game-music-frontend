@@ -35,6 +35,9 @@ export interface MemberCardData {
  * @param props.avatarRegenerating - Se o novo visual está sendo gerado.
  * @param props.crop - Recorte do retrato: 3:4 (`portrait`) ou 4:3 (`wide`).
  * @param props.tag - Etiqueta vermelha sobre o retrato (ex.: "Em crise").
+ * @param props.layout - `stack` põe o retrato em cima (grade do Elenco e
+ *   audições); `side` põe o retrato pequeno à esquerda e os dados à direita,
+ *   para a ficha caber inteira num hover.
  */
 export function MemberCard({
   member,
@@ -46,6 +49,7 @@ export function MemberCard({
   avatarRegenerating,
   crop = "portrait",
   tag,
+  layout = "stack",
 }: {
   member: MemberCardData;
   catalog: Map<string, Characteristic>;
@@ -56,12 +60,13 @@ export function MemberCard({
   avatarRegenerating?: boolean;
   crop?: "portrait" | "wide";
   tag?: ReactNode;
+  layout?: "stack" | "side";
 }) {
   const role = SKILL_LABELS[member.primarySkill as keyof Skills] ?? member.primarySkill;
 
   return (
     <article
-      className="rv-profile"
+      className={layout === "side" ? "rv-profile rv-profile-side" : "rv-profile"}
       onClick={onToggle}
       role={onToggle ? "button" : undefined}
       tabIndex={onToggle ? 0 : undefined}
@@ -108,25 +113,27 @@ export function MemberCard({
           </button>
         )}
       </div>
-      <div className="rv-nm">{member.name}</div>
-      <div className="rv-role">
-        {role} · {member.age} anos
+      <div className="rv-profile-body">
+        <div className="rv-nm">{member.name}</div>
+        <div className="rv-role">
+          {role} · {member.age} anos
+        </div>
+        {member.happiness !== undefined && (
+          <div style={{ marginTop: 4 }}>
+            <HappinessBadge value={member.happiness} />
+          </div>
+        )}
+        {actions && (
+          <div style={{ marginTop: 4 }} onClick={(event) => event.stopPropagation()}>
+            {actions}
+          </div>
+        )}
+        <CharacteristicChips ids={member.characteristics} catalog={catalog} />
+        <p className="rv-caption" style={{ margin: "4px 0 8px" }}>
+          {member.biography}
+        </p>
+        <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
       </div>
-      {member.happiness !== undefined && (
-        <div style={{ marginTop: 4 }}>
-          <HappinessBadge value={member.happiness} />
-        </div>
-      )}
-      {actions && (
-        <div style={{ marginTop: 4 }} onClick={(event) => event.stopPropagation()}>
-          {actions}
-        </div>
-      )}
-      <CharacteristicChips ids={member.characteristics} catalog={catalog} />
-      <p className="rv-caption" style={{ margin: "4px 0 8px" }}>
-        {member.biography}
-      </p>
-      <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
     </article>
   );
 }
