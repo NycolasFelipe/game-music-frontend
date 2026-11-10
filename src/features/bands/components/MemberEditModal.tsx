@@ -22,6 +22,7 @@ import type {
 const GENDERS = [
   { value: "male", label: "Masculino" },
   { value: "female", label: "Feminino" },
+  { value: "neutral", label: "Neutro" },
 ];
 
 /**

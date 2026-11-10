@@ -52,22 +52,27 @@ function fallbackAppearance(subject: PortraitSubject, curly: boolean, bald: bool
   const r = seeded(subject.id || subject.name);
   const pick = <T,>(list: readonly T[]): T => list[Math.floor(r() * list.length)];
   const feminine = subject.gender === "female";
+  const neutral = subject.gender === "neutral";
   const hairStyle: HairStyle = bald
     ? "bald"
     : feminine
       ? curly
         ? "curlylong"
         : pick(["long", "long", "bob", "bun", "long"] as const)
-      : curly
-        ? pick(["curly", "afro"] as const)
-        : pick(["short", "quiff", "long", "buzz", "short"] as const);
+      : neutral
+        ? curly
+          ? pick(["curly", "afro", "curlylong"] as const)
+          : pick(["short", "long", "bob", "buzz", "bun"] as const)
+        : curly
+          ? pick(["curly", "afro"] as const)
+          : pick(["short", "quiff", "long", "buzz", "short"] as const);
   const beard: BeardStyle =
-    !feminine && subject.age >= 19 && r() < 0.45
+    subject.gender === "male" && subject.age >= 19 && r() < 0.45
       ? pick(["stubble", "full", "goatee"] as const)
       : "none";
   const g = r();
   const glasses: GlassesStyle = g < 0.12 ? "sun" : g < 0.27 ? "round" : "none";
-  const earring = feminine ? r() < 0.55 : r() < 0.15;
+  const earring = r() < (feminine ? 0.55 : neutral ? 0.35 : 0.15);
   const shirt = pick(["crew", "v", "jacket", "crew"] as const);
   const shirtTone = pick([10, 8, 6, 4] as const);
   return { hairStyle, beard, glasses, earring, shirt, shirtTone };
