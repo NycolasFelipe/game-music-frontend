@@ -16,6 +16,10 @@ const FACE_FEMININE =
   "M42,70 C42,49 50,45 60,45 C70,45 78,49 78,70 C78,85 70,96 60,96 C50,96 42,85 42,70 Z";
 const FACE_MASCULINE =
   "M41,70 C41,48 50,44 60,44 C70,44 79,48 79,70 C79,86 71,98 60,98 C49,98 41,86 41,70 Z";
+/** A partir deste tom de pele (1..7), os traços do rosto ganham halo de papel. */
+const DARK_SKIN = 5;
+/** Largura extra do halo de papel sob os traços do rosto. */
+const HALO = 1.8;
 const BEARD =
   "M41,74 C42,92 50,104 60,104 C70,104 78,92 79,74 C77,86 72,92 66,93 C62,91 58,91 54,93 C48,92 43,86 41,74 Z";
 
@@ -78,6 +82,86 @@ export function Figure({
       fill={L.beard === "stubble" ? tone(5) : hf}
     />
   );
+
+  /**
+   * Sobrancelhas, olhos, nariz, boca e óculos. Com `halo`, desenha as mesmas
+   * formas em papel e mais grossas, para ir por baixo do traço em tinta: em
+   * pele escura, sem esse contorno, o traço some na retícula do rosto.
+   *
+   * @param halo - Desenha o contorno de papel em vez do traço.
+   * @returns Os elementos do rosto.
+   */
+  const features = (halo: boolean): ReactNode => {
+    const c = halo ? PAPER : INK;
+    const w = (base: number) => base + (halo ? HALO : 0);
+    const outline = halo ? { stroke: PAPER, strokeWidth: HALO } : {};
+    return (
+      <g>
+        <path
+          d={`M46,${66 - browLift} Q51,${63 - browLift} 56,${65.5 - sad * 3}`}
+          fill="none"
+          stroke={c}
+          strokeWidth={w(browWidth)}
+          strokeLinecap="round"
+        />
+        <path
+          d={`M74,${66 - browLift} Q69,${63 - browLift} 64,${65.5 - sad * 3}`}
+          fill="none"
+          stroke={c}
+          strokeWidth={w(browWidth)}
+          strokeLinecap="round"
+        />
+        <ellipse cx="51.5" cy="72.5" rx="2.1" ry={mood > 0.7 ? 1 : 1.7} fill={c} {...outline} />
+        <ellipse cx="68.5" cy="72.5" rx="2.1" ry={mood > 0.7 ? 1 : 1.7} fill={c} {...outline} />
+        {fem && <path d="M48,71 L46,69.5 M72,71 L74,69.5" stroke={c} strokeWidth={w(1.1)} strokeLinecap="round" />}
+        <path
+          d="M60,74 L57.3,82.3 Q60,84.3 62.6,82.6"
+          fill="none"
+          stroke={c}
+          strokeWidth={w(1.3)}
+          strokeLinecap="round"
+        />
+        {mood > 0.55 ? (
+          <>
+            <path
+              d={`M53,88.5 Q60,${88.5 + curve * 1.5} 67,88.5 Z`}
+              fill={c}
+              stroke={c}
+              strokeWidth={w(1.6)}
+              strokeLinejoin="round"
+            />
+            {!halo && <path d="M55.5,89.3 L64.5,89.3" stroke={PAPER} strokeWidth="1.2" />}
+          </>
+        ) : (
+          <path
+            d={`M53.5,${89.5 - Math.max(0, -curve) * 0.2} Q60,${89.5 + curve} 66.5,${89.5 - Math.max(0, -curve) * 0.2}`}
+            fill="none"
+            stroke={c}
+            strokeWidth={w(1.8)}
+            strokeLinecap="round"
+          />
+        )}
+
+        {L.glasses === "round" && (
+          <g fill="none" stroke={c} strokeWidth={w(1.6)}>
+            <circle cx="51.5" cy="72.5" r="5.6" />
+            <circle cx="68.5" cy="72.5" r="5.6" />
+            <path d="M57,72 Q60,70 63,72 M45.9,71.5 L41,70 M74.1,71.5 L79,70" />
+          </g>
+        )}
+        {L.glasses === "sun" && (
+          <>
+            <g stroke={c} strokeWidth={w(1.6)}>
+              <rect x="44.5" y="68" width="13" height="9" rx="3.5" fill={c} />
+              <rect x="62.5" y="68" width="13" height="9" rx="3.5" fill={c} />
+              <path d="M57.5,71 Q60,69.5 62.5,71 M44.5,70.5 L41,69.5 M75.5,70.5 L79,69.5" fill="none" />
+            </g>
+            {!halo && <path d="M47,70.5 L50,70.5 M65,70.5 L68,70.5" stroke={PAPER} strokeWidth="1.2" />}
+          </>
+        )}
+      </g>
+    );
+  };
 
   return (
     <g>
@@ -186,70 +270,9 @@ export function Figure({
         </>
       )}
 
-      {/* Expressão: segue o humor */}
-      <path
-        d={`M46,${66 - browLift} Q51,${63 - browLift} 56,${65.5 - sad * 3}`}
-        fill="none"
-        stroke={INK}
-        strokeWidth={browWidth}
-        strokeLinecap="round"
-      />
-      <path
-        d={`M74,${66 - browLift} Q69,${63 - browLift} 64,${65.5 - sad * 3}`}
-        fill="none"
-        stroke={INK}
-        strokeWidth={browWidth}
-        strokeLinecap="round"
-      />
-      <ellipse cx="51.5" cy="72.5" rx="2.1" ry={mood > 0.7 ? 1 : 1.7} fill={INK} />
-      <ellipse cx="68.5" cy="72.5" rx="2.1" ry={mood > 0.7 ? 1 : 1.7} fill={INK} />
-      {fem && <path d="M48,71 L46,69.5 M72,71 L74,69.5" stroke={INK} strokeWidth="1.1" />}
-      <path
-        d="M60,74 L57.3,82.3 Q60,84.3 62.6,82.6"
-        fill="none"
-        stroke={INK}
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-      {mood > 0.55 ? (
-        <>
-          <path
-            d={`M53,88.5 Q60,${88.5 + curve * 1.5} 67,88.5 Z`}
-            fill={INK}
-            stroke={INK}
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-          <path d="M55.5,89.3 L64.5,89.3" stroke={PAPER} strokeWidth="1.2" />
-        </>
-      ) : (
-        <path
-          d={`M53.5,${89.5 - Math.max(0, -curve) * 0.2} Q60,${89.5 + curve} 66.5,${89.5 - Math.max(0, -curve) * 0.2}`}
-          fill="none"
-          stroke={INK}
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-      )}
-
-      {/* Óculos */}
-      {L.glasses === "round" && (
-        <g fill="none" stroke={INK} strokeWidth="1.6">
-          <circle cx="51.5" cy="72.5" r="5.6" />
-          <circle cx="68.5" cy="72.5" r="5.6" />
-          <path d="M57,72 Q60,70 63,72 M45.9,71.5 L41,70 M74.1,71.5 L79,70" />
-        </g>
-      )}
-      {L.glasses === "sun" && (
-        <>
-          <g stroke={INK} strokeWidth="1.6">
-            <rect x="44.5" y="68" width="13" height="9" rx="3.5" fill={INK} />
-            <rect x="62.5" y="68" width="13" height="9" rx="3.5" fill={INK} />
-            <path d="M57.5,71 Q60,69.5 62.5,71 M44.5,70.5 L41,69.5 M75.5,70.5 L79,69.5" fill="none" />
-          </g>
-          <path d="M47,70.5 L50,70.5 M65,70.5 L68,70.5" stroke={PAPER} strokeWidth="1.2" />
-        </>
-      )}
+      {/* Expressão e óculos; em pele escura, um halo de papel por baixo */}
+      {L.skin >= DARK_SKIN && features(true)}
+      {features(false)}
 
       {/* Cabelo da frente */}
       {L.hairStyle === "short" && (
