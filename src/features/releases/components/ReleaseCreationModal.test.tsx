@@ -184,6 +184,21 @@ describe("ReleaseCreationModal", () => {
     );
   });
 
+  it("fills the line-up with the recommended credits in one click", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<ReleaseCreationModal band={band} onClose={vi.fn()} />);
+
+    await user.type(await screen.findByLabelText("Título"), "Ruído Branco");
+    await user.click(screen.getByRole("button", { name: "Produção →" }));
+    await user.click(await screen.findByRole("button", { name: "Créditos →" }));
+
+    await user.click(await screen.findByRole("button", { name: "Distribuir recomendado" }));
+
+    // Ana is the guitarist and Beto the singer: each lands where they shine.
+    expect(screen.getByRole("button", { name: "Remover Ana de Guitarra" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Remover Beto de Vocal" })).toBeVisible();
+  });
+
   it("stacks several musicians on the same instrument", async () => {
     const user = userEvent.setup();
     renderWithProviders(<ReleaseCreationModal band={band} onClose={vi.fn()} />);

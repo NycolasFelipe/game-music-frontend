@@ -133,3 +133,142 @@ export function bestMemberFor(
   }
   return best && best.skills[aspect] > 0 ? best.id : null;
 }
+
+/** Highest skill level (mirrors `SKILL_MAX`). */
+const SKILL_MAX = 10;
+/** How far the credited members' mood moves quality (ADR-0019). */
+const HAPPINESS_QUALITY_WEIGHT = 0.15;
+/** Highest happiness (mirrors `HAPPINESS_MAX`). */
+const HAPPINESS_MAX = 5;
+
+/**
+ * What a credit sheet is worth before the studio's luck: the backend's skill
+ * score (average delivered skill per aspect, scaled by focus and chemistry,
+ * weighted by the style) times the credited members' mood (`release.calculator`).
+ *
+ * @param credits - Aspect → credited member ids.
+ * @param members - The band's members.
+ * @param weights - The style's per-aspect weights.
+ * @param relationships - The band's relationships.
+ * @returns The forecast score (higher is better).
+ */
+export function creditsScore(
+  credits: ReleaseCredits,
+  members: BandMember[],
+  weights: Record<keyof Skills, number>,
+  relationships: MemberRelationship[] = [],
+): number {
+  const byId = new Map(members.map((m) => [m.id, m]));
+  const load = creditLoad(credits);
+  let score = 0;
+  for (const aspect of SKILL_ORDER) {
+    const ids = (credits[aspect] ?? []).filter((id) => byId.has(id));
+    if (ids.length === 0 || (weights[aspect] ?? 0) <= 0) continue;
+    const avg =
+      ids.reduce(
+        (sum, id) => sum + (byId.get(id)?.skills[aspect] ?? 0) * focusFactor(load.get(id) ?? 1),
+        0,
+      ) / ids.length;
+    score += (avg / SKILL_MAX) * weights[aspect] * chemistryFactor(ids, relationships);
+  }
+  const credited = [...load.keys()].map((id) => byId.get(id)).filter((m) => m !== undefined);
+  const mood =
+    credited.length === 0
+      ? 1
+      : 1 +
+        (credited.reduce((sum, m) => sum + m.happiness, 0) / credited.length / HAPPINESS_MAX) *
+          HAPPINESS_QUALITY_WEIGHT;
+  return Math.min(1, score) * mood;
+}
+
+/**
+ * The credit sheet with the best forecast: every way of giving each aspect to
+ * one member or to nobody is tried, then a second member is added wherever a
+ * friendship makes the pair worth more than the soloist.
+ *
+ * @param members - The band's members.
+ * @param weights - The style's per-aspect weights.
+ * @param relationships - The band's relationships.
+ * @returns The recommended credits.
+ */
+export function recommendedCredits(
+  members: BandMember[],
+  weights: Record<keyof Skills, number>,
+  relationships: MemberRelationship[] = [],
+): ReleaseCredits {
+  const aspects = [...SKILL_ORDER];
+  const n = members.length;
+  // Soloists only (no chemistry), so the score is computed from counters: `pick`
+  // holds a member index per aspect, or -1 for nobody.
+  const pick: number[] = new Array(aspects.length).fill(-1);
+  const load: number[] = new Array(n).fill(0);
+  let bestPick: number[] = [...pick];
+  let bestScore = -Infinity;
+
+  const scorePick = (): number => {
+    let skill = 0;
+    let happiness = 0;
+    let credited = 0;
+    for (let i = 0; i < aspects.length; i += 1) {
+      const who = pick[i];
+      if (who < 0) continue;
+      skill +=
+        ((members[who].skills[aspects[i]] * focusFactor(load[who])) / SKILL_MAX) *
+        (weights[aspects[i]] ?? 0);
+    }
+    for (let m = 0; m < n; m += 1) {
+      if (load[m] > 0) {
+        happiness += members[m].happiness;
+        credited += 1;
+      }
+    }
+    const mood =
+      credited === 0 ? 1 : 1 + (happiness / credited / HAPPINESS_MAX) * HAPPINESS_QUALITY_WEIGHT;
+    return Math.min(1, skill) * mood;
+  };
+
+  const walk = (index: number) => {
+    if (index === aspects.length) {
+      const score = scorePick();
+      if (score > bestScore) {
+        bestScore = score;
+        bestPick = [...pick];
+      }
+      return;
+    }
+    for (let who = -1; who < n; who += 1) {
+      pick[index] = who;
+      if (who >= 0) load[who] += 1;
+      walk(index + 1);
+      if (who >= 0) load[who] -= 1;
+    }
+    pick[index] = -1;
+  };
+  walk(0);
+
+  let best: ReleaseCredits = {};
+  aspects.forEach((aspect, i) => {
+    if (bestPick[i] >= 0) best[aspect] = [members[bestPick[i]].id];
+  });
+  bestScore = creditsScore(best, members, weights, relationships);
+
+  // A friend on the same instrument can be worth more than playing alone.
+  let improved = true;
+  while (improved) {
+    improved = false;
+    for (const aspect of aspects) {
+      for (const member of members) {
+        const current = best[aspect] ?? [];
+        if (current.length === 0 || current.includes(member.id)) continue;
+        const trial = { ...best, [aspect]: [...current, member.id] };
+        const score = creditsScore(trial, members, weights, relationships);
+        if (score > bestScore + 1e-9) {
+          best = trial;
+          bestScore = score;
+          improved = true;
+        }
+      }
+    }
+  }
+  return best;
+}

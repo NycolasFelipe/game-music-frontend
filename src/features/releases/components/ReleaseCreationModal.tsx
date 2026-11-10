@@ -411,7 +411,8 @@ export function ReleaseCreationModal({
           <p className="rv-caption" style={{ marginBottom: 10 }}>
             Quem acumula funções entrega menos em cada uma. Quem divide um
             instrumento com um amigo rende mais do que sozinho, e com um
-            desafeto, menos.
+            desafeto, menos. Escolha um integrante (ou arraste) e distribua
+            pelos instrumentos.
           </p>
           <CreditsEditor
             members={band.members}

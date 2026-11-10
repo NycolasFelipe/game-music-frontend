@@ -13,6 +13,7 @@ import {
   creditLoad,
   focusFactor,
   importanceStars,
+  recommendedCredits,
 } from "@/features/releases/creation-forecast";
 import type { ReleaseCredits } from "@/features/releases/types";
 
@@ -223,11 +224,25 @@ export function CreditsEditor({
           );
         })}
       </div>
-      <p className="rv-caption">
-        {held
-          ? `${held.name} na mão: toque nos instrumentos que ${held.name.split(" ")[0]} vai tocar.`
-          : "Escolha um integrante (ou arraste) e distribua pelos instrumentos."}
-      </p>
+      {weights && (
+        <div style={{ marginTop: 10 }}>
+          <button
+            type="button"
+            className="rv-link"
+            onClick={() => {
+              setHeldId(null);
+              onChange(recommendedCredits(members, weights, relationships));
+            }}
+          >
+            Distribuir recomendado
+          </button>
+        </div>
+      )}
+      {held && (
+        <p className="rv-caption">
+          {`${held.name} na mão: toque nos instrumentos que ${held.name.split(" ")[0]} vai tocar.`}
+        </p>
+      )}
 
       <div style={{ borderTop: "2px solid var(--rv-ink)", marginTop: 10 }}>
         {aspects.map((aspect) => {
