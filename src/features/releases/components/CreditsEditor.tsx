@@ -15,6 +15,7 @@ import {
   importanceStars,
   recommendedCredits,
 } from "@/features/releases/creation-forecast";
+import { MemberHoverCard } from "@/features/bands/components/MemberHoverCard";
 import type { ReleaseCredits } from "@/features/releases/types";
 
 /** Nível baixo demais para assinar um instrumento sem pesar contra a obra. */
@@ -50,24 +51,29 @@ function MemberToken({
   onDragStart?: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      aria-pressed={state === "held"}
-      draggable={Boolean(onDragStart)}
-      onDragStart={onDragStart}
-      className={`rv-token ${state === "held" ? "rv-held" : ""} ${state === "placed" ? "rv-placed" : ""}`}
-      style={{ cursor: onDragStart ? "grab" : "pointer" }}
-    >
-      <MemberFace subject={member} size={28} />
-      <span>
-        <span className="rv-nm">{member.name}</span>
-        <span className="rv-cap" style={alert ? { color: "var(--rv-red)" } : undefined}>
-          {caption}
+    <MemberHoverCard member={member}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={label}
+        aria-pressed={state === "held"}
+        draggable={Boolean(onDragStart)}
+        onDragStart={onDragStart}
+        className={`rv-token ${state === "held" ? "rv-held" : ""} ${state === "placed" ? "rv-placed" : ""}`}
+        style={{ cursor: onDragStart ? "grab" : "pointer" }}
+      >
+        <MemberFace subject={member} size={28} />
+        <span>
+          <span className="rv-nm">{member.name}</span>
+          <span
+            className="rv-cap"
+            style={alert ? { color: "var(--rv-red)" } : undefined}
+          >
+            {caption}
+          </span>
         </span>
-      </span>
-    </button>
+      </button>
+    </MemberHoverCard>
   );
 }
 
@@ -126,7 +132,15 @@ function SlotPicker({
                   removing ? "de" : "em"
                 } ${SKILL_LABELS[aspect]}`}
               >
-                <span className="rv-v" style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 15 }}>
+                <span
+                  className="rv-v"
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    alignItems: "center",
+                    fontSize: 15,
+                  }}
+                >
                   <MemberFace subject={member} size={20} />
                   {member.name}
                 </span>
@@ -266,7 +280,9 @@ export function CreditsEditor({
                 <div className="rv-inst">{SKILL_LABELS[aspect]}</div>
                 {weights && (
                   <div className="rv-caption" style={{ marginTop: 2 }}>
-                    <span style={{ color: "var(--rv-ink)" }}>{"★".repeat(stars)}</span>
+                    <span style={{ color: "var(--rv-ink)" }}>
+                      {"★".repeat(stars)}
+                    </span>
                     {`${"☆".repeat(3 - stars)} · ${Math.round(weight * 100)}% da nota`}
                   </div>
                 )}
@@ -315,13 +331,19 @@ export function CreditsEditor({
                   />
                 )}
                 {crucialAndEmpty && (
-                  <span className="rv-note" style={{ margin: 0, alignSelf: "center" }}>
+                  <span
+                    className="rv-note"
+                    style={{ margin: 0, alignSelf: "center" }}
+                  >
                     ninguém assumiu
                   </span>
                 )}
               </div>
 
-              <div className="rv-mono" style={{ fontSize: 12, textAlign: "right" }}>
+              <div
+                className="rv-mono"
+                style={{ fontSize: 12, textAlign: "right" }}
+              >
                 {chemistryPercent !== 0 && (
                   <span className={chemistryPercent > 0 ? "rv-pos" : "rv-neg"}>
                     química {chemistryPercent > 0 ? "+" : ""}

@@ -23,6 +23,7 @@ vi.mock("@/features/releases/services/releases.api", () => ({
 
 vi.mock("@/features/bands/services/bands.api", () => ({
   getBandOptions: vi.fn(),
+  listCharacteristics: vi.fn().mockResolvedValue([]),
 }));
 
 const skills = (partial: Partial<Skills>): Skills => ({

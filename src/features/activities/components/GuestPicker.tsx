@@ -7,6 +7,7 @@ import {
   Text,
 } from "@mantine/core";
 import { FaceThumb, firstName, levelHex, pairKey } from "@/features/bands";
+import { MemberHoverCard } from "@/features/bands/components/MemberHoverCard";
 import type { BandMember, MemberRelationship } from "@/features/bands";
 import { usePeopleView } from "@/features/preferences";
 import type { PeopleViewMode } from "@/features/preferences";
@@ -62,41 +63,53 @@ function GuestCard({
   onToggle: () => void;
 }) {
   return (
-    <Paper
-      withBorder
-      radius="xl"
-      px="sm"
-      py={6}
-      role="checkbox"
-      aria-checked={going}
-      aria-label={toggleLabel(member.name, going)}
-      tabIndex={0}
-      onClick={onToggle}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onToggle();
-        }
-      }}
-      style={{
-        cursor: "pointer",
-        borderColor: "var(--rv-ink)",
-        background: going ? "var(--rv-ink)" : undefined,
-      }}
-    >
-      <Text size="xs" ff="monospace" fw={600} c={going ? "var(--rv-paper)" : undefined}>
-        {member.name}{" "}
-        <span
-          aria-label={`humor ${moodLabel(member.happiness)}`}
-          style={{
-            fontWeight: 400,
-            color: roundMood(member.happiness) < 0 ? "var(--rv-red)" : going ? "var(--rv-faint)" : "var(--rv-soft)",
-          }}
+    <MemberHoverCard member={member}>
+      <Paper
+        withBorder
+        radius="xl"
+        px="sm"
+        py={6}
+        role="checkbox"
+        aria-checked={going}
+        aria-label={toggleLabel(member.name, going)}
+        tabIndex={0}
+        onClick={onToggle}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onToggle();
+          }
+        }}
+        style={{
+          cursor: "pointer",
+          borderColor: "var(--rv-ink)",
+          background: going ? "var(--rv-ink)" : undefined,
+        }}
+      >
+        <Text
+          size="xs"
+          ff="monospace"
+          fw={600}
+          c={going ? "var(--rv-paper)" : undefined}
         >
-          {moodLabel(member.happiness)}
-        </span>
-      </Text>
-    </Paper>
+          {member.name}{" "}
+          <span
+            aria-label={`humor ${moodLabel(member.happiness)}`}
+            style={{
+              fontWeight: 400,
+              color:
+                roundMood(member.happiness) < 0
+                  ? "var(--rv-red)"
+                  : going
+                    ? "var(--rv-faint)"
+                    : "var(--rv-soft)",
+            }}
+          >
+            {moodLabel(member.happiness)}
+          </span>
+        </Text>
+      </Paper>
+    </MemberHoverCard>
   );
 }
 
@@ -181,68 +194,72 @@ function GuestGraph({
           {members.map((member, index) => {
             const going = selected.includes(member.id);
             return (
-              <g
-                key={member.id}
-                role="checkbox"
-                aria-checked={going}
-                aria-label={toggleLabel(member.name, going)}
-                tabIndex={0}
-                style={{ cursor: "pointer" }}
-                onClick={() => onToggle(member.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onToggle(member.id);
-                  }
-                }}
-              >
-                <FaceThumb
-                  subject={member}
-                  x={pos[index].x}
-                  y={pos[index].y}
-                  r={18}
-                />
-                <circle
-                  cx={pos[index].x}
-                  cy={pos[index].y}
-                  r={18}
-                  style={{
-                    fill: "none",
-                    stroke: going ? "var(--rv-red)" : "var(--rv-ink)",
-                    strokeWidth: going ? 4 : 1.5,
-                  }}
-                />
-                <text
-                  x={pos[index].x + (pos[index].x > center + 1 ? -21 : 21)}
-                  y={pos[index].y - 9}
-                  fontSize={12}
-                  fontWeight={600}
-                  textAnchor={pos[index].x > center + 1 ? "end" : "start"}
-                  aria-label={`humor ${moodLabel(member.happiness)}`}
-                  style={{
-                    fill: roundMood(member.happiness) < 0 ? "var(--rv-red)" : "var(--rv-ink)",
-                    fontFamily: "var(--rv-mono)",
-                    stroke: "var(--rv-paper)",
-                    strokeWidth: 3,
-                    paintOrder: "stroke",
+              <MemberHoverCard key={member.id} member={member}>
+                <g
+                  role="checkbox"
+                  aria-checked={going}
+                  aria-label={toggleLabel(member.name, going)}
+                  tabIndex={0}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => onToggle(member.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onToggle(member.id);
+                    }
                   }}
                 >
-                  {moodLabel(member.happiness)}
-                </text>
-                <text
-                  x={pos[index].x}
-                  y={pos[index].y + 36}
-                  fontSize={11}
-                  fontWeight={going ? 700 : 400}
-                  textAnchor="middle"
-                  style={{
-                    fill: going ? "var(--rv-red)" : "var(--rv-ink)",
-                    fontFamily: "var(--rv-mono)",
-                  }}
-                >
-                  {firstName(member.name)}
-                </text>
-              </g>
+                  <FaceThumb
+                    subject={member}
+                    x={pos[index].x}
+                    y={pos[index].y}
+                    r={18}
+                  />
+                  <circle
+                    cx={pos[index].x}
+                    cy={pos[index].y}
+                    r={18}
+                    style={{
+                      fill: "none",
+                      stroke: going ? "var(--rv-red)" : "var(--rv-ink)",
+                      strokeWidth: going ? 4 : 1.5,
+                    }}
+                  />
+                  <text
+                    x={pos[index].x + (pos[index].x > center + 1 ? -21 : 21)}
+                    y={pos[index].y - 9}
+                    fontSize={12}
+                    fontWeight={600}
+                    textAnchor={pos[index].x > center + 1 ? "end" : "start"}
+                    aria-label={`humor ${moodLabel(member.happiness)}`}
+                    style={{
+                      fill:
+                        roundMood(member.happiness) < 0
+                          ? "var(--rv-red)"
+                          : "var(--rv-ink)",
+                      fontFamily: "var(--rv-mono)",
+                      stroke: "var(--rv-paper)",
+                      strokeWidth: 3,
+                      paintOrder: "stroke",
+                    }}
+                  >
+                    {moodLabel(member.happiness)}
+                  </text>
+                  <text
+                    x={pos[index].x}
+                    y={pos[index].y + 36}
+                    fontSize={11}
+                    fontWeight={going ? 700 : 400}
+                    textAnchor="middle"
+                    style={{
+                      fill: going ? "var(--rv-red)" : "var(--rv-ink)",
+                      fontFamily: "var(--rv-mono)",
+                    }}
+                  >
+                    {firstName(member.name)}
+                  </text>
+                </g>
+              </MemberHoverCard>
             );
           })}
         </svg>
@@ -278,7 +295,9 @@ export function GuestPicker(props: GuestPickerProps) {
               type="button"
               className="rv-link"
               onClick={() =>
-                props.onSetAll?.(everyoneGoes ? [] : props.members.map((member) => member.id))
+                props.onSetAll?.(
+                  everyoneGoes ? [] : props.members.map((member) => member.id),
+                )
               }
             >
               {everyoneGoes ? "Ninguém" : "Todos"}

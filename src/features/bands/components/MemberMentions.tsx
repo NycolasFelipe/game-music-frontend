@@ -10,8 +10,9 @@ function escapeRegExp(text: string): string {
 
 /**
  * Um texto de evento em que cada nome de integrante vira um link com a ficha
- * no hover. Os nomes mais longos são procurados primeiro, para que "Ana Luz"
- * não seja lido como "Ana".
+ * no hover. Vale o nome completo e o primeiro nome, quando ele é único na
+ * banda. Os nomes mais longos são procurados primeiro, para que "Ana Luz" não
+ * seja lido como "Ana".
  *
  * @param props.text - O texto do evento, com os nomes já preenchidos.
  * @param props.members - Integrantes que podem aparecer no texto.
@@ -26,9 +27,18 @@ export function MemberMentions({
   members: MemberCardData[];
   catalog: Map<string, Characteristic>;
 }) {
-  const byName = new Map(
-    members.filter((member) => member.name.trim()).map((member) => [member.name, member]),
-  );
+  const named = members.filter((member) => member.name.trim());
+  const byName = new Map(named.map((member) => [member.name, member]));
+  // O primeiro nome também vale, quando ninguém mais na banda o divide.
+  const firstCount = new Map<string, number>();
+  for (const member of named) {
+    const first = member.name.split(" ")[0];
+    firstCount.set(first, (firstCount.get(first) ?? 0) + 1);
+  }
+  for (const member of named) {
+    const first = member.name.split(" ")[0];
+    if (first.length >= 3 && firstCount.get(first) === 1 && !byName.has(first)) byName.set(first, member);
+  }
   if (byName.size === 0) return <>{text}</>;
 
   const pattern = new RegExp(
