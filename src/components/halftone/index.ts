@@ -1,6 +1,9 @@
 /** Retícula de impressão compartilhada (ADR-0002). */
 export { HalftoneDefs } from "@/components/halftone/HalftoneDefs";
 export {
+  cellKey,
+  HALFTONE_CELL,
+  HALFTONE_FINE_CELL,
   HALFTONE_INK,
   HALFTONE_PAPER,
   HALFTONE_RED,

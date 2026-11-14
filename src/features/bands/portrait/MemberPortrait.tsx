@@ -3,6 +3,11 @@ import type { ReactNode } from "react";
 import { svgId } from "@/components/halftone";
 import { Figure, PortraitBackdrop } from "@/features/bands/portrait/Figure";
 import type { PortraitSubject } from "@/features/bands/portrait/looks";
+import {
+  PortraitTuningContext,
+  usePortraitTuning,
+  usePortraitTuningValue,
+} from "@/features/bands/portrait/tuning";
 
 /** Recortes prontos do retrato (viewBox no espaço 120 × 250 da figura). */
 const CROPS = {
@@ -64,10 +69,20 @@ export function FaceThumb({
   r: number;
 }) {
   const clip = `${svgId(useId())}c`;
+  const { zoom } = usePortraitTuning();
+  /** Meia largura do quadro, em unidades da figura (34 sem aproximação). */
+  const half = 34 / zoom;
   return (
-    <svg x={x - r} y={y - r} width={r * 2} height={r * 2} viewBox="26 38 68 68" overflow="hidden">
+    <svg
+      x={x - r}
+      y={y - r}
+      width={r * 2}
+      height={r * 2}
+      viewBox={`${60 - half} ${72 - half} ${half * 2} ${half * 2}`}
+      overflow="hidden"
+    >
       <clipPath id={clip}>
-        <circle cx="60" cy="72" r="34" />
+        <circle cx="60" cy="72" r={half} />
       </clipPath>
       <g clipPath={`url(#${clip})`}>
         <PortraitBackdrop subject={subject} cx={60} cy={72} />
@@ -79,13 +94,17 @@ export function FaceThumb({
 
 /**
  * Rostinho redondo em linha com o texto, no lugar do emoji de avatar
- * (listas, créditos, relações).
+ * (listas, créditos, relações). Abaixo de `smallBelow` px, usa os ajustes de
+ * tamanho pequeno da calibração.
  *
  * @param props.subject - A pessoa retratada.
  * @param props.size - Diâmetro em pixels.
  */
 export function MemberFace({ subject, size = 22 }: { subject: PortraitSubject; size?: number }) {
   const r = size / 2;
+  const value = usePortraitTuningValue();
+  const small = value.tuning.smallBelow > 0 && size < value.tuning.smallBelow;
+  const face = <FaceThumb subject={subject} x={r} y={r} r={r - 0.5} />;
   return (
     <svg
       width={size}
@@ -95,7 +114,11 @@ export function MemberFace({ subject, size = 22 }: { subject: PortraitSubject; s
       aria-label={subject.name}
       style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0 }}
     >
-      <FaceThumb subject={subject} x={r} y={r} r={r - 0.5} />
+      {small ? (
+        <PortraitTuningContext.Provider value={{ tuning: value.tuning, small }}>{face}</PortraitTuningContext.Provider>
+      ) : (
+        face
+      )}
       <circle cx={r} cy={r} r={r - 0.75} fill="none" stroke="var(--rv-ink)" strokeWidth="1.5" />
     </svg>
   );

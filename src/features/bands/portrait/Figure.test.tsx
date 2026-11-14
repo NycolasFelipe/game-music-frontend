@@ -2,8 +2,8 @@ import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { HALFTONE_PAPER } from "@/components/halftone";
 import { Figure } from "@/features/bands/portrait/Figure";
-import type { PortraitSubject } from "@/features/bands/portrait/looks";
-import type { ShirtStyle } from "@/types/appearance";
+import { HAIR_VARIANTS, hairVariantOf, type PortraitSubject } from "@/features/bands/portrait/looks";
+import type { HairStyle, ShirtStyle } from "@/types/appearance";
 
 const subject = (avatar: string): PortraitSubject => ({
   id: "m-1",
@@ -74,5 +74,27 @@ describe("Figure", () => {
         .join("|");
     });
     expect(new Set(drawings).size).toBe(SHIRTS.length);
+  });
+
+  it("desenha cada variação de cabelo de um jeito diferente", () => {
+    const base = subject("👩🏽");
+    const drawings = (Object.entries(HAIR_VARIANTS) as [HairStyle, readonly string[]][]).flatMap(([style, variants]) =>
+      [...new Set(variants)].map((variant) => {
+        let id = "";
+        for (let n = 0; !id && n < 500; n++) {
+          if (hairVariantOf({ ...base, id: `h-${n}` }, style) === variant) id = `h-${n}`;
+        }
+        const { container } = render(
+          <svg>
+            <Figure subject={{ ...base, id, appearance: { ...base.appearance!, hairStyle: style, earring: false } }} />
+          </svg>,
+        );
+        return [...container.querySelectorAll("path, rect, circle, ellipse")]
+          .map((el) => `${el.tagName}:${el.getAttribute("d") ?? el.getAttribute("cy") ?? ""}`)
+          .join("|");
+      }),
+    );
+    // "curly" aparece como variação de dois estilos base e desenha igual nos dois.
+    expect(new Set(drawings).size).toBe(drawings.length - 1);
   });
 });

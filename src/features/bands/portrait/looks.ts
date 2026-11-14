@@ -41,12 +41,61 @@ export function earringStyleOf(subject: PortraitSubject, wears: boolean): Earrin
   return list[Math.floor(seeded(`${subject.id || subject.name}:earring`)() * list.length)];
 }
 
+/**
+ * Variação do penteado. O backend só guarda o estilo base (ADR-0023); a
+ * variação sai do id, então a mesma pessoa sempre aparece com o mesmo corte.
+ * Variações com o nome do estilo base desenham o próprio estilo base.
+ */
+export type HairVariant =
+  | HairStyle
+  | "undercut"
+  | "mohawk"
+  | "fringe"
+  | "sidepart"
+  | "ponytail"
+  | "bangs"
+  | "halfup"
+  | "topknot"
+  | "spacebuns"
+  | "afrohigh"
+  | "braids"
+  | "locs"
+  | "shortlocs";
+
+/** Variações sorteáveis de cada estilo base (repetir um item aumenta a chance dele). */
+export const HAIR_VARIANTS: Record<HairStyle, readonly HairVariant[]> = {
+  short: ["short", "short", "undercut", "mohawk", "fringe"],
+  quiff: ["quiff", "quiff", "sidepart"],
+  long: ["long", "long", "ponytail", "bangs", "halfup"],
+  buzz: ["buzz"],
+  bald: ["bald"],
+  curly: ["curly", "curly", "shortlocs"],
+  afro: ["afro", "afro", "afrohigh", "curly"],
+  bob: ["bob"],
+  bun: ["bun", "topknot", "spacebuns"],
+  curlylong: ["curlylong", "curlylong", "braids", "locs"],
+};
+
+/**
+ * Escolhe a variação do penteado de uma pessoa.
+ *
+ * @param subject - A pessoa retratada.
+ * @param style - O estilo base (do backend ou sorteado).
+ * @returns A variação, estável para a mesma pessoa.
+ */
+export function hairVariantOf(subject: PortraitSubject, style: HairStyle): HairVariant {
+  const list = HAIR_VARIANTS[style] ?? [style];
+  return list[Math.floor(seeded(`${subject.id || subject.name}:hair-variant`)() * list.length)];
+}
+
 /** Tudo o que o desenho precisa saber sobre a pessoa. */
 export interface Looks {
   /** Tom de pele na retícula (1 claro … 7 escuro). */
   skin: number;
   feminine: boolean;
   hairStyle: HairStyle;
+  /** O corte desenhado: o estilo base ou uma variação dele. */
+  hairVariant: HairVariant;
   /** Tom do cabelo (1 branco … 10 preto). */
   hairTone: number;
   /** Contorno para cabelo claro ou médio não sumir no fundo. */
@@ -135,6 +184,7 @@ export function resolveLooks(subject: PortraitSubject): Looks {
     skin,
     feminine: subject.gender === "female",
     hairStyle: appearance.hairStyle,
+    hairVariant: hairVariantOf(subject, appearance.hairStyle),
     hairTone,
     hairOutline: red || white || blond,
     beard: appearance.beard,

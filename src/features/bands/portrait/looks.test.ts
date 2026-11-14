@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { earringStyleOf } from "@/features/bands/portrait/looks";
-import type { PortraitSubject } from "@/features/bands/portrait/looks";
+import { earringStyleOf, HAIR_VARIANTS, hairVariantOf } from "@/features/bands/portrait/looks";
+import type { HairVariant, PortraitSubject } from "@/features/bands/portrait/looks";
+import type { HairStyle } from "@/types/appearance";
 
 const subject = (id: string, gender: string): PortraitSubject => ({
   id,
@@ -27,6 +28,28 @@ describe("earringStyleOf", () => {
     );
     for (const style of ["stud", "hoop", "smallhoop", "cross", "drop", "single"]) {
       expect(styles.has(style as never)).toBe(true);
+    }
+  });
+});
+
+describe("hairVariantOf", () => {
+  it("keeps the same variant for the same person", () => {
+    const person = subject("c-42", "female");
+    expect(hairVariantOf(person, "long")).toBe(hairVariantOf(person, "long"));
+  });
+
+  it("only draws variants of the base style", () => {
+    for (const [style, variants] of Object.entries(HAIR_VARIANTS) as [HairStyle, readonly HairVariant[]][]) {
+      for (let i = 0; i < 30; i++) {
+        expect(variants).toContain(hairVariantOf(subject(`v-${i}`, "male"), style));
+      }
+    }
+  });
+
+  it("reaches every variant", () => {
+    for (const [style, variants] of Object.entries(HAIR_VARIANTS) as [HairStyle, readonly HairVariant[]][]) {
+      const seen = new Set(Array.from({ length: 300 }, (_, i) => hairVariantOf(subject(`w-${i}`, "male"), style)));
+      expect(seen).toEqual(new Set(variants));
     }
   });
 });

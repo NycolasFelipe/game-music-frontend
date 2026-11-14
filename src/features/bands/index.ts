@@ -5,7 +5,16 @@ export { BandHeader } from "@/features/bands/components/BandHeader";
 export { BandPhoto } from "@/features/bands/portrait/BandPhoto";
 export { FaceThumb, MemberFace, MemberPortrait } from "@/features/bands/portrait/MemberPortrait";
 export { resolveScene, SCENE_TEXT } from "@/features/bands/portrait/scenes";
-export type { PortraitSubject } from "@/features/bands/portrait/looks";
+export { HAIR_VARIANTS, hairVariantOf } from "@/features/bands/portrait/looks";
+export type { HairVariant, PortraitSubject } from "@/features/bands/portrait/looks";
+export {
+  DEFAULT_PORTRAIT_TUNING,
+  LIGHT_HAIR_LEVELS,
+  PortraitTuningContext,
+  SKIN_LEVELS,
+  tuningCells,
+} from "@/features/bands/portrait/tuning";
+export type { LightHairLevel, PortraitTuning, SkinLevel } from "@/features/bands/portrait/tuning";
 export { BandCover } from "@/features/bands/components/BandCover";
 export { BandStatistics } from "@/features/bands/components/BandStatistics";
 export { DeleteBandButton } from "@/features/bands/components/DeleteBandButton";

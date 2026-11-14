@@ -1,48 +1,65 @@
 import {
+  cellKey,
+  HALFTONE_CELL,
+  HALFTONE_FINE_CELL,
   HALFTONE_ID,
   HALFTONE_INK,
   HALFTONE_PAPER,
   HALFTONE_RED,
 } from "@/components/halftone/halftone";
 
-/** Raio do ponto para uma cobertura de tinta `c` numa célula 4 × 4. */
-function dotRadius(coverage: number): number {
-  return Math.sqrt((coverage * 16) / Math.PI);
+/** Raio do ponto para uma cobertura de tinta `c` numa célula `cell` × `cell`. */
+function dotRadius(coverage: number, cell: number): number {
+  return Math.sqrt((coverage * cell * cell) / Math.PI);
 }
 
 /**
  * Define, uma vez por página, os padrões de retícula usados pelos SVGs
- * (`tone()`): nove tons em tinta e nove em vermelho. Acima de 50% de cobertura
+ * (`tone()`): nove tons em tinta e nove em vermelho, no espaçamento padrão e no
+ * fino dos retratos. Acima de 50% de cobertura
  * o padrão se inverte (pontos de papel sobre tinta), como na impressão.
+ *
+ * @param props.cells - Espaçamentos extras além do padrão (bancada de calibração).
  */
-export function HalftoneDefs() {
+export function HalftoneDefs({ cells = [] }: { cells?: number[] }) {
   const patterns = [];
-  for (const [prefix, color] of [
-    ["k", HALFTONE_INK],
-    ["r", HALFTONE_RED],
-  ] as const) {
-    for (let k = 1; k <= 9; k++) {
-      const coverage = k / 10;
-      const inverted = coverage > 0.5;
-      const r = dotRadius(inverted ? 1 - coverage : coverage);
-      patterns.push(
-        <pattern
-          key={`${prefix}${k}`}
-          id={`${HALFTONE_ID}-${prefix}${k}`}
-          width="4"
-          height="4"
-          patternUnits="userSpaceOnUse"
-          patternTransform="rotate(45)"
-        >
-          <rect width="4" height="4" fill={inverted ? color : HALFTONE_PAPER} />
-          <circle
-            cx="2"
-            cy="2"
-            r={r.toFixed(2)}
-            fill={inverted ? HALFTONE_PAPER : color}
-          />
-        </pattern>,
-      );
+  // Um padrão por id: espaçamentos que arredondam para o mesmo id viram um só.
+  const byKey = new Map<string, number>([
+    [cellKey(HALFTONE_CELL), HALFTONE_CELL],
+    [cellKey(HALFTONE_FINE_CELL), HALFTONE_FINE_CELL],
+  ]);
+  for (const c of cells) if (!byKey.has(cellKey(c))) byKey.set(cellKey(c), c);
+  const sizes = [...byKey.values()];
+  for (const cell of sizes) {
+    const half = (cell / 2).toString();
+    for (const [prefix, color] of [
+      ["k", HALFTONE_INK],
+      ["r", HALFTONE_RED],
+    ] as const) {
+      for (let k = 1; k <= 9; k++) {
+        const coverage = k / 10;
+        const inverted = coverage > 0.5;
+        const r = dotRadius(inverted ? 1 - coverage : coverage, cell);
+        const id = `${HALFTONE_ID}-${cellKey(cell)}${prefix}${k}`;
+        patterns.push(
+          <pattern
+            key={id}
+            id={id}
+            width={cell.toString()}
+            height={cell.toString()}
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
+            <rect width={cell.toString()} height={cell.toString()} fill={inverted ? color : HALFTONE_PAPER} />
+            <circle
+              cx={half}
+              cy={half}
+              r={r.toFixed(2)}
+              fill={inverted ? HALFTONE_PAPER : color}
+            />
+          </pattern>,
+        );
+      }
     }
   }
 
