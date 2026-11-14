@@ -64,7 +64,7 @@ describe("MemberInterviewModal", () => {
     expect(screen.getByText("Tocava em bailes de formatura.")).toBeInTheDocument();
     expect(screen.getByText("Refaz até ficar perfeito.")).toBeInTheDocument();
     expect(screen.getByText(/abaixo do alvo/)).toBeInTheDocument();
-    expect(await screen.findByText(/1980 · 2º semestre · inicial/)).toBeInTheDocument();
+    expect(await screen.findByText(/28 set. 1980 · inicial/)).toBeInTheDocument();
   });
 
   it("gives the member's take on each bandmate, from their relationship level", async () => {

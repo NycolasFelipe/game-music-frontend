@@ -44,7 +44,7 @@ export function FormerMembersTab({ bandId }: { bandId: string }) {
       ) : (
         <div className="rv-cols2" style={{ gap: "26px 34px", marginTop: 10 }}>
           {ordered.map((member) => (
-            <FormerMemberCard key={member.id} member={member} catalog={catalog} />
+            <FormerMemberCard key={member.id} member={member} bandId={bandId} catalog={catalog} />
           ))}
         </div>
       )}

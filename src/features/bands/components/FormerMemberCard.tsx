@@ -19,13 +19,16 @@ const DEPARTURE_REASONS: Record<string, string> = {
  * a biografia, as habilidades e como estavam as relações com quem ficou.
  *
  * @param props.member - O retrato congelado de quem saiu.
+ * @param props.bandId - A banda, que fixa a data da saída (ADR-0033 do backend).
  * @param props.catalog - Catálogo de traços (nome e descrição).
  */
 export function FormerMemberCard({
   member,
+  bandId,
   catalog,
 }: {
   member: FormerMember;
+  bandId: string;
   catalog: Map<string, Characteristic>;
 }) {
   const role = SKILL_LABELS[member.primarySkill as keyof Skills] ?? member.primarySkill;
@@ -50,7 +53,7 @@ export function FormerMemberCard({
           {role} · {member.age} anos
         </div>
         <p className="rv-caption">
-          Saiu em {formatPeriod(member.leftAtYear)} ·{" "}
+          Saiu em {formatPeriod(member.leftAtYear, bandId)} ·{" "}
           {DEPARTURE_REASONS[member.reason] ?? member.reason} ·{" "}
           {member.unpaidTurns} turno{member.unpaidTurns === 1 ? "" : "s"} sem receber ·
           último salário {formatMoney(member.salary)}

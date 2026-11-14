@@ -235,7 +235,7 @@ export function VinylRecord({
       <div style={{ minWidth: 0 }}>
         <div className={`rv-tierword ${release.qualityTier === "fracasso" ? "rv-red" : ""}`}>
           {qualityTier?.label ?? release.qualityTier} · {formatLabel}
-          {release.releasedAtYear !== null ? ` · ${formatPeriod(release.releasedAtYear)}` : ""}
+          {release.releasedAtYear !== null ? ` · ${formatPeriod(release.releasedAtYear, release.bandId, "short")}` : ""}
         </div>
         <div style={{ font: "900 22px/1.1 var(--rv-serif)" }}>
           “<span>{release.title}</span>”

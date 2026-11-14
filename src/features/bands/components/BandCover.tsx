@@ -21,7 +21,7 @@ export function BandCover({ band, themeLabel }: { band: Band; themeLabel: string
 
   return (
     <Link to={`/bands/${band.id}`} className="rv-mag">
-      <div className="rv-meta">{formatPeriod(band.currentYear)}</div>
+      <div className="rv-meta">{formatPeriod(band.currentYear, band.id)}</div>
       <div className="rv-t">
         {cut > 0 ? name.slice(0, cut + 1) : ""}
         <em>{cut > 0 ? name.slice(cut + 1) : name}</em>

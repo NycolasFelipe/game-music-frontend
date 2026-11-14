@@ -70,7 +70,7 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
           }}
         >
           <div className="rv-mono" style={{ fontSize: 12, textTransform: "uppercase" }}>
-            {formatPeriod(entry.year)}
+            {formatPeriod(entry.year, bandId, "short")}
           </div>
           <div>
             <div className={`rv-tierword ${entry.kind === "departure" || (entry.kind === "active" && !entry.resolved) ? "rv-red" : ""}`}>

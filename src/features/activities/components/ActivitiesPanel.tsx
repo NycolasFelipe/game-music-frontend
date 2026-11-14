@@ -64,7 +64,7 @@ export function ActivitiesPanel({
     <div className="rv-col-body">
       {heldThisTurn && (
         <Text size="xs" ff="monospace" c="dimmed" mb="xs">
-          A banda já saiu junta neste semestre. O próximo convívio fica para o turno que vem.
+          A banda já saiu junta desta vez. O próximo convívio fica para o turno que vem.
         </Text>
       )}
 
@@ -76,7 +76,7 @@ export function ActivitiesPanel({
               <span className="rv-v">{labelOf(held.activityId)}</span>
               <span className="rv-n rv-neg">{formatMoney(-held.cost)}</span>
               <span className="rv-d">
-                {formatPeriod(held.heldAtYear)}
+                {formatPeriod(held.heldAtYear, held.bandId, "short")}
                 {held.trouble ? " · deu treta" : ""}
               </span>
             </button>
@@ -109,7 +109,7 @@ export function ActivitiesPanel({
       <InsertModal
         opened={detail !== null}
         onClose={() => setDetail(null)}
-        label={detail ? `Convívio · ${formatPeriod(detail.heldAtYear)}` : ""}
+        label={detail ? `Convívio · ${formatPeriod(detail.heldAtYear, detail.bandId)}` : ""}
         title={detail ? labelOf(detail.activityId) : ""}
         size="lg"
       >

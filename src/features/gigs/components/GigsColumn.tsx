@@ -52,7 +52,7 @@ export function GigsColumn({
 
   return (
     <div className="rv-col-body">
-      <div className="rv-sub">Um show por semestre</div>
+      <div className="rv-sub">Um show por turno</div>
 
       {playedNow && (
         <>
@@ -77,7 +77,7 @@ export function GigsColumn({
                 {formatMoney(gig.net, { signed: true })}
               </span>
               <span className="rv-d">
-                {formatPeriod(gig.playedAtYear)} · +{Math.round(gig.fansGained).toLocaleString("pt-BR")} fãs
+                {formatPeriod(gig.playedAtYear, gig.bandId, "short")} · +{Math.round(gig.fansGained).toLocaleString("pt-BR")} fãs
               </span>
             </button>
           ))}
@@ -95,7 +95,7 @@ export function GigsColumn({
       <InsertModal
         opened={opened}
         onClose={() => setOpened(false)}
-        label="Palco · um show por semestre"
+        label="Palco · um show por turno"
         title={played ? gigOutcomeTitle(played.result) : "Onde a banda toca"}
         size="lg"
       >
@@ -115,7 +115,7 @@ export function GigsColumn({
       <InsertModal
         opened={detail !== null}
         onClose={() => setDetail(null)}
-        label={detail ? `Palco · ${formatPeriod(detail.playedAtYear)}` : ""}
+        label={detail ? `Palco · ${formatPeriod(detail.playedAtYear, detail.bandId)}` : ""}
         title={detail ? labelOf(detail.gigTypeId) : ""}
         size="lg"
       >

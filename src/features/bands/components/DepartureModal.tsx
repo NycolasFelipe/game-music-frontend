@@ -16,7 +16,7 @@ function departureReason(members: FormerMember[]): string {
     return "Uns cansaram de esperar o salário, outros cansaram da própria banda.";
   }
   if (reasons.has("humor")) {
-    return "Foram dois semestres seguidos sem achar graça em nada.";
+    return "Foram meses seguidos sem achar graça em nada.";
   }
   return "O salário ficou atrasado por tempo demais.";
 }
@@ -26,6 +26,7 @@ function departureReason(members: FormerMember[]): string {
  * mau humor, com a ficha de cada um como estava no dia em que saiu e os fãs
  * que foram junto (ADR-0032 do backend).
  *
+ * @param props.bandId - A banda.
  * @param props.members - Quem saiu neste fechamento.
  * @param props.fansLost - Fãs que a banda perdeu com as saídas.
  * @param props.catalog - Catálogo de traços.
@@ -33,12 +34,14 @@ function departureReason(members: FormerMember[]): string {
  * @param props.onClose - Fecha o encarte.
  */
 export function DepartureModal({
+  bandId,
   members,
   fansLost = 0,
   catalog,
   opened,
   onClose,
 }: {
+  bandId: string;
   members: FormerMember[];
   fansLost?: number;
   catalog: Map<string, Characteristic>;
@@ -59,7 +62,7 @@ export function DepartureModal({
       </p>
       <div style={{ display: "grid", gap: 22 }}>
         {members.map((member) => (
-          <FormerMemberCard key={member.id} member={member} catalog={catalog} />
+          <FormerMemberCard key={member.id} member={member} bandId={bandId} catalog={catalog} />
         ))}
       </div>
       <p className="rv-caption" style={{ marginTop: 14 }}>

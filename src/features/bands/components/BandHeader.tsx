@@ -54,7 +54,7 @@ export function BandHeader({
         <Link to="/">← Banca</Link>
         <span>
           {issueNumber ? `Nº ${issueNumber} · ` : ""}
-          {formatPeriod(band.currentYear)}
+          {formatPeriod(band.currentYear, band.id)}
         </span>
         <span>
           {originLabel} · <span>{themeLabel}</span> · <span>desde {band.foundationYear}</span>

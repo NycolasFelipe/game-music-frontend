@@ -103,7 +103,7 @@ export function BandStatistics({
           value={`Nível ${band.fame.level}`}
           sub={band.fame.title}
         />
-        <StatTile label="Período" value={formatPeriod(band.currentYear)} />
+        <StatTile label="Data" value={formatPeriod(band.currentYear, band.id)} />
         <StatTile
           label="Felicidade média"
           value={mean(happiness).toFixed(1)}

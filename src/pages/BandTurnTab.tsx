@@ -167,6 +167,7 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
   return (
     <>
       <DepartureModal
+        bandId={band.id}
         members={departures}
         fansLost={fansLost}
         catalog={catalog}

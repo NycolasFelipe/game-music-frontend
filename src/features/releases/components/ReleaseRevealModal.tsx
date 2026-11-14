@@ -344,7 +344,7 @@ export function ReleaseRevealModal({
           ? [
               "A crítica",
               formatLabel,
-              release.releasedAtYear !== null ? `lançamento de ${formatPeriod(release.releasedAtYear)}` : null,
+              release.releasedAtYear !== null ? `lançamento de ${formatPeriod(release.releasedAtYear, release.bandId)}` : null,
             ]
               .filter(Boolean)
               .join(" · ")

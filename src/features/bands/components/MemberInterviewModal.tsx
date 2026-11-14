@@ -131,7 +131,7 @@ function InterviewBody({
               <small>
                 Humor {signedMood(member.happiness)} · {level.name}
                 {member.moodAtRisk && (
-                  <span className="rv-red"> · mais um semestre assim e sai da banda</span>
+                  <span className="rv-red"> · mais um turno assim e sai da banda</span>
                 )}
               </small>
             </p>
@@ -246,7 +246,7 @@ function InterviewBody({
                 (history.data ?? []).map((entry, index) => (
                   <div key={index}>
                     <span>
-                      {formatPeriod(entry.effectiveYear)} · {REASON_LABELS[entry.reason] ?? entry.reason}
+                      {formatPeriod(entry.effectiveYear, bandId, "short")} · {REASON_LABELS[entry.reason] ?? entry.reason}
                     </span>
                     <span>{formatMoney(entry.amount)}</span>
                   </div>

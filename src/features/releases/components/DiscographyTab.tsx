@@ -159,7 +159,7 @@ export function DiscographyTab({ band }: { band: BandDetail }) {
             ? [
                 "Resenha",
                 formatLabel(detailRelease.format),
-                detailRelease.releasedAtYear !== null ? formatPeriod(detailRelease.releasedAtYear) : null,
+                detailRelease.releasedAtYear !== null ? formatPeriod(detailRelease.releasedAtYear, detailRelease.bandId) : null,
               ]
                 .filter(Boolean)
                 .join(" · ")

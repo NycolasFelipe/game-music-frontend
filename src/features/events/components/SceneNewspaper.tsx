@@ -23,7 +23,7 @@ const BRIEFS = 3;
  */
 export interface NewspaperItem {
   id: string;
-  /** Período da notícia (ano do jogo, `.5` no 2º semestre). */
+  /** Turno da notícia (ano do jogo, `.5` no segundo turno do ano). */
   year: number;
   /** Editoria (chapéu em vermelho). */
   section: string;
@@ -54,12 +54,21 @@ function withArtists(text: string, artists: string[]): ReactNode {
  *
  * @param props.item - A notícia.
  * @param props.lead - Se é a manchete do jornal.
+ * @param props.bandId - A banda, que fixa a data de cada turno.
  */
-function NewsItem({ item, lead }: { item: NewspaperItem; lead: boolean }) {
+function NewsItem({
+  item,
+  lead,
+  bandId,
+}: {
+  item: NewspaperItem;
+  lead: boolean;
+  bandId: string;
+}) {
   return (
     <article className={lead ? "rv-news-lead" : "rv-news-brief"}>
       <div className="rv-news-dateline">
-        <span className="rv-red">{item.section}</span> · {formatPeriod(item.year)}
+        <span className="rv-red">{item.section}</span> · {formatPeriod(item.year, bandId, "short")}
       </div>
       <p>{withArtists(item.description, item.artists)}</p>
     </article>
@@ -119,16 +128,16 @@ export function SceneNewspaper({
       <header className="rv-news-plate">
         <div className="rv-news-name">Gazeta do Groove</div>
         <div className="rv-news-meta">
-          <span>{formatPeriod(currentYear)}</span>
+          <span>{formatPeriod(currentYear, bandId)}</span>
           <span>Notícias do mundo da música</span>
           <span>{fresh ? "Última hora" : `Notícias de ${thisYear}`}</span>
         </div>
       </header>
-      <NewsItem item={lead} lead />
+      <NewsItem item={lead} lead bandId={bandId} />
       {rest.length > 0 && (
         <div className="rv-news-cols">
           {rest.slice(0, BRIEFS).map((item) => (
-            <NewsItem key={item.id} item={item} lead={false} />
+            <NewsItem key={item.id} item={item} lead={false} bandId={bandId} />
           ))}
         </div>
       )}
