@@ -1,7 +1,6 @@
 import { SmartTooltip } from "@/components/SmartTooltip";
 import { useSkillDescriptions } from "@/features/bands/hooks/useBandOptions";
 import {
-  formatSkillLevel,
   SKILL_LABELS,
   SKILL_ORDER,
   skillLevelDescription,
@@ -11,7 +10,7 @@ import type { Skills } from "@/features/bands/types";
 /**
  * As seis habilidades como réguas tipográficas de 0 a 10 (ADR-0002). A
  * principal leva estrela e régua vermelha; cada linha mostra, ao passar o
- * mouse, a descrição do nível.
+ * mouse, a descrição do nível. Sem número: a régua basta (decisão do dono).
  */
 export function SkillBars({
   skills,
@@ -40,7 +39,7 @@ export function SkillBars({
               className="rv-mono"
               style={{
                 display: "grid",
-                gridTemplateColumns: "92px 1fr 34px",
+                gridTemplateColumns: "92px 1fr",
                 gap: 8,
                 alignItems: "center",
                 fontSize: 12,
@@ -70,9 +69,6 @@ export function SkillBars({
                     background: primary ? "var(--rv-red)" : "var(--rv-ink)",
                   }}
                 />
-              </span>
-              <span style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                {formatSkillLevel(skills[key])}
               </span>
             </div>
           </SmartTooltip>

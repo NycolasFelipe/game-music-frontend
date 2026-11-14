@@ -33,15 +33,6 @@ import { formatMoney } from "@/utils/money";
 /** Número no formato brasileiro, arredondado. */
 const count = (value: number) => Math.round(value).toLocaleString("pt-BR");
 
-/** Número com sinal no formato brasileiro. */
-function signed(value: number, digits = 1): string {
-  const abs = Math.abs(value).toLocaleString("pt-BR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-  return value > 0 ? `+${abs}` : value < 0 ? `−${abs}` : `±${abs}`;
-}
-
 const firstName = (name: string) => name.split(" ")[0];
 
 /** A matéria de capa do turno: o assunto mais urgente da edição. */
@@ -78,7 +69,7 @@ function coverStory(band: BandDetail, panel: TurnPanel | undefined, blocking: nu
     kicker: "Matéria de capa · Entre discos",
     head: "Estúdio vazio, agenda aberta",
     deck: worst
-      ? `Sem obra em produção. ${firstName(worst.name)} é quem mais precisa de atenção (humor ${signed(worst.happiness)}).`
+      ? `Sem obra em produção. ${firstName(worst.name)} é quem mais precisa de atenção.`
       : "Sem obra em produção.",
     cta: null,
   };
@@ -233,7 +224,7 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
                 <div key={member.id} className={`rv-q ${member.happiness < -1 ? "rv-neg" : ""}`}>
                   <b className={member.happiness < -1 ? "rv-red" : undefined}>“{level?.name ?? "…"}.”</b>
                   <span className={member.happiness < -1 ? "rv-red" : undefined}>
-                    {firstName(member.name)}, humor {signed(member.happiness)}
+                    {firstName(member.name)}
                   </span>
                 </div>
               );

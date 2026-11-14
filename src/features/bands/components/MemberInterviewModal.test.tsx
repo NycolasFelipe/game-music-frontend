@@ -60,7 +60,7 @@ describe("MemberInterviewModal", () => {
 
     expect(await screen.findByText("João Silva")).toBeInTheDocument();
     expect(await screen.findByText(/Tá tudo bem por aqui/)).toBeInTheDocument();
-    expect(screen.getByText(/Humor \+1,2 · Contente/)).toBeInTheDocument();
+    expect(screen.getByText(/Contente/)).toBeInTheDocument();
     expect(screen.getByText("Tocava em bailes de formatura.")).toBeInTheDocument();
     expect(screen.getByText("Refaz até ficar perfeito.")).toBeInTheDocument();
     expect(screen.getByText(/abaixo do alvo/)).toBeInTheDocument();

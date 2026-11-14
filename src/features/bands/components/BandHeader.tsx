@@ -1,17 +1,9 @@
 import { Link } from "react-router-dom";
 import { Masthead } from "@/components/revista";
+import { useHappinessLevels } from "@/features/bands/hooks/useBandOptions";
 import type { BandDetail } from "@/features/bands/types";
 import { formatPeriod } from "@/utils/period";
 import { formatMoney } from "@/utils/money";
-
-/** Número com sinal, no formato brasileiro. */
-function signed(value: number, digits = 0): string {
-  const abs = Math.abs(value).toLocaleString("pt-BR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
-  return value > 0 ? `+${abs}` : value < 0 ? `−${abs}` : `±${abs}`;
-}
 
 /**
  * Cabeçalho da edição (ADR-0002): a linha de serviço (número, período, origem,
@@ -39,6 +31,7 @@ export function BandHeader({
   balanceDelta?: number | null;
 }) {
   const { fame } = band;
+  const { data: happinessLevels } = useHappinessLevels();
   const span = fame.nextLevelAtFans === null ? 0 : fame.nextLevelAtFans - fame.currentLevelMinFans;
   const climbed = span > 0 ? band.fanCount - fame.currentLevelMinFans : 0;
   const progress = span > 0 ? Math.min(100, (climbed / span) * 100) : 100;
@@ -84,7 +77,12 @@ export function BandHeader({
             ? "No topo da escada"
             : `faltam ${missing.toLocaleString("pt-BR")} fãs para o Nível ${fame.level + 1}`}
         </span>
-        {happiness !== null && <span>Humor médio {signed(happiness, 2)}</span>}
+        {happiness !== null && (
+          <span>
+            Humor da banda{" "}
+            {happinessLevels?.find((l) => l.level === Math.max(-5, Math.min(5, Math.round(happiness))))?.name.toLowerCase() ?? ""}
+          </span>
+        )}
       </div>
     </header>
   );

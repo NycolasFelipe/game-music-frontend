@@ -3,7 +3,7 @@ import { useHappinessLevels } from "@/features/bands/hooks/useBandOptions";
 
 /**
  * O humor de um integrante como régua centrada no zero (tinta para cima,
- * vermelho para baixo), com o valor e o nome do nível. A descrição do nível
+ * vermelho para baixo) e o nome do nível, sem número (decisão do dono). A descrição do nível
  * aparece ao passar o mouse.
  */
 export function HappinessBadge({
@@ -17,9 +17,6 @@ export function HappinessBadge({
   const bucket = Math.max(-5, Math.min(5, Math.round(safe)));
   const info = levels?.find((l) => l.level === bucket);
   const width = Math.min(50, Math.abs(safe) * 10);
-  const signed =
-    (safe > 0 ? "+" : safe < 0 ? "−" : "±") +
-    Math.abs(safe).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   return (
     <SmartTooltip label={info?.description ?? ""} disabled={!info} multiline w={260} withArrow>
@@ -33,8 +30,7 @@ export function HappinessBadge({
             }
           />
         </span>{" "}
-        {signed}
-        {info ? ` · ${info.name}` : ""}
+        {info?.name ?? ""}
       </span>
     </SmartTooltip>
   );

@@ -30,21 +30,6 @@ const REASON_LABELS: Record<string, string> = {
 };
 
 /**
- * O humor com sinal e uma casa, no formato brasileiro ("+2,0", "−1,5").
- *
- * @param value - Humor de −5 a 5.
- * @returns O humor formatado.
- */
-function signedMood(value: number): string {
-  const rounded = Math.round(value * 10) / 10 || 0;
-  const abs = Math.abs(rounded).toLocaleString("pt-BR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  });
-  return rounded > 0 ? `+${abs}` : rounded < 0 ? `−${abs}` : `±${abs}`;
-}
-
-/**
  * O corpo da entrevista, montado só com o encarte aberto (o histórico de
  * salário só é buscado aí).
  *
@@ -129,7 +114,7 @@ function InterviewBody({
             <p className="rv-pull" style={{ marginTop: 0 }}>
               “{level.description}”
               <small>
-                Humor {signedMood(member.happiness)} · {level.name}
+                {level.name}
                 {member.moodAtRisk && (
                   <span className="rv-red"> · mais um turno assim e sai da banda</span>
                 )}

@@ -6,7 +6,7 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { FaceThumb, firstName, levelHex, pairKey } from "@/features/bands";
+import { FaceThumb, firstName, levelHex, pairKey, useHappinessLevels } from "@/features/bands";
 import { MemberHoverCard } from "@/features/bands/components/MemberHoverCard";
 import type { BandMember, MemberRelationship } from "@/features/bands";
 import { usePeopleView } from "@/features/preferences";
@@ -27,18 +27,15 @@ const toggleLabel = (name: string, going: boolean) =>
   `${going ? "Tirar" : "Levar"} ${name}`;
 
 /**
- * O humor com sinal e uma casa, no formato brasileiro ("+2,0", "−1,5").
+ * O humor em palavra ("Desanimado"), sem número (decisão do dono). Devolve
+ * uma função para usar dentro das listas.
  *
- * @param value - Humor de −5 a 5.
- * @returns O humor formatado.
+ * @returns O nome do nível de humor para um valor de −5 a 5.
  */
-function moodLabel(value: number): string {
-  const rounded = roundMood(value);
-  const abs = Math.abs(rounded).toLocaleString("pt-BR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  });
-  return rounded > 0 ? `+${abs}` : rounded < 0 ? `−${abs}` : `±${abs}`;
+function useMoodWord(): (value: number) => string {
+  const { data: levels } = useHappinessLevels();
+  return (value: number) =>
+    levels?.find((level) => level.level === Math.max(-5, Math.min(5, Math.round(value))))?.name ?? "";
 }
 
 /**
@@ -62,6 +59,7 @@ function GuestCard({
   going: boolean;
   onToggle: () => void;
 }) {
+  const moodWord = useMoodWord();
   return (
     <MemberHoverCard member={member}>
       <Paper
@@ -94,7 +92,7 @@ function GuestCard({
         >
           {member.name}{" "}
           <span
-            aria-label={`humor ${moodLabel(member.happiness)}`}
+            aria-label={`humor ${moodWord(member.happiness)}`}
             style={{
               fontWeight: 400,
               color:
@@ -105,7 +103,7 @@ function GuestCard({
                     : "var(--rv-soft)",
             }}
           >
-            {moodLabel(member.happiness)}
+            {moodWord(member.happiness)}
           </span>
         </Text>
       </Paper>
@@ -126,6 +124,7 @@ function GuestGraph({
   selected,
   onToggle,
 }: GuestPickerProps) {
+  const moodWord = useMoodWord();
   if (members.length < 2) {
     return (
       <Text size="sm" c="dimmed">
@@ -231,7 +230,7 @@ function GuestGraph({
                     fontSize={12}
                     fontWeight={600}
                     textAnchor={pos[index].x > center + 1 ? "end" : "start"}
-                    aria-label={`humor ${moodLabel(member.happiness)}`}
+                    aria-label={`humor ${moodWord(member.happiness)}`}
                     style={{
                       fill:
                         roundMood(member.happiness) < 0
@@ -243,7 +242,7 @@ function GuestGraph({
                       paintOrder: "stroke",
                     }}
                   >
-                    {moodLabel(member.happiness)}
+                    {moodWord(member.happiness)}
                   </text>
                   <text
                     x={pos[index].x}

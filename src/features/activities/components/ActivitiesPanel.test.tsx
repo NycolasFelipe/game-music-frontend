@@ -23,6 +23,8 @@ vi.mock("@/features/events/services/events.api", () => ({
 
 vi.mock("@/features/bands/services/bands.api", () => ({
   listCharacteristics: vi.fn().mockResolvedValue([]),
+  getHappinessLevels: vi.fn().mockResolvedValue([]),
+  getSkillDescriptions: vi.fn().mockResolvedValue([]),
   getBandOptions: vi.fn(),
 }));
 
