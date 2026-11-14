@@ -32,6 +32,7 @@ export function BandCover({ band, themeLabel }: { band: Band; themeLabel: string
           scene={resolveScene(band.id, band.photoScene)}
           label={`Capa da ${band.name}`}
           shape="square"
+          namesOnHover={false}
         />
       ) : (
         <div className="rv-photo rv-sq" />
