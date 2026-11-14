@@ -160,7 +160,7 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
         }
       },
       onError: () =>
-        notifications.show({ color: "red", message: "Resolva o que está pendente antes de fechar a edição." }),
+        notifications.show({ color: "red", message: "Resolva o que está pendente antes da próxima edição." }),
     });
   }
 
@@ -362,20 +362,20 @@ export function BandTurnTab({ band }: { band: BandDetail }) {
           )}
         </div>
         <div style={{ textAlign: "right" }}>
+          <div className="rv-caption" style={{ margin: "0 0 6px" }}>
+            {blocking.length > 0
+              ? "Resolva as decisões para seguir."
+              : "Avança o turno."}
+          </div>
           {blocking.length > 0 ? (
             <Button size="lg" color="press" onClick={openDecisions}>
               Resolver {blocking.length} decis{blocking.length === 1 ? "ão" : "ões"}
             </Button>
           ) : (
             <Button size="lg" color="press" onClick={handleAdvance} loading={advance.isPending}>
-              Fechar a edição →
+              Próxima edição →
             </Button>
           )}
-          <div className="rv-caption">
-            {blocking.length > 0
-              ? "Resolva as decisões para fechar."
-              : "Avança o turno: royalties, folha e eventos."}
-          </div>
         </div>
       </div>
     </>

@@ -115,7 +115,7 @@ export function ActivityPicker({
         />
         {worstLevel !== null && worstLevel < 0 && (
           <p className="rv-note">
-            Tem gente na lista que não se suporta: é o que mais compensa e o que mais arrisca.
+            Tem gente na lista que não se suporta.
           </p>
         )}
       </div>

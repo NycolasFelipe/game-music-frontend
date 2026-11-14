@@ -491,7 +491,7 @@ export function ReleaseCreationModal({
             </div>
           )}
           <p className="rv-caption">
-            Cada quadro é um turno de estúdio. Feche a edição na aba Turno para
+            Cada quadro é um turno de estúdio. Passe à próxima edição na aba Turno para
             a gravação andar; a cada turno pode surgir uma decisão de estúdio.
           </p>
           <Group justify="space-between" mt="lg">
