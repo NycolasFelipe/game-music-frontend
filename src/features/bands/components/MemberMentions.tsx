@@ -55,7 +55,7 @@ export function MemberMentions({
       {text.split(pattern).map((part, index) => {
         const member = index % 2 === 1 ? byName.get(part) : undefined;
         return member ? (
-          <MemberHoverName key={index} member={member} catalog={catalog} inline />
+          <MemberHoverName key={index} member={member} catalog={catalog} inline label={part} />
         ) : (
           <Fragment key={index}>{part}</Fragment>
         );

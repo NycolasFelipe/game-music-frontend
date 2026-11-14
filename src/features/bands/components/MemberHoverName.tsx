@@ -14,15 +14,19 @@ import type { Characteristic } from "@/features/bands/types";
  * @param props.catalog - Trait catalog (names and descriptions).
  * @param props.inline - Renders only the name, in the surrounding text's font,
  *   for names mentioned inside a sentence.
+ * @param props.label - Text shown instead of the full name (e.g. the first name
+ *   as written in the sentence).
  */
 export function MemberHoverName({
   member,
   catalog,
   inline = false,
+  label,
 }: {
   member: MemberCardData;
   catalog: Map<string, Characteristic>;
   inline?: boolean;
+  label?: string;
 }) {
   return (
     <HoverCard
@@ -35,7 +39,7 @@ export function MemberHoverName({
     >
       <HoverCard.Target>
         {inline ? (
-          <span className="rv-mention">{member.name}</span>
+          <span className="rv-mention">{label ?? member.name}</span>
         ) : (
           <Group
             gap={4}

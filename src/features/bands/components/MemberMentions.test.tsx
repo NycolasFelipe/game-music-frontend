@@ -44,6 +44,22 @@ describe("MemberMentions", () => {
     expect(mentions).toEqual(["Ana Luz"]);
   });
 
+  it("mentions a unique first name and keeps it as written", () => {
+    const { container } = renderWithProviders(
+      <p data-testid="text">
+        <MemberMentions
+          text="Dênis sente o golpe. Ana e Ana Luz não."
+          members={[member("m1", "Dênis Albuquerque"), member("m2", "Ana Luz"), member("m3", "Ana Bia")]}
+          catalog={new Map()}
+        />
+      </p>,
+    );
+    const mentions = [...container.querySelectorAll(".rv-mention")].map((el) => el.textContent);
+    // "Ana" is shared by two members, so only the full name is a mention.
+    expect(mentions).toEqual(["Dênis", "Ana Luz"]);
+    expect(screen.getByTestId("text").textContent).toBe("Dênis sente o golpe. Ana e Ana Luz não.");
+  });
+
   it("leaves the text alone when no member is named", () => {
     const { container } = renderWithProviders(
       <p data-testid="text">
