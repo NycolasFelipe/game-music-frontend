@@ -124,15 +124,21 @@ export function MemberCard({
           </div>
         )}
         {actions && (
-          <div style={{ marginTop: 4 }} onClick={(event) => event.stopPropagation()}>
+          <div className="rv-cardblock" onClick={(event) => event.stopPropagation()}>
             {actions}
           </div>
         )}
-        <CharacteristicChips ids={member.characteristics} catalog={catalog} />
-        <p className="rv-caption" style={{ margin: "4px 0 8px" }}>
-          {member.biography}
-        </p>
-        <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
+        <div className="rv-cardblock">
+          <div className="rv-cardlabel">Personalidade</div>
+          <CharacteristicChips ids={member.characteristics} catalog={catalog} />
+          <p className="rv-caption" style={{ margin: "4px 0 0" }}>
+            {member.biography}
+          </p>
+        </div>
+        <div className="rv-cardblock">
+          <div className="rv-cardlabel">Habilidades</div>
+          <SkillBars skills={member.skills} primarySkill={member.primarySkill} />
+        </div>
       </div>
     </article>
   );

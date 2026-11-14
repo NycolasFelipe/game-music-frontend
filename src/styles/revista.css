@@ -1218,3 +1218,17 @@ body {
   font-style: normal;
   color: var(--rv-soft);
 }
+
+/* Blocos do cartão do integrante (Elenco, audição, ficha no hover) */
+.rv-cardblock {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dotted var(--rv-soft);
+}
+.rv-cardblock .rv-cardlabel {
+  font: 700 10px var(--rv-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--rv-soft);
+  margin-bottom: 5px;
+}
