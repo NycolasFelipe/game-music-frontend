@@ -24,6 +24,8 @@ vi.mock("@/features/releases/services/releases.api", () => ({
 vi.mock("@/features/bands/services/bands.api", () => ({
   getBandOptions: vi.fn(),
   listCharacteristics: vi.fn().mockResolvedValue([]),
+  getHappinessLevels: vi.fn().mockResolvedValue([]),
+  getSkillDescriptions: vi.fn().mockResolvedValue([]),
 }));
 
 const skills = (partial: Partial<Skills>): Skills => ({
@@ -42,8 +44,13 @@ const member = (id: string, name: string, partial: Partial<Skills>) =>
     name,
     avatar: "🧑",
     skills: skills(partial),
+    primarySkill: "guitar",
+    characteristics: [],
+    biography: "",
+    gender: "female",
+    age: 25,
     happiness: 0,
-  }) as BandMember;
+  }) as unknown as BandMember;
 
 const band = {
   id: "b-1",
