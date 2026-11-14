@@ -12,6 +12,28 @@ interface TimelineEntry {
   resolved?: boolean;
   chosenLabel?: string;
   outcome?: string;
+  /** Notícias da cena da mesma edição, juntas numa linha só. */
+  items?: string[];
+}
+
+/**
+ * Junta as notícias da cena que caem na mesma edição, em sequência, numa
+ * linha só do Arquivo, para a página não virar uma coluna de notas soltas.
+ *
+ * @param entries - As entradas já ordenadas da mais nova para a mais antiga.
+ * @returns As entradas com as notícias da mesma edição agrupadas.
+ */
+function groupScene(entries: TimelineEntry[]): TimelineEntry[] {
+  const rows: TimelineEntry[] = [];
+  for (const entry of entries) {
+    const last = rows[rows.length - 1];
+    if (entry.kind === "passive" && last?.kind === "passive" && last.year === entry.year) {
+      last.items = [...(last.items ?? [last.description]), entry.description];
+    } else {
+      rows.push({ ...entry });
+    }
+  }
+  return rows;
 }
 
 /**
@@ -44,6 +66,7 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
       outcome: a.outcome?.description,
     })),
   ].sort((x, y) => y.year - x.year);
+  const rows = groupScene(entries);
 
   const loading = loadingActive || loadingPassive;
 
@@ -58,7 +81,7 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
         <p className="rv-deck">Feche edições para a história da banda começar a acontecer.</p>
       )}
 
-      {entries.map((entry) => (
+      {rows.map((entry) => (
         <article
           key={entry.key}
           style={{
@@ -83,7 +106,22 @@ export function BandTimelineTab({ band }: { band: BandDetail }) {
                     : "Decisão pendente"}
             </div>
             {entry.title && <div style={{ font: "900 20px/1.2 var(--rv-serif)", margin: "2px 0" }}>{entry.title}</div>}
-            <p style={{ margin: "4px 0 0" }}>{entry.description}</p>
+            {entry.items ? (
+              entry.items.map((item, index) => (
+                <p
+                  key={item}
+                  style={{
+                    margin: "4px 0 0",
+                    paddingTop: index === 0 ? 0 : 4,
+                    borderTop: index === 0 ? undefined : "1px dotted var(--rv-soft)",
+                  }}
+                >
+                  {item}
+                </p>
+              ))
+            ) : (
+              <p style={{ margin: "4px 0 0" }}>{entry.description}</p>
+            )}
             {entry.kind === "active" && entry.resolved && (
               <p className="rv-caption">
                 Você escolheu: <b>{entry.chosenLabel ?? "—"}</b>
