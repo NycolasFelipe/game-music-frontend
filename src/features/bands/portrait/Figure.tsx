@@ -9,6 +9,7 @@ import {
 import {
   moodOf,
   resolveLooks,
+  type EarringStyle,
   type PortraitSubject,
 } from "@/features/bands/portrait/looks";
 
@@ -25,6 +26,66 @@ const TORSO =
   "M6,250 L9,140 C11,122 26,114 47,107 C53,114 67,114 73,107 C94,114 109,122 111,140 L114,250 Z";
 const BEARD =
   "M41,74 C42,92 50,104 60,104 C70,104 78,92 79,74 C77,86 72,92 66,93 C62,91 58,91 54,93 C48,92 43,86 41,74 Z";
+
+/**
+ * Os brincos, nas duas orelhas (ou só na esquerda, no modelo `single`). Cada
+ * peça tem contorno de tinta e miolo de papel, para aparecer sobre pele clara,
+ * pele escura e cabelo.
+ *
+ * @param props.style - O modelo do brinco.
+ * @returns Os brincos em SVG, nas coordenadas da figura.
+ */
+function Earrings({ style }: { style: Exclude<EarringStyle, "none"> }) {
+  const ears = style === "single" ? [41] : [41, 79];
+  const piece = (x: number) => {
+    switch (style) {
+      case "hoop":
+      case "single":
+        return (
+          <>
+            <circle cx={x} cy="87" r="4.4" fill="none" stroke={INK} strokeWidth="2.6" />
+            <circle cx={x} cy="87" r="4.4" fill="none" stroke={PAPER} strokeWidth="1" />
+          </>
+        );
+      case "smallhoop":
+        return (
+          <>
+            <circle cx={x} cy="84.5" r="2.6" fill="none" stroke={INK} strokeWidth="2.2" />
+            <circle cx={x} cy="84.5" r="2.6" fill="none" stroke={PAPER} strokeWidth="0.8" />
+          </>
+        );
+      case "cross":
+        return (
+          <>
+            <path d={`M${x},82 L${x},93 M${x - 3},85.5 L${x + 3},85.5`} stroke={INK} strokeWidth="2.6" strokeLinecap="square" />
+            <path d={`M${x},82 L${x},93 M${x - 3},85.5 L${x + 3},85.5`} stroke={PAPER} strokeWidth="1" strokeLinecap="square" />
+          </>
+        );
+      case "drop":
+        return (
+          <>
+            <path d={`M${x},82 L${x},88`} stroke={INK} strokeWidth="1.2" />
+            <circle cx={x} cy="82" r="1.5" fill={PAPER} stroke={INK} strokeWidth="1" />
+            <path
+              d={`M${x},87 C${x + 3},91 ${x + 3},94 ${x},95 C${x - 3},94 ${x - 3},91 ${x},87 Z`}
+              fill={PAPER}
+              stroke={INK}
+              strokeWidth="1.2"
+            />
+          </>
+        );
+      default:
+        return <circle cx={x} cy="83" r="2" fill={PAPER} stroke={INK} strokeWidth="1.2" />;
+    }
+  };
+  return (
+    <>
+      {ears.map((x) => (
+        <g key={x}>{piece(x)}</g>
+      ))}
+    </>
+  );
+}
 
 /**
  * Uma pessoa em retícula, em coordenadas locais 120 × 250: cabeça em (60, 70),
@@ -318,12 +379,7 @@ export function Figure({
       {/* Orelhas, brincos e mechas da frente */}
       <ellipse cx="41.5" cy="74" rx="4.2" ry="6.5" fill={sk} stroke={INK} strokeWidth="1" />
       <ellipse cx="78.5" cy="74" rx="4.2" ry="6.5" fill={sk} stroke={INK} strokeWidth="1" />
-      {L.earring && (
-        <>
-          <circle cx="41" cy="83" r="2" fill={PAPER} stroke={INK} strokeWidth="1.2" />
-          <circle cx="79" cy="83" r="2" fill={PAPER} stroke={INK} strokeWidth="1.2" />
-        </>
-      )}
+      {L.earring !== "none" && <Earrings style={L.earring} />}
       {L.hairStyle === "long" && fem && (
         <>
           <path d="M41,58 C37,82 38,112 33,140 L45,138 C47,112 47,90 46,66 Z" fill={hf} {...hs} />

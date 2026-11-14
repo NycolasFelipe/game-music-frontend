@@ -19,6 +19,28 @@ export interface PortraitSubject {
   appearance?: MemberAppearance | null;
 }
 
+/**
+ * Modelo do brinco. O backend só guarda se a pessoa usa brinco (ADR-0023); o
+ * modelo sai do id, então a mesma pessoa sempre aparece com o mesmo brinco.
+ */
+export type EarringStyle = "none" | "stud" | "hoop" | "smallhoop" | "cross" | "drop" | "single";
+
+const EARRINGS_FEMININE: readonly EarringStyle[] = ["stud", "hoop", "hoop", "smallhoop", "drop", "drop", "cross", "single"];
+const EARRINGS_OTHER: readonly EarringStyle[] = ["stud", "stud", "smallhoop", "cross", "cross", "single", "single", "hoop"];
+
+/**
+ * Escolhe o modelo do brinco de quem usa brinco.
+ *
+ * @param subject - A pessoa retratada.
+ * @param wears - Se a aparência diz que a pessoa usa brinco.
+ * @returns O modelo, ou `none`.
+ */
+export function earringStyleOf(subject: PortraitSubject, wears: boolean): EarringStyle {
+  if (!wears) return "none";
+  const list = subject.gender === "female" ? EARRINGS_FEMININE : EARRINGS_OTHER;
+  return list[Math.floor(seeded(`${subject.id || subject.name}:earring`)() * list.length)];
+}
+
 /** Tudo o que o desenho precisa saber sobre a pessoa. */
 export interface Looks {
   /** Tom de pele na retícula (1 claro … 7 escuro). */
@@ -31,7 +53,7 @@ export interface Looks {
   hairOutline: boolean;
   beard: BeardStyle;
   glasses: GlassesStyle;
-  earring: boolean;
+  earring: EarringStyle;
   shirt: ShirtStyle;
   shirtTone: ShirtTone;
 }
@@ -117,7 +139,7 @@ export function resolveLooks(subject: PortraitSubject): Looks {
     hairOutline: red || white || blond,
     beard: appearance.beard,
     glasses: appearance.glasses,
-    earring: appearance.earring,
+    earring: earringStyleOf(subject, appearance.earring),
     shirt: appearance.shirt,
     shirtTone: appearance.shirtTone,
   };
